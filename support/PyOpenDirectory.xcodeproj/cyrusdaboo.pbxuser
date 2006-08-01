@@ -1,0 +1,164 @@
+// !$*UTF8*$!
+{
+	08FB7793FE84155DC02AAC07 /* Project object */ = {
+		activeBuildConfigurationName = Debug;
+		activeExecutable = AF155A290A501F5C007E1E6E /* PyOpenDirectory */;
+		activeTarget = 8DD76F620486A84900D96B5E /* PyOpenDirectory */;
+		addToTargets = (
+			8DD76F620486A84900D96B5E /* PyOpenDirectory */,
+		);
+		breakpoints = (
+			AF155C230A50587A007E1E6E /* main.cpp:72 */,
+		);
+		breakpointsGroup = AF155B8E0A5036CE007E1E6E /* XCBreakpointsBucket */;
+		codeSenseManager = AF155A2E0A501F7B007E1E6E /* Code sense */;
+		executables = (
+			AF155A290A501F5C007E1E6E /* PyOpenDirectory */,
+		);
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					559,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 173025236;
+			PBXWorkspaceStateSaveDate = 173025236;
+		};
+		sourceControlManager = AF155A2D0A501F7B007E1E6E /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	08FB7796FE84155DC02AAC07 /* main.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {971, 7616}}";
+			sepNavSelRange = "{2467, 0}";
+			sepNavVisRect = "{{0, 886}, {971, 342}}";
+			sepNavWindowFrame = "{{436, 4}, {811, 1024}}";
+		};
+	};
+	8DD76F620486A84900D96B5E /* PyOpenDirectory */ = {
+		activeExec = 0;
+		executables = (
+			AF155A290A501F5C007E1E6E /* PyOpenDirectory */,
+		);
+	};
+	AF155A290A501F5C007E1E6E /* PyOpenDirectory */ = {
+		isa = PBXExecutable;
+		activeArgIndex = 2147483647;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = PyOpenDirectory;
+		savedGlobals = {
+		};
+		sourceDirectories = (
+		);
+		variableFormatDictionary = {
+		};
+	};
+	AF155A2D0A501F7B007E1E6E /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+		};
+		scmType = "";
+	};
+	AF155A2E0A501F7B007E1E6E /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1001, 13062}}";
+			sepNavSelRange = "{4911, 46}";
+			sepNavVisRect = "{{0, 2486}, {1001, 895}}";
+			sepNavWindowFrame = "{{550, 4}, {1046, 1024}}";
+		};
+	};
+	AF155A300A501F84007E1E6E /* CDirectoryService.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {766, 910}}";
+			sepNavSelRange = "{1276, 0}";
+			sepNavVisRect = "{{0, 10}, {766, 895}}";
+			sepNavWindowFrame = "{{15, -1}, {811, 1024}}";
+		};
+	};
+	AF155A310A501F84007E1E6E /* PythonWrapper.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1028, 8694}}";
+			sepNavSelRange = "{15855, 0}";
+			sepNavVisRect = "{{0, 8313}, {1028, 329}}";
+			sepNavWindowFrame = "{{15, -1}, {811, 1024}}";
+		};
+	};
+	AF155AFB0A502C09007E1E6E /* CFStringUtil.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {766, 895}}";
+			sepNavSelRange = "{546, 0}";
+			sepNavVisRect = "{{0, 0}, {766, 895}}";
+			sepNavWindowFrame = "{{810, -8}, {811, 1024}}";
+		};
+	};
+	AF155AFC0A502C09007E1E6E /* CFStringUtil.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1028, 1148}}";
+			sepNavSelRange = "{1112, 16}";
+			sepNavVisRect = "{{0, 725}, {1028, 329}}";
+			sepNavWindowFrame = "{{36, 4}, {811, 1024}}";
+		};
+	};
+	AF155B8E0A5036CE007E1E6E /* XCBreakpointsBucket */ = {
+		isa = XCBreakpointsBucket;
+		name = "Project Breakpoints";
+		objects = (
+			AF155C230A50587A007E1E6E /* main.cpp:72 */,
+		);
+	};
+	AF155C230A50587A007E1E6E /* main.cpp:72 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		delayBeforeContinue = 0;
+		fileReference = 08FB7796FE84155DC02AAC07 /* main.cpp */;
+		functionName = "main()";
+		hitCount = 1;
+		lineNumber = 72;
+		location = main.ob;
+		modificationTime = 173039851.35989;
+		state = 1;
+	};
+}
