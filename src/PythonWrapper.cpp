@@ -169,13 +169,16 @@ static void CFDictionaryIterator(const void* key, const void* value, void* ref)
 		CFStringRef strvalue = (CFStringRef)value;
 		PyObject* pystrvalue = CFStringToPyStr(strvalue);
 		PyDict_SetItem(dict, pystrkey, pystrvalue);
+		Py_DECREF(pystrvalue);
 	}
 	else if(CFGetTypeID((CFTypeRef)value) == CFArrayGetTypeID())
 	{
 		CFArrayRef arrayvalue = (CFArrayRef)value;
 		PyObject* pylistvalue = CFArrayToPyList(arrayvalue);
 		PyDict_SetItem(dict, pystrkey, pylistvalue);
+		Py_DECREF(pylistvalue);
 	}
+	Py_DECREF(pystrkey);
 }
 
 // Utility function - not exposed to Python
@@ -199,6 +202,8 @@ static void CFDictionaryDictionaryIterator(const void* key, const void* value, v
 	PyObject* pydictvalue = CFDictionaryToPyDict(dictvalue);
 	
 	PyDict_SetItem(dict, pystrkey, pydictvalue);
+	Py_DECREF(pystrkey);
+	Py_DECREF(pydictvalue);
 }
 
 // Utility function - not exposed to Python
