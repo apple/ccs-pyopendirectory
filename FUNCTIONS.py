@@ -86,13 +86,14 @@ def checkResource(obj, resource):
     @return: C{True} if the resource was found, C{False} otherwise.
     """
 
-def userAttributes(obj, user):
+def listUsersWithAttributes(obj, user):
     """
     Get user attributes relevant to CalDAV from Open Directory.
     
     @param obj: C{object} the object obtained from an odInit call.
-    @param user: C{str} containing the user to get attributes for.
-    @return: C{dict} of attributes if the user was found, C{None} otherwise.
+    @param users: C{list} containing C{str}'s for each user to get attributes for.
+    @return: C{dict} containing a C{dict} of attributes for each requested user, 
+        or C{None} otherwise.
     """
 
 def groupAttributes(obj, grp):
@@ -101,7 +102,8 @@ def groupAttributes(obj, grp):
     
     @param obj: C{object} the object obtained from an odInit call.
     @param grp: C{str} containing the group to get attributes for.
-    @return: C{dict} of attributes if the group was found, C{None} otherwise.
+    @return: C{dict} containing a C{dict} of attributes for each requested group, 
+        or C{None} otherwise.
     """
 
 def resourceAttributes(obj, rsrc):
@@ -110,7 +112,8 @@ def resourceAttributes(obj, rsrc):
     
     @param obj: C{object} the object obtained from an odInit call.
     @param rsrc: C{str} containing the resource to get attributes for.
-    @return: C{dict} of attributes if the resource was found, C{None} otherwise.
+    @return: C{dict} containing a C{dict} of attributes for each requested resource, 
+        or C{None} otherwise.
     """
 
 def authenticateUser(obj, user, pswd):

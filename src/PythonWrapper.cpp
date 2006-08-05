@@ -466,7 +466,8 @@ extern "C" PyObject *checkResource(PyObject *self, PyObject *args)
 	
 	@param obj: C{object} the object obtained from an odInit call.
 	@param users: C{list} containing C{str}'s for each user to get attributes for.
-	@return: C{dict} of attributes if the user was found, C{None} otherwise.
+	@return: C{dict} containing a C{dict} of attributes for each requested user, 
+		or C{None} otherwise.
 	"""
  */
 extern "C" PyObject *listUsersWithAttributes(PyObject *self, PyObject *args)
@@ -506,7 +507,8 @@ extern "C" PyObject *listUsersWithAttributes(PyObject *self, PyObject *args)
 	
 	@param obj: C{object} the object obtained from an odInit call.
 	@param groups: C{list} containing C{str}'s for each group to get attributes for.
-	@return: C{dict} of attributes if the group was found, C{None} otherwise.
+	@return: C{dict} containing a C{dict} of attributes for each requested group, 
+		or C{None} otherwise.
 	"""
  */
 extern "C" PyObject *listGroupsWithAttributes(PyObject *self, PyObject *args)
@@ -546,7 +548,8 @@ extern "C" PyObject *listGroupsWithAttributes(PyObject *self, PyObject *args)
 	
 	@param obj: C{object} the object obtained from an odInit call.
 	@param rsrcs: C{list} containing C{str}'s for each resource to get attributes for.
-	@return: C{dict} of attributes if the resource was found, C{None} otherwise.
+	@return: C{dict} containing a C{dict} of attributes for each requested resource, 
+		or C{None} otherwise.
 	"""
  */
 extern "C" PyObject *listResourcesWithAttributes(PyObject *self, PyObject *args)
