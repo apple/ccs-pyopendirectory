@@ -17,17 +17,39 @@
 ##
 
 from distutils.core import setup, Extension
+import sys
 
-module1 = Extension(
-    'opendirectory',
-    extra_link_args = ['-framework', 'DirectoryService', "-framework", "CoreFoundation"],
-    sources = ['src/PythonWrapper.cpp', 'src/CDirectoryService.cpp', 'src/CFStringUtil.cpp'],
-)
+if sys.platform in ["darwin", "macosx"]: 
 
-setup (
-    name = 'opendirectory',
-    version = '1.0',
-    description = 'This is a high-level interface to Open Directory for operations specific to a CalDAV server.',
-    ext_modules = [module1],
-    py_modules = ['dsattributes']
-)
+    """
+    On Mac OS X we build the actual Python module linking to the
+    DirectoryService.framework.
+    """
+
+    module1 = Extension(
+        'opendirectory',
+        extra_link_args = ['-framework', 'DirectoryService', "-framework", "CoreFoundation"],
+        sources = ['src/PythonWrapper.cpp', 'src/CDirectoryService.cpp', 'src/CFStringUtil.cpp'],
+    )
+    
+    setup (
+        name = 'opendirectory',
+        version = '1.0',
+        description = 'This is a high-level interface to Open Directory for operations specific to a CalDAV server.',
+        ext_modules = [module1],
+        py_modules = ['dsattributes']
+    )
+
+else:
+    """
+    On other OS's we simply include a stub file of prototypes.
+    Eventually we should build the proper module and link
+    with appropriate local ldap etc libraries.
+    """
+
+    setup (
+        name = 'opendirectory',
+        version = '1.0',
+        description = 'This is a high-level interface to the Kerberos.framework',
+        py_modules = ['dsattributes', 'opendirectory']
+    )
