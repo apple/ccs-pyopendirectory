@@ -37,6 +37,7 @@ if sys.platform in ["darwin", "macosx"]:
         version = '1.0',
         description = 'This is a high-level interface to Open Directory for operations specific to a CalDAV server.',
         ext_modules = [module1],
+        package_dir={'': 'pysrc'},
         py_modules = ['dsattributes']
     )
 
@@ -51,5 +52,6 @@ else:
         name = 'opendirectory',
         version = '1.0',
         description = 'This is a high-level interface to the Kerberos.framework',
-        py_modules = ['dsattributes', 'opendirectory']
+        package_dir={'': 'pysrc'},
+        packages=['']
     )
