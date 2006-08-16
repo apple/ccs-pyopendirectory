@@ -96,7 +96,7 @@ def listUsersWithAttributes(obj, user):
         or C{None} otherwise.
     """
 
-def groupAttributes(obj, grp):
+def listGroupsWithAttributes(obj, grp):
     """
     Get group attributes relevant to CalDAV from Open Directory.
     
@@ -106,7 +106,7 @@ def groupAttributes(obj, grp):
         or C{None} otherwise.
     """
 
-def resourceAttributes(obj, rsrc):
+def listResourcesWithAttributes(obj, rsrc):
     """
     Get resource attributes relevant to CalDAV from Open Directory.
     
