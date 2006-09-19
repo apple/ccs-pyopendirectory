@@ -1,0 +1,1 @@
+self.localPrefs = {'files': [[u'/private/Network/Servers/harris/Volumes/veedu/dreid/DirectoryService.pyx', u'-I/Library/Frameworks/Python.framework/Versions/2.4/include/python2.4/']], 'path': u'/private/Network/Servers/harris/Volumes/veedu/dreid/PyOpenDirectory.pbx', 'flags': u'', 'name': u'PyOpenDirectory', 'frameworks': [u'DirectoryService', u'Python']}
