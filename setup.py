@@ -18,7 +18,7 @@
 
 from distutils.core import setup, Extension
 import sys
-
+                  
 if sys.platform in ["darwin", "macosx"]: 
 
     """
@@ -26,32 +26,43 @@ if sys.platform in ["darwin", "macosx"]:
     DirectoryService.framework.
     """
 
-    module1 = Extension(
-        'opendirectory',
-        extra_link_args = ['-framework', 'DirectoryService', "-framework", "CoreFoundation"],
-        sources = ['src/PythonWrapper.cpp', 'src/CDirectoryService.cpp', 'src/CFStringUtil.cpp'],
-    )
-    
-    setup (
-        name = 'opendirectory',
-        version = '1.0',
-        description = 'This is a high-level interface to Open Directory for operations specific to a CalDAV server.',
-        ext_modules = [module1],
-        package_dir={'': 'pysrc'},
-        py_modules = ['dsattributes']
-    )
+    try:
+        from Pyrex.Distutils import build_ext
+        DSModule = Extension("DirectoryServices/DirectoryService",
+                             ["DirectoryServices/DirectoryService.pyx"],
+                             extra_link_args = ['-framework', 
+                                                'DirectoryService'])
 
-else:
-    """
-    On other OS's we simply include a stub file of prototypes.
-    Eventually we should build the proper module and link
-    with appropriate local ldap etc libraries.
-    """
+        cmdClass = {'build_ext': build_ext}
+        
+    except ImportError:
+        DSModule = Extension("DirectoryServices/DirectoryService",
+                             extra_link_args = ['-framework', 
+                                                'DirectoryService'],
+                             sources = ["DirectoryServices/DirectoryService.c"])
+
+        cmdClass = {}
 
     setup (
-        name = 'opendirectory',
-        version = '1.0',
-        description = 'This is a high-level interface to the Kerberos.framework',
-        package_dir={'': 'pysrc'},
-        packages=['']
+        name = 'DirectoryServices',
+        version = '2.0',
+        description = 'This is a high-level interface to Directory Services',
+        ext_modules = [DSModule],
+        packages = ["DirectoryServices"],
+        cmdclass = cmdClass
     )
+
+# else:
+#     """
+#     On other OS's we simply include a stub file of prototypes.
+#     Eventually we should build the proper module and link
+#     with appropriate local ldap etc libraries.
+#     """
+
+#     setup (
+#         name = 'opendirectory',
+#         version = '1.0',
+#         description = 'This is a high-level interface to the Kerberos.framework',
+#         package_dir={'': 'pysrc'},
+#         packages=['']
+#     )
