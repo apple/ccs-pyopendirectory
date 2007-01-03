@@ -17,23 +17,6 @@
 		AF155AFE0A502C09007E1E6E /* CFStringUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155AFC0A502C09007E1E6E /* CFStringUtil.cpp */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXBuildStyle section */
-		356A20860A65924600725179 /* Development */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-			};
-			name = Development;
-		};
-		356A20870A65924600725179 /* Deployment */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-			};
-			name = Deployment;
-		};
-/* End PBXBuildStyle section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		8DD76F690486A84900D96B5E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -140,15 +123,12 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 1DEB923508733DC60010E9CD /* Build configuration list for PBXProject "PyOpenDirectory" */;
-			buildSettings = {
-			};
-			buildStyles = (
-				356A20860A65924600725179 /* Development */,
-				356A20870A65924600725179 /* Deployment */,
-			);
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			mainGroup = 08FB7794FE84155DC02AAC07 /* PyOpenDirectory */;
 			projectDirPath = "";
+			projectRoot = "";
+			shouldCheckCompatibility = 1;
 			targets = (
 				8DD76F620486A84900D96B5E /* PyOpenDirectory */,
 			);

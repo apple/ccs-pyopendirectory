@@ -118,6 +118,42 @@ static CFArrayRef PyListToCFArray(PyObject* list)
 }
 
 // Utility function - not exposed to Python
+static CFDictionaryRef PyDictToCFDictionary(PyObject* dict)
+{
+	CFMutableDictionaryRef result = CFDictionaryCreateMutable(kCFAllocatorDefault, PyDict_Size(dict), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+	PyObject* key;
+	PyObject* value;
+	int pos = 0;
+	
+	while (PyDict_Next(dict, &pos, &key, &value))
+	{
+		if ((key == NULL) || !PyString_Check(key) ||
+			(value == NULL) || !PyString_Check(value))
+		{
+			CFRelease(result);
+			return NULL;
+		}
+		const char* ckey = PyString_AsString(key);
+		if (ckey == NULL)
+		{
+			CFRelease(result);
+			return NULL;
+		}
+		CFStringUtil cfkey(ckey);
+		const char* cvalue = PyString_AsString(value);
+		if (cvalue == NULL)
+		{
+			CFRelease(result);
+			return NULL;
+		}
+		CFStringUtil cfvalue(cvalue);
+		CFDictionaryAddValue(result, cfkey.get(), cfvalue.get());
+	}
+	
+	return result;
+}
+
+// Utility function - not exposed to Python
 static CFComparisonResult CompareRecordListValues(const void *val1, const void *val2, void *context)
 {
 	CFMutableArrayRef l1 = (CFMutableArrayRef)val1;
@@ -216,6 +252,8 @@ static PyObject* CFDictionaryDictionaryToPyDict(CFDictionaryRef dict)
 	return result;
 }
 
+PyObject* ODException_class = NULL;
+
 /*
  This is an automatic destructor for the object obtained by odInit. It is not directly
  exposed to Python, instead Python calls it automatically when reclaiming the object.
@@ -259,331 +297,50 @@ extern "C" PyObject* odInit(PyObject* self, PyObject* args)
 }
 
 /*
- def listUsers(obj):
-	"""
-	List users in Open Directory, and return key attributes for each user.
-	The attributes in the tuple are (uid, guid, last-modified, calendar-principal-uri).
-	
-	@param obj: C{object} the object obtained from an odInit call.
-	@return: C{list} containing a C{tuple} of C{str} for each user found,
-		or C{None} on failure.
-	"""
+def listAllRecordsWithAttributes(obj, recordType, attributes):
+    """
+    List records in Open Directory, and return key attributes for each one.
+    
+    @param obj: C{object} the object obtained from an odInit call.
+    @param recordType: C{str} containing the OD record type to lookup.
+    @param attributes: C{list} containing the attributes to return for each record.
+    @return: C{dict} containing a C{dict} of attributes for each record found, 
+        or C{None} otherwise.
+    """
  */
-extern "C" PyObject *listUsers(PyObject *self, PyObject *args)
+extern "C" PyObject *listAllRecordsWithAttributes(PyObject *self, PyObject *args)
 {
 	PyObject* pyds;
-	PyObject* result = NULL;
-    if (!PyArg_ParseTuple(args, "O", &pyds) || !PyCObject_Check(pyds))
-        return NULL;
-	
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
-	{
-		CFMutableArrayRef list = ds->ListUsers();
-		if (list != NULL)
-		{
-			result = CFArrayArrayToPyList(list, true);
-			CFRelease(list);
-		}
-		else
-			result = PyList_New(0);
-		
-		return result;
-	}
-	else
-		Py_RETURN_NONE;
-}
-
-/*
- def listGroups(obj):
-	"""
-	List groups in Open Directory, and return key attributes for each group.
-	The attributes in the tuple are (uid, guid, last-modified, calendar-principal-uri).
-	
-	@param obj: C{object} the object obtained from an odInit call.
-	@return: C{list} containg a C{tuple} of C{str} for each group found,
-		or C{None} on failure.
-	"""
- */
-extern "C" PyObject *listGroups(PyObject *self, PyObject *args)
-{
-	PyObject* pyds;
-	PyObject* result = NULL;
-    if (!PyArg_ParseTuple(args, "O", &pyds) || !PyCObject_Check(pyds))
-        return NULL;
-	
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
-	{
-		CFMutableArrayRef list = ds->ListGroups();
-		if (list != NULL)
-		{
-			result = CFArrayArrayToPyList(list, true);
-			CFRelease(list);
-		}
-		else
-			result = PyList_New(0);
-		
-		return result;
-	}
-	else
-		Py_RETURN_NONE;
-}
-
-/*
- def listResources(obj):
-	"""
-	List resources in Open Directory, and return key attributes for each resource.
-	The attributes in the tuple are (uid, guid, last-modified, calendar-principal-uri).
-	
-	@param obj: C{object} the object obtained from an odInit call.
-	@return: C{list} containg a C{tuple} of C{str} for each resource found,
-		or C{None} on failure.
-	"""
- */
-extern "C" PyObject *listResources(PyObject *self, PyObject *args)
-{
-	PyObject* pyds;
-	PyObject* result = NULL;
-    if (!PyArg_ParseTuple(args, "O", &pyds) || !PyCObject_Check(pyds))
-        return NULL;
-	
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
-	{
-		CFMutableArrayRef list = ds->ListResources();
-		if (list != NULL)
-		{
-			result = CFArrayArrayToPyList(list, true);
-			CFRelease(list);
-		}
-		else
-			result = PyList_New(0);
-		
-		return result;
-	}
-	else
-		Py_RETURN_NONE;
-}
-
-/*
- def checkUser(obj, user):
-	"""
-	Check that a user exists in Open Directory.
-	
-	@param obj: C{object} the object obtained from an odInit call.
-	@param user: C{str} containing the user to check.
-	@return: C{True} if the user was found, C{False} otherwise.
-	"""
- */
-extern "C" PyObject *checkUser(PyObject *self, PyObject *args)
-{
-	bool result = false;
-	
-	PyObject* pyds;
-	const char* user;
-    if (!PyArg_ParseTuple(args, "Os", &pyds, &user) || !PyCObject_Check(pyds))
-        return NULL;
-
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
-	{
-		result = ds->CheckUser(user);
-	}
-	
-	if (result)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-/*
- def checkGroup(obj, group):
-	"""
-	Check that a group exists in Open Directory.
-	
-	@param obj: C{object} the object obtained from an odInit call.
-	@param group: C{str} containing the group to check.
-	@return: C{True} if the group was found, C{False} otherwise.
-	"""
- */
-extern "C" PyObject *checkGroup(PyObject *self, PyObject *args)
-{
-	bool result = false;
-	
-	PyObject* pyds;
-	const char* group;
-    if (!PyArg_ParseTuple(args, "Os", &pyds, &group) || !PyCObject_Check(pyds))
-        return NULL;
-	
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
-	{
-		result = ds->CheckGroup(group);
-	}
-	
-	if (result)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-/*
- def checkResource(obj, resource):
-	"""
-	Check that a resource exists in Open Directory.
-	
-	@param obj: C{object} the object obtained from an odInit call.
-	@param resource: C{str} containing the resource to check.
-	@return: C{True} if the resource was found, C{False} otherwise.
-	"""
- */
-extern "C" PyObject *checkResource(PyObject *self, PyObject *args)
-{
-	bool result = false;
-	
-	PyObject* pyds;
-	const char* resource;
-    if (!PyArg_ParseTuple(args, "Os", &pyds, &resource) || !PyCObject_Check(pyds))
-        return NULL;
-	
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
-	{
-		result = ds->CheckResource(resource);
-	}
-	
-	if (result)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-/*
- def listUsersWithAttributes(obj, users):
-	"""
-	Get user attributes relevant to CalDAV from Open Directory.
-	
-	@param obj: C{object} the object obtained from an odInit call.
-	@param users: C{list} containing C{str}'s for each user to get attributes for.
-	@return: C{dict} containing a C{dict} of attributes for each requested user, 
-		or C{None} otherwise.
-	"""
- */
-extern "C" PyObject *listUsersWithAttributes(PyObject *self, PyObject *args)
-{
-	PyObject* pyds;
-	PyObject* users;
-    if (!PyArg_ParseTuple(args, "OO", &pyds, &users) || !PyCObject_Check(pyds) || !PyList_Check(users))
+	const char* recordType;
+	PyObject* attributes;
+    if (!PyArg_ParseTuple(args, "OsO", &pyds, &recordType, &attributes) || !PyCObject_Check(pyds) || !PyList_Check(attributes))
         return NULL;
 	
 	// Convert list to CFArray of CFString
-	CFArrayRef cfusers = PyListToCFArray(users);
-	if (cfusers == NULL)
+	CFArrayRef cfattributes = PyListToCFArray(attributes);
+	if (cfattributes == NULL)
 		return NULL;
 
 	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
 	if (ds != NULL)
 	{
-		CFMutableDictionaryRef dict = ds->ListUsersWithAttributes(cfusers);
+		CFMutableDictionaryRef dict = ds->ListAllRecordsWithAttributes(recordType, cfattributes);
 		if (dict != NULL)
 		{
 			PyObject* result = CFDictionaryDictionaryToPyDict(dict);
 			CFRelease(dict);
-			CFRelease(cfusers);
+			CFRelease(cfattributes);
 			
 			return result;
 		}
 	}
 	
-	CFRelease(cfusers);
-	Py_RETURN_NONE;
+	CFRelease(cfattributes);
+	return NULL;
 }
 
 /*
- def listGroupsWithAttributes(obj, groups):
-	"""
-	Get group attributes relevant to CalDAV from Open Directory.
-	
-	@param obj: C{object} the object obtained from an odInit call.
-	@param groups: C{list} containing C{str}'s for each group to get attributes for.
-	@return: C{dict} containing a C{dict} of attributes for each requested group, 
-		or C{None} otherwise.
-	"""
- */
-extern "C" PyObject *listGroupsWithAttributes(PyObject *self, PyObject *args)
-{
-	PyObject* pyds;
-	PyObject* grps;
-    if (!PyArg_ParseTuple(args, "OO", &pyds, &grps) || !PyCObject_Check(pyds) || !PyList_Check(grps))
-        return NULL;
-	
-	// Convert list to CFArray of CFString
-	CFArrayRef cfgrps = PyListToCFArray(grps);
-	if (cfgrps == NULL)
-		return NULL;
-	
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
-	{
-		CFMutableDictionaryRef dict = ds->ListGroupsWithAttributes(cfgrps);
-		if (dict != NULL)
-		{
-			PyObject* result = CFDictionaryDictionaryToPyDict(dict);
-			CFRelease(dict);
-			CFRelease(cfgrps);
-			
-			return result;
-		}
-	}
-	
-	CFRelease(cfgrps);
-	Py_RETURN_NONE;
-}
-
-/*
- def listResourcesWithAttributes(obj, rsrcs):
-	"""
-	Get resource attributes relevant to CalDAV from Open Directory.
-	
-	@param obj: C{object} the object obtained from an odInit call.
-	@param rsrcs: C{list} containing C{str}'s for each resource to get attributes for.
-	@return: C{dict} containing a C{dict} of attributes for each requested resource, 
-		or C{None} otherwise.
-	"""
- */
-extern "C" PyObject *listResourcesWithAttributes(PyObject *self, PyObject *args)
-{
-	PyObject* pyds;
-	PyObject* rsrcs;
-    if (!PyArg_ParseTuple(args, "OO", &pyds, &rsrcs) || !PyCObject_Check(pyds) || !PyList_Check(rsrcs))
-        return NULL;
-	
-	// Convert list to CFArray of CFString
-	CFArrayRef cfrsrcs = PyListToCFArray(rsrcs);
-	if (cfrsrcs == NULL)
-		return NULL;
-	
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
-	{
-		CFMutableDictionaryRef dict = ds->ListResourcesWithAttributes(cfrsrcs);
-		if (dict != NULL)
-		{
-			PyObject* result = CFDictionaryDictionaryToPyDict(dict);
-			CFRelease(dict);
-			CFRelease(cfrsrcs);
-			
-			return result;
-		}
-	}
-	
-	CFRelease(cfrsrcs);
-	Py_RETURN_NONE;
-}
-
-/*
- def authenticateUser(obj, user, pswd):
+def authenticateUserBasic(obj, user, pswd):
 	"""
 	Authenticate a user with a password to Open Directory.
 	
@@ -593,10 +350,8 @@ extern "C" PyObject *listResourcesWithAttributes(PyObject *self, PyObject *args)
 	@return: C{True} if the user was found, C{False} otherwise.
 	"""
  */
-extern "C" PyObject *authenticateUser(PyObject *self, PyObject *args)
+extern "C" PyObject *authenticateUserBasic(PyObject *self, PyObject *args)
 {
-	bool result = false;
-	
 	PyObject* pyds;
 	const char* user;
 	const char* pswd;
@@ -606,42 +361,83 @@ extern "C" PyObject *authenticateUser(PyObject *self, PyObject *args)
 	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
 	if (ds != NULL)
 	{
-		result = ds->AuthenticateUser(user, pswd);
+		bool result = false;
+		if (ds->AuthenticateUserBasic(user, pswd, result))
+		{
+			if (result)
+				Py_RETURN_TRUE;
+			else
+				Py_RETURN_FALSE;
+		}
 	}
 	
-	if (result)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
+	return NULL;
+}
+
+/*
+def authenticateUserDigest(obj, user, challenge, response, method):
+    """
+    Authenticate using HTTP Digest credentials to Open Directory.
+    
+    @param obj: C{object} the object obtained from an odInit call.
+	@param user: C{str} container the user to check.
+    @param challenge: C{str} the HTTP challenge sent to the client.
+    @param response: C{str} the HTTP response sent from the client.
+    @param method: C{str} the HTTP method being used.
+    @return: C{True} if the user was found, C{False} otherwise.
+    """
+ */
+extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
+{
+	PyObject* pyds;
+	const char* user;
+	const char* challenge;
+	const char* response;
+	const char* method;
+    if (!PyArg_ParseTuple(args, "Ossss", &pyds, &user, &challenge, &response, &method) || !PyCObject_Check(pyds))
+        return NULL;
+	
+	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
+	if (ds != NULL)
+	{
+		bool result = false;
+		if (ds->AuthenticateUserDigest(user, challenge, response, method, result))
+		{
+			if (result)
+				Py_RETURN_TRUE;
+			else
+				Py_RETURN_FALSE;
+		}
+	}
+	
+	return NULL;
 }
 
 static PyMethodDef ODMethods[] = {
     {"odInit",  odInit, METH_VARARGS,
 		"Initialize the Open Directory system."},
-    {"listUsers",  listUsers, METH_VARARGS,
-		"List all users in Open Directory."},
-    {"listGroups",  listGroups, METH_VARARGS,
-		"List all groups in Open Directory."},
-    {"listResources",  listResources, METH_VARARGS,
-		"List all resources in Open Directory."},
-    {"checkUser",  checkUser, METH_VARARGS,
-		"Check that a user exists in Open Directory."},
-    {"checkGroup",  checkGroup, METH_VARARGS,
-		"Check that a group exists in Open Directory."},
-    {"checkResource",  checkResource, METH_VARARGS,
-		"Check that a resource exists in Open Directory."},
-    {"listUsersWithAttributes",  listUsersWithAttributes, METH_VARARGS,
-		"Get user attributes relevant to CalDAV from Open Directory."},
-    {"listGroupsWithAttributes",  listGroupsWithAttributes, METH_VARARGS,
-		"Get group attributes relevant to CalDAV from Open Directory."},
-    {"listResourcesWithAttributes",  listResourcesWithAttributes, METH_VARARGS,
-		"Get resource attributes relevant to CalDAV from Open Directory."},
-    {"authenticateUser",  authenticateUser, METH_VARARGS,
-		"Authenticate a user with a password to Open Directory."},
+    {"listAllRecordsWithAttributes",  listAllRecordsWithAttributes, METH_VARARGS,
+		"List all records of the specified type in Open Directory, returning requested attributes."},
+    {"authenticateUserBasic",  authenticateUserBasic, METH_VARARGS,
+		"Authenticate a user with a password to Open Directory using plain text authentication."},
+    {"authenticateUserDigest",  authenticateUserDigest, METH_VARARGS,
+		"Authenticate a user with a password to Open Directory using HTTP DIGEST authentication."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
 PyMODINIT_FUNC initopendirectory(void)
 {
-    (void) Py_InitModule("opendirectory", ODMethods);
+    PyObject* m = Py_InitModule("opendirectory", ODMethods);
+
+    PyObject* d = PyModule_GetDict(m);
+
+    if (!(ODException_class = PyErr_NewException("opendirectory.ODError", NULL, NULL)))
+        goto error;
+    PyDict_SetItemString(d, "ODError", ODException_class);
+    Py_INCREF(ODException_class);
+
+
+error:
+    if (PyErr_Occurred())
+		PyErr_SetString(PyExc_ImportError, "opendirectory: init failed");
 }

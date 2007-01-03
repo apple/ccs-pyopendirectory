@@ -24,39 +24,33 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <DirectoryService/DirectoryService.h>
 
+class CFStringUtil;
+
 class CDirectoryService
 {
 public:
 	CDirectoryService(const char* nodename);
 	~CDirectoryService();
 	
-	CFMutableArrayRef ListUsers();
-	CFMutableArrayRef ListGroups();
-	CFMutableArrayRef ListResources();
-	
-	bool CheckUser(const char* user);
-	bool CheckGroup(const char* grp);
-	bool CheckResource(const char* rsrc);
-	
-	CFMutableDictionaryRef ListUsersWithAttributes(CFArrayRef users);
-	CFMutableDictionaryRef ListGroupsWithAttributes(CFArrayRef grps);
-	CFMutableDictionaryRef ListResourcesWithAttributes(CFArrayRef rsrcs);
+	CFMutableDictionaryRef ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes);
 
-	bool AuthenticateUser(const char* user, const char* pswd);
+	bool AuthenticateUserBasic(const char* user, const char* pswd, bool& result);
+	bool AuthenticateUserDigest(const char* user, const char* challenge, const char* response, const char* method, bool& result);
 	
 private:
 	const char*			mNodeName;
 	tDirReference		mDir;
 	tDirNodeReference	mNode;
 	tDataBufferPtr		mData;
+	UInt32				mDataSize;
 	
-	CFMutableArrayRef ListRecords(const char* type);
-	CFMutableDictionaryRef ListRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs);
+	CFMutableDictionaryRef _ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs);
 
-	bool HasRecord(const char* type, const char* name);
-
-	bool NativeAuthentication(const char* user, const char* pswd);
-	bool NativeAuthenticationToNode(const char* nodename, const char* user, const char* pswd);
+	CFStringRef CDirectoryService::AuthenticationGetNode(const char* user);
+	bool NativeAuthenticationBasic(const char* user, const char* pswd);
+	bool NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd);
+	bool NativeAuthenticationDigest(const char* user, const char* challenge, const char* response, const char* method);
+	bool NativeAuthenticationDigestToNode(const char* nodename, const char* user, const char* challenge, const char* response, const char* method);
 	
 	void OpenService();
 	void CloseService();
@@ -67,6 +61,7 @@ private:
 	
 	void CreateBuffer();
 	void RemoveBuffer();
+	void ReallocBuffer();
 
 	void BuildStringDataList(CFArrayRef strs, tDataListPtr data);
 

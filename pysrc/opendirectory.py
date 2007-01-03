@@ -29,94 +29,18 @@ def odInit(nodename):
         C{None} on failure.
     """
 
-def listUsers(obj):
+def listAllRecordsWithAttributes(obj, recordType, attributes):
     """
-    List users in Open Directory, and return key attributes for each user.
-    The attributes in the tuple are (uid, guid, last-modified, calendar-principal-uri).
+    List records in Open Directory, and return key attributes for each one.
     
     @param obj: C{object} the object obtained from an odInit call.
-    @return: C{list} containing a C{tuple} of C{str} for each user found,
-        or C{None} on failure.
-    """
-
-def listGroups(obj):
-    """
-    List groups in Open Directory, and return key attributes for each group.
-    The attributes in the tuple are (uid, guid, last-modified, calendar-principal-uri).
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @return: C{list} containg a C{tuple} of C{str} for each group found,
-        or C{None} on failure.
-    """
-
-def listResources(obj):
-    """
-    List resources in Open Directory, and return key attributes for each resource.
-    The attributes in the tuple are (uid, guid, last-modified, calendar-principal-uri).
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @return: C{list} containg a C{tuple} of C{str} for each resource found,
-        or C{None} on failure.
-    """
-
-def checkUser(obj, user):
-    """
-    Check that a user exists in Open Directory.
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @param user: C{str} containing the user to check.
-    @return: C{True} if the user was found, C{False} otherwise.
-    """
-
-def checkGroup(obj, group):
-    """
-    Check that a group exists in Open Directory.
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @param group: C{str} containing the group to check.
-    @return: C{True} if the group was found, C{False} otherwise.
-    """
-
-def checkResource(obj, resource):
-    """
-    Check that a resource exists in Open Directory.
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @param resource: C{str} containing the resource to check.
-    @return: C{True} if the resource was found, C{False} otherwise.
-    """
-
-def listUsersWithAttributes(obj, user):
-    """
-    Get user attributes relevant to CalDAV from Open Directory.
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @param users: C{list} containing C{str}'s for each user to get attributes for.
-    @return: C{dict} containing a C{dict} of attributes for each requested user, 
+    @param recordType: C{str} containing the OD record type to lookup.
+    @param attributes: C{list} containing the attributes to return for each record.
+    @return: C{dict} containing a C{dict} of attributes for each record found, 
         or C{None} otherwise.
     """
 
-def listGroupsWithAttributes(obj, grp):
-    """
-    Get group attributes relevant to CalDAV from Open Directory.
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @param grp: C{str} containing the group to get attributes for.
-    @return: C{dict} containing a C{dict} of attributes for each requested group, 
-        or C{None} otherwise.
-    """
-
-def listResourcesWithAttributes(obj, rsrc):
-    """
-    Get resource attributes relevant to CalDAV from Open Directory.
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @param rsrc: C{str} containing the resource to get attributes for.
-    @return: C{dict} containing a C{dict} of attributes for each requested resource, 
-        or C{None} otherwise.
-    """
-
-def authenticateUser(obj, user, pswd):
+def authenticateUserBasic(obj, user, pswd):
     """
     Authenticate a user with a password to Open Directory.
     
@@ -124,4 +48,21 @@ def authenticateUser(obj, user, pswd):
     @param user: C{str} container the user to check.
     @param pswd: C{str} containing the password to check.
     @return: C{True} if the user was found, C{False} otherwise.
+    """
+
+def authenticateUserDigest(obj, user, challenge, response, method):
+    """
+    Authenticate using HTTP Digest credentials to Open Directory.
+    
+    @param obj: C{object} the object obtained from an odInit call.
+    @param user: C{str} container the user to check.
+    @param challenge: C{str} the HTTP challenge sent to the client.
+    @param response: C{str} the HTTP response sent from the client.
+    @param method: C{str} the HTTP method being used.
+    @return: C{True} if the user was found, C{False} otherwise.
+    """
+
+class ODError(exception):
+    """
+    Exceptions from DirectoryServices errors.
     """
