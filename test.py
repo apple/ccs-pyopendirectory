@@ -52,7 +52,7 @@ try:
 	if opendirectory.authenticateUserBasic(ref, "test", "test"):
 		print "Authenticated user"
 	else:
-		print "Failed to authenticated user"
+		print "Failed to authenticate user"
 	
 	ref = None
 except opendirectory.ODError, ex:
