@@ -276,24 +276,21 @@ extern "C" void odDestroy(void* obj)
  */
 extern "C" PyObject* odInit(PyObject* self, PyObject* args)
 {
-    int result = 0;
-
     const char* nodename;
     if (!PyArg_ParseTuple(args, "s", &nodename))
+    {
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices odInit: could not parse arguments", 0));		
         return NULL;
-	
+    }
+
 	CDirectoryService* ds = new CDirectoryService(nodename);
-	PyObject* pyds;
 	if (ds != NULL)
 	{
-		pyds = PyCObject_FromVoidPtr(ds, odDestroy);
-		result = 1;
+		return PyCObject_FromVoidPtr(ds, odDestroy);
 	}
 	
-	if (result == 1)
-		return pyds;
-	else
-		Py_RETURN_NONE;
+	PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices odInit: could not initialize directory service", 0));		
+	return NULL;
 }
 
 /*
@@ -314,12 +311,18 @@ extern "C" PyObject *listAllRecordsWithAttributes(PyObject *self, PyObject *args
 	const char* recordType;
 	PyObject* attributes;
     if (!PyArg_ParseTuple(args, "OsO", &pyds, &recordType, &attributes) || !PyCObject_Check(pyds) || !PyList_Check(attributes))
+    {
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes: could not parse arguments", 0));		
         return NULL;
+    }
 	
 	// Convert list to CFArray of CFString
 	CFArrayRef cfattributes = PyListToCFArray(attributes);
 	if (cfattributes == NULL)
-		return NULL;
+    {
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes: could not parse attributes list", 0));		
+        return NULL;
+    }
 
 	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
 	if (ds != NULL)
@@ -334,6 +337,8 @@ extern "C" PyObject *listAllRecordsWithAttributes(PyObject *self, PyObject *args
 			return result;
 		}
 	}
+	else
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes: invalid directory service argument", 0));		
 	
 	CFRelease(cfattributes);
 	return NULL;
@@ -356,7 +361,10 @@ extern "C" PyObject *authenticateUserBasic(PyObject *self, PyObject *args)
 	const char* user;
 	const char* pswd;
     if (!PyArg_ParseTuple(args, "Oss", &pyds, &user, &pswd) || !PyCObject_Check(pyds))
+    {
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserBasic: could not parse arguments", 0));		
         return NULL;
+    }
 	
 	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
 	if (ds != NULL)
@@ -370,6 +378,8 @@ extern "C" PyObject *authenticateUserBasic(PyObject *self, PyObject *args)
 				Py_RETURN_FALSE;
 		}
 	}
+	else
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserBasic: invalid directory service argument", 0));		
 	
 	return NULL;
 }
@@ -395,7 +405,10 @@ extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
 	const char* response;
 	const char* method;
     if (!PyArg_ParseTuple(args, "Ossss", &pyds, &user, &challenge, &response, &method) || !PyCObject_Check(pyds))
+    {
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserDigest: could not parse arguments", 0));		
         return NULL;
+    }
 	
 	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
 	if (ds != NULL)
@@ -409,6 +422,8 @@ extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
 				Py_RETURN_FALSE;
 		}
 	}
+	else
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserDigest: invalid directory service argument", 0));		
 	
 	return NULL;
 }
