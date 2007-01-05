@@ -29,6 +29,8 @@ public:
 	CFStringUtil(CFStringRef ref);
 	~CFStringUtil();
 	
+	CFStringUtil& operator=(const CFStringUtil& copy);
+
 	CFStringRef get() const
 	{
 		return mRef;

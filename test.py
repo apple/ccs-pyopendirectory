@@ -20,69 +20,42 @@ import opendirectory
 import dsattributes
 import time
 
-ref = opendirectory.odInit("/LDAPv3/webboserver.apple.com")
-if ref is None:
-	print "Failed odInit"
-else:
-	print "OK odInit"
-
-list = opendirectory.listUsers(ref)
-if list is None:
-	print "Failed listUsers"
-else:
-	for i in list:
-		print i
-
-def CheckUser(user):
-	if opendirectory.checkUser(ref, user):
-		print "Found User: %s" % (user,)
+try:
+	ref = opendirectory.odInit("/Search")
+	if ref is None:
+		print "Failed odInit"
 	else:
-		print "Not Found User: %s" % (user,)
-
-def CheckGroup(grp):
-	if opendirectory.checkGroup(ref, grp):
-		print "Found Group: %s" % (grp,)
+		print "OK odInit"
+	
+	d = opendirectory.listAllRecordsWithAttributes(ref, dsattributes.kDSStdRecordTypeUsers,
+												   [dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,])
+	if d is None:
+		print "Failed to list users"
 	else:
-		print "Not Found Group: %s" % (grp,)
-
-def CheckResource(rsrc):
-	if opendirectory.checkResource(ref, rsrc):
-		print "Found Resource: %s" % (rsrc,)
+		names = [v for v in d.iterkeys()]
+		names.sort()
+		for n in names:
+			print "Name: %s" % n
+			print "dict: %s" % str(d[n])
+	
+	d = opendirectory.listAllRecordsWithAttributes(ref, dsattributes.kDSStdRecordTypeGroups,
+												   [dsattributes.kDS1AttrGeneratedUID, dsattributes.kDSNAttrGroupMembers,])
+	if d is None:
+		print "Failed to list groups"
 	else:
-		print "Not Found Resource: %s" % (rsrc,)
-
-#CheckUser("cyrusdaboo");
-#CheckUser("chris");
-#CheckGroup("sangriafest");
-#CheckGroup("cyrusdaboo");
-#CheckResource("Attitude Adjuster");
-#CheckResource("cyrusdaboo");
-#
-#CheckUser("steevef\xc3\xbchr")
-#CheckUser("steevefu\xcc\x88hr")
-#
-
-dict = opendirectory.listGroupsWithAttributes(ref, [i[0] for i in list])
-names = [v for v in dict.iterkeys()]
-names.sort()
-for n in names:
-	print "Name: %s" % n
-	print "dict: %s" % str(dict[n])
-
-#
-#dict = opendirectory.groupAttributes(ref, "admin")
-#print dict
-#
-#print dsattributes.attrRealName
-
-#if False:
-#	t = time.time()
-#	total = 10
-#	for i in range(total):
-#		opendirectory.userAttributes(ref, "cyrusdaboo")
-#	t = time.time() - t
-#	print "Total time: %f, average time: %f" % (t, t/total)
-
-ref = None
+		names = [v for v in d.iterkeys()]
+		names.sort()
+		for n in names:
+			print "Name: %s" % n
+			print "dict: %s" % str(d[n])
+	
+	if opendirectory.authenticateUserBasic(ref, "test", "test"):
+		print "Authenticated user"
+	else:
+		print "Failed to authenticate user"
+	
+	ref = None
+except opendirectory.ODError, ex:
+	print ex
 
 print "Done."

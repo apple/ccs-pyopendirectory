@@ -23,9 +23,13 @@
 
 #include "CFStringUtil.h"
 
+#include <Python.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <memory>
+
+extern PyObject* ODException_class;
 
 # define ThrowIfDSErr(x) { long dirStatus = x; if (dirStatus != eDSNoErr) throw dirStatus; }
 # define ThrowIfNULL(x) { if (x == NULL) throw -1L; }
@@ -46,6 +50,7 @@ CDirectoryService::CDirectoryService(const char* nodename)
 	mDir = 0L;
 	mNode = 0L;
 	mData = NULL;
+	mDataSize = 0;
 }
 
 CDirectoryService::~CDirectoryService()
@@ -74,534 +79,102 @@ CDirectoryService::~CDirectoryService()
 	mNodeName = NULL;
 }
 
-// ListUsers
-// 
-// List all users in the directory returning a list consisting of elements that contain attribute values
-// for each user. The attributes are in order: uid, guid, last-modified, calendar-principal-uri.
-//
-// @return: CFMutableArrayRef composed of values which are CFMutableArrayRef which contain CFStringRef for each attribute,
-//		    or NULL if it fails.
-//
-CFMutableArrayRef CDirectoryService::ListUsers()
-{
-	try
-	{
-		return ListRecords(kDSStdRecordTypeUsers);
-	}
-	catch(...)
-	{
-		return NULL;
-	}
-}
-
-// ListGroups
-// 
-// List all groups in the directory returning a list consisting of elements that contain attribute values
-// for each group. The attributes are in order: uid, guid, last-modified, calendar-principal-uri.
-//
-// @return: CFMutableArrayRef composed of values which are CFMutableArrayRef which contain CFStringRef for each attribute,
-//		    or NULL if it fails.
-//
-CFMutableArrayRef CDirectoryService::ListGroups()
-{
-	try
-	{
-		return ListRecords(kDSStdRecordTypeGroups);
-	}
-	catch(...)
-	{
-		return NULL;
-	}
-}
-
-// ListResources
-// 
-// List all resources in the directory returning a list consisting of elements that contain attribute values
-// for each resource. The attributes are in order: uid, guid, last-modified, calendar-principal-uri.
-//
-// @return: CFMutableArrayRef composed of values which are CFMutableArrayRef which contain CFStringRef for each attribute,
-//		    or NULL if it fails.
-//
-CFMutableArrayRef CDirectoryService::ListResources()
-{
-	try
-	{
-		return ListRecords(kDSStdRecordTypeResources);
-	}
-	catch(...)
-	{
-		return NULL;
-	}
-}
-
-// CheckUser
-// 
-// Check whether the specified user exists in the directory.
-//
-// @param user: the uid of the user.
-// @return: true if user is found, false otherwise.
-//
-bool CDirectoryService::CheckUser(const char* user)
-{
-	try
-	{
-		return HasRecord(kDSStdRecordTypeUsers, user);
-	}
-	catch(...)
-	{
-		return false;
-	}
-}
-
-// CheckGroup
-// 
-// Check whether the specified group exists in the directory.
-//
-// @param user: the uid of the group.
-// @return: true if group is found, false otherwise.
-//
-bool CDirectoryService::CheckGroup(const char* grp)
-{
-	try
-	{
-		return HasRecord(kDSStdRecordTypeGroups, grp);
-	}
-	catch(...)
-	{
-		return false;
-	}
-}
-
-// CheckResource
-// 
-// Check whether the specified resource exists in the directory.
-//
-// @param user: the uid of the resource.
-// @return: true if resource is found, false otherwise.
-//
-bool CDirectoryService::CheckResource(const char* rsrc)
-{
-	try
-	{
-		return HasRecord(kDSStdRecordTypeResources, rsrc);
-	}
-	catch(...)
-	{
-		return false;
-	}
-}
-
-
-// Set of attributes to be looked up for a user record.
-CFStringRef userattrs[] = {
-	CFSTR(kDS1AttrDistinguishedName),
-	CFSTR(kDS1AttrGeneratedUID),
-	CFSTR(kDS1AttrModificationTimestamp),
-	CFSTR(kDS1AttrCalendarPrincipalURI),
-	NULL};
-
-// ListUsersWithAttributes
+// ListAllRecordsWithAttributes
 // 
 // Get specific attributes for one or more user records in the directory.
 //
-// @param users: a list of uids of the users.
+// @param recordType: the record type to list.
+// @param attributes: CFArray of CFString listing the attributes to return for each record.
 // @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
 //			for each attribute/value requested in the record indexed by uid,
 //		    or NULL if it fails.
 //
-CFMutableDictionaryRef CDirectoryService::ListUsersWithAttributes(CFArrayRef users)
+CFMutableDictionaryRef CDirectoryService::ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes)
 {
-	CFMutableDictionaryRef result = NULL;
-	CFMutableArrayRef attrs = NULL;
 	try
 	{
-		// Build array of required attributes
-		attrs = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-		if (attrs == NULL)
-			throw -1L;
-		CFStringRef* str = userattrs;
-		while(*str != NULL)
-			::CFArrayAppendValue(attrs, *str++);
-		
 		// Get attribute map
-		result = ListRecordsWithAttributes(kDSStdRecordTypeUsers, users, attrs);
-		::CFRelease(attrs);
-		return result;
+		return _ListAllRecordsWithAttributes(recordType, NULL, attributes);
+	}
+	catch(long dserror)
+	{
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices Error", dserror));		
+		return NULL;
 	}
 	catch(...)
 	{
-		if (attrs != NULL)
-			::CFRelease(attrs);
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "Unknown Error", -1));		
 		return NULL;
 	}
 }
 
-// Set of attributes to be looked up for a group record.
-CFStringRef grpattrs[] = {
-	CFSTR(kDS1AttrDistinguishedName),
-	CFSTR(kDS1AttrGeneratedUID),
-	CFSTR(kDS1AttrModificationTimestamp),
-	CFSTR(kDS1AttrCalendarPrincipalURI),
-	CFSTR(kDSNAttrGroupMembers),
-	NULL};
-
-// ListGroupsWithAttributes
+// AuthenticateUserBasic
 // 
-// Get specific attributes for one or more group records in the directory.
-//
-// @param grps: a list of uids of the groups.
-// @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
-//			for each attribute/value requested in the record indexed by uid,
-//		    or NULL if it fails.
-//
-CFMutableDictionaryRef CDirectoryService::ListGroupsWithAttributes(CFArrayRef grps)
-{
-	CFMutableDictionaryRef result = NULL;
-	CFMutableArrayRef attrs = NULL;
-	try
-	{
-		// Build array of required attributes
-		attrs = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-		if (attrs == NULL)
-			throw -1L;
-		CFStringRef* str = grpattrs;
-		while(*str != NULL)
-			::CFArrayAppendValue(attrs, *str++);
-		
-		// Get attribute map
-		result = ListRecordsWithAttributes(kDSStdRecordTypeGroups, grps, attrs);
-		::CFRelease(attrs);
-		return result;
-	}
-	catch(...)
-	{
-		if (attrs != NULL)
-			::CFRelease(attrs);
-		return NULL;
-	}
-}
-
-// Set of attributes to be looked up for a resource record.
-CFStringRef rsrcattrs[] = {
-	CFSTR(kDS1AttrDistinguishedName),
-	CFSTR(kDS1AttrGeneratedUID),
-	CFSTR(kDS1AttrModificationTimestamp),
-	CFSTR(kDS1AttrCalendarPrincipalURI),
-	NULL};
-
-// ListResourcesWithAttributes
-// 
-// Get specific attributes for one or more resource records in the directory.
-//
-// @param rsrc: a list of uids of the resources.
-// @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
-//			for each attribute/value requested in the record indexed by uid,
-//		    or NULL if it fails.
-//
-CFMutableDictionaryRef CDirectoryService::ListResourcesWithAttributes(CFArrayRef rsrcs)
-{
-	CFMutableDictionaryRef result = NULL;
-	CFMutableArrayRef attrs = NULL;
-	try
-	{
-		// Build array of required attributes
-		attrs = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-		if (attrs == NULL)
-			throw -1L;
-		CFStringRef* str = rsrcattrs;
-		while(*str != NULL)
-			::CFArrayAppendValue(attrs, *str++);
-		
-		// Get attribute map
-		result = ListRecordsWithAttributes(kDSStdRecordTypeResources, rsrcs, attrs);
-		::CFRelease(attrs);
-		return result;
-	}
-	catch(...)
-	{
-		if (attrs != NULL)
-			::CFRelease(attrs);
-		return NULL;
-	}
-}
-
-// AuthenticateUser
-// 
-// Authenticate a user to the directory.
+// Authenticate a user to the directory using plain text credentials.
 //
 // @param user: the uid of the user.
 // @param pswd: the plain text password to authenticate with.
 // @return: true if authentication succeeds, false otherwise.
 //
-bool CDirectoryService::AuthenticateUser(const char* user, const char* pswd)
+bool CDirectoryService::AuthenticateUserBasic(const char* user, const char* pswd, bool& result)
 {
 	try
-{
-	return NativeAuthentication(user, pswd);
+	{
+		result = NativeAuthenticationBasic(user, pswd);
+		return true;
+	}
+	catch(long dserror)
+	{
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices Error", dserror));		
+		return false;
+	}
+	catch(...)
+	{
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "Unknown Error", -1));		
+		return false;
+	}
 }
-catch(...)
+
+// AuthenticateUserDigest
+// 
+// Authenticate a user to the directory using HTTP DIGEST credentials.
+//
+// @param challenge: HTTP challenge sent by server.
+// @param response: HTTP response sent by client.
+// @return: true if authentication succeeds, false otherwise.
+//
+bool CDirectoryService::AuthenticateUserDigest(const char* user, const char* challenge, const char* response, const char* method, bool& result)
 {
-	return false;
-}
+	try
+	{
+		result = NativeAuthenticationDigest(user, challenge, response, method);
+		return true;
+	}
+	catch(long dserror)
+	{
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices Error", dserror));		
+		return false;
+	}
+	catch(...)
+	{
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "Unknown Error", -1));		
+		return false;
+	}
 }
 
 #pragma mark -----Private API
 
-// ListRecords
-// 
-// List all records of the specified type in the directory returning a list consisting of elements that contain attribute values
-// for each user. The attributes are in order: uid, guid, last-modified, calendar-principal-uri.
-//
-// @return: CFMutableArrayRef composed of values which are CFMutableArrayRef which contain CFStringRef for each attribute,
-//          or NULL if it fails.
-//
-CFMutableArrayRef CDirectoryService::ListRecords(const char* type)
-{
-	CFMutableArrayRef result = NULL;
-	CFMutableArrayRef vresult = NULL;
-	tDataListPtr recNames = NULL;
-	tDataListPtr recTypes = NULL;
-	tDataListPtr attrTypes = NULL;
-	tContextData context = NULL;
-	tAttributeListRef attrListRef = 0L;
-	tRecordEntry* pRecEntry = NULL;
-	
-	try
-	{
-		// Make sure we have a valid directory service
-		OpenService();
-		
-		// Open the node we want to query
-		OpenNode();
-
-		// We need a buffer for what comes next
-		CreateBuffer();
-		
-		result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-		
-		recNames = ::dsDataListAllocate(mDir);
-		ThrowIfNULL(recNames);
-		recTypes = ::dsDataListAllocate(mDir);
-		ThrowIfNULL(recTypes);
-		attrTypes = ::dsDataListAllocate(mDir);
-		ThrowIfNULL(attrTypes);
-		ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recNames,  kDSRecordsAll, NULL));
-		ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recTypes,  type, NULL));
-		ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, attrTypes,  kDS1AttrGeneratedUID, kDS1AttrModificationTimestamp, kDS1AttrCalendarPrincipalURI, NULL));
-
-		do
-		{
-			// List all the appropriate records
-			unsigned long recCount = 0;
-			ThrowIfDSErr(::dsGetRecordList(mNode, mData, recNames, eDSExact, recTypes, attrTypes, false, &recCount, &context));
-			for(unsigned long i = 1; i <= recCount; i++)
-			{
-				// Get the record entry
-				ThrowIfDSErr(::dsGetRecordEntry(mNode, mData, i, &attrListRef, &pRecEntry));
-
-				// Get the entry's name
-				char* temp = NULL;
-				ThrowIfDSErr(::dsGetRecordNameFromEntry(pRecEntry, &temp));
-				std::auto_ptr<char> recname(temp);
-
-				// Create an array for the values
-				vresult = ::CFArrayCreateMutable(kCFAllocatorDefault, 4, &kCFTypeArrayCallBacks);
-				for(unsigned long j = 0; j < 4; j++)
-				{
-					CFStringUtil strvalue("");
-					::CFArrayAppendValue(vresult, strvalue.get());
-				}
-
-				// Build a CFString from this name and add to results
-				CFStringUtil str(recname.get());
-				::CFArraySetValueAtIndex(vresult, 0, str.get());
-				
-				// Look at each requested attribute and get one value
-				for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
-				{
-					tAttributeValueListRef attributeValueListRef = 0L;
-					tAttributeEntryPtr attributeInfoPtr = NULL;
-
-					ThrowIfDSErr(::dsGetAttributeEntry(mNode, mData, attrListRef, j, &attributeValueListRef, &attributeInfoPtr));
-					
-					if (attributeInfoPtr->fAttributeValueCount > 0)
-					{
-						// Determine what the attribute is and where in the result list it should be put
-						std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
-						unsigned long attrindex = 0xFFFFFFFF;
-						if (::strcmp(attrname.get(), kDS1AttrGeneratedUID) == 0)
-							attrindex = 1;
-						else if (::strcmp(attrname.get(), kDS1AttrModificationTimestamp) == 0)
-							attrindex = 2;
-						else if (::strcmp(attrname.get(), kDS1AttrCalendarPrincipalURI) == 0)
-							attrindex = 3;
-							
-						// Get the attribute value and store in results
-						tAttributeValueEntryPtr attributeValue = NULL;
-						ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, 1, attributeValueListRef, &attributeValue));
-						std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
-						CFStringUtil strvalue(data.get());
-						::CFArraySetValueAtIndex(vresult, attrindex, strvalue.get());
-						::dsDeallocAttributeValueEntry(mDir, attributeValue);
-						attributeValue = NULL;
-					}
-
-					::dsCloseAttributeValueList(attributeValueListRef);
-					attributeValueListRef = NULL;
-					::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
-					attributeInfoPtr = NULL;
-				}
-
-				// Add array of values to result array
-				::CFArrayAppendValue(result, vresult);
-				::CFRelease(vresult);
-				vresult = NULL;
-
-				// Clean-up
-				::dsCloseAttributeList(attrListRef);
-				attrListRef = 0L;
-				::dsDeallocRecordEntry(mDir, pRecEntry);
-				pRecEntry = NULL;
-			}
-		} while (context != NULL); // Loop until all data has been obtained.
-
-		// Cleanup
-		::dsDataListDeallocate(mDir, recNames);
-		::dsDataListDeallocate(mDir, recTypes);
-		::dsDataListDeallocate(mDir, attrTypes);
-		free(recNames);
-		free(recTypes);
-		free(attrTypes);
-		RemoveBuffer();
-		CloseNode();
-		CloseService();
-	}
-	catch(...)
-	{
-		// Cleanup
-		if (context != NULL)
-			::dsReleaseContinueData(mDir, context);
-		if (attrListRef != 0L)
-			::dsCloseAttributeList(attrListRef);
-		if (pRecEntry != NULL)
-			dsDeallocRecordEntry(mDir, pRecEntry);
-		if (recNames != NULL)
-		{
-			::dsDataListDeallocate(mDir, recNames);
-			free(recNames);
-			recNames = NULL;
-		}
-		if (recTypes != NULL)
-		{
-			::dsDataListDeallocate(mDir, recTypes);
-			free(recTypes);
-			recTypes = NULL;
-		}
-		if (attrTypes != NULL)
-		{
-			::dsDataListDeallocate(mDir, attrTypes);
-			free(attrTypes);
-			attrTypes = NULL;
-		}
-		
-		RemoveBuffer();
-		CloseNode();
-		CloseService();
-	
-		if (vresult != NULL)
-		{
-			::CFRelease(vresult);
-			vresult = NULL;
-		}
-		if (result != NULL)
-		{
-			::CFRelease(result);
-			result = NULL;
-		}
-		throw;
-	}
-
-	return result;
-}
-
-// HasRecord
-// 
-// Check whether the specified record with the specified type exists in the directory.
-//
-// @param type: the record type to check.
-// @param name: the uid of the record to check.
-// @return: true if record is found, false otherwise.
-//
-bool CDirectoryService::HasRecord(const char* type, const char* name)
-{
-	bool result = false;
-	tDataNodePtr recName = NULL;
-    tDataNodePtr recType = NULL;
-	tRecordReference recRef = NULL;
-
-	try
-	{
-		// Make sure we have a valid directory service
-		OpenService();
-		
-		// Open the node we want to query
-		OpenNode();
-		
-		recName = ::dsDataNodeAllocateString(mDir, name);
-		if (recName == NULL)
-			throw eDSBadDataNodeLength;
-		recType = ::dsDataNodeAllocateString(mDir, type);
-		if (recType == NULL)
-			throw eDSBadDataNodeLength;
-		
-		long dirStatus = ::dsOpenRecord(mNode, recType, recName, &recRef);
-		if (dirStatus == eDSNoErr)
-		{
-			result = true;
-			::dsCloseRecord(recRef);
-			recRef = NULL;
-		}
-		else if (dirStatus == eDSRecordNotFound)
-			result = false;
-		else
-			throw dirStatus;
-		
-		// Cleanup
-		::dsDataNodeDeAllocate(mDir, recType);
-		recType = NULL;
-		::dsDataNodeDeAllocate(mDir, recName);
-		recName = NULL;
-		CloseNode();
-		CloseService();
-	}
-	catch(...)
-	{
-		// Cleanup
-		if (recType != NULL)
-			::dsDataNodeDeAllocate(mDir, recType);
-		if (recName != NULL)
-			::dsDataNodeDeAllocate(mDir, recName);
-		CloseNode();
-		CloseService();
-		
-		throw;
-	}
-	
-	return result;
-}
-
-// ListRecordsWithAttributes
+// _ListAllRecordsWithAttributes
 // 
 // Get specific attributes for records of a specified type in the directory.
 //
 // @param type: the record type to check.
-// @param names: the uids of the records to check.
 // @param attrs: a list of attributes to return.
 // @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
 //			for each attribute/value requested in the record indexed by uid,
 //		    or NULL if it fails.
 //
-CFMutableDictionaryRef CDirectoryService::ListRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs)
+CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs)
 {
 	CFMutableDictionaryRef result = NULL;
 	CFMutableDictionaryRef vresult = NULL;
@@ -613,8 +186,8 @@ CFMutableDictionaryRef CDirectoryService::ListRecordsWithAttributes(const char* 
 	tAttributeListRef attrListRef = 0L;
 	tRecordEntry* pRecEntry = NULL;
 	
-	// Must have names and attributes
-	if ((::CFArrayGetCount(names) == 0) || (::CFArrayGetCount(attrs) == 0))
+	// Must have attributes
+	if (::CFArrayGetCount(attrs) == 0)
 		return NULL;
 
 	try
@@ -631,8 +204,12 @@ CFMutableDictionaryRef CDirectoryService::ListRecordsWithAttributes(const char* 
 		// Build data list of names
 		recNames = ::dsDataListAllocate(mDir);
 		ThrowIfNULL(recNames);
-		BuildStringDataList(names, recNames);
-		
+		if (names != NULL)
+			BuildStringDataList(names, recNames);
+		else
+			ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recNames,  kDSRecordsAll, NULL));
+
+		// Build data list of types
 		recTypes = ::dsDataListAllocate(mDir);
 		ThrowIfNULL(recTypes);
 		ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recTypes,  type, NULL));
@@ -648,7 +225,14 @@ CFMutableDictionaryRef CDirectoryService::ListRecordsWithAttributes(const char* 
 		{
 			// List all the appropriate records
 			unsigned long recCount = 0;
-			ThrowIfDSErr(::dsGetRecordList(mNode, mData, recNames, eDSExact, recTypes, attrTypes, false, &recCount, &context));
+			tDirStatus err;
+			do
+			{
+				err = ::dsGetRecordList(mNode, mData, recNames, eDSExact, recTypes, attrTypes, false, &recCount, &context);
+				if (err == eDSBufferTooSmall)
+					ReallocBuffer();
+			} while(err == eDSBufferTooSmall);
+			ThrowIfDSErr(err);
 			for(unsigned long i = 1; i <= recCount; i++)
 			{
 				// Get the record entry
@@ -739,7 +323,7 @@ CFMutableDictionaryRef CDirectoryService::ListRecordsWithAttributes(const char* 
 		CloseNode();
 		CloseService();
 	}
-	catch(...)
+	catch(long dsStatus)
 	{
 		// Cleanup
 		if (context != NULL)
@@ -791,19 +375,19 @@ CFMutableDictionaryRef CDirectoryService::ListRecordsWithAttributes(const char* 
 	return result;
 }
 
-// NativeAuthentication
+// AuthenticationGetNode
 // 
 // Authenticate a user to the directory.
 //
 // @param user: the uid of the user.
-// @param pswd: the plain text password to authenticate with.
-// @return: true if authentication succeeds, false otherwise.
+// @return: CFStringUtil for node name.
 //
-bool CDirectoryService::NativeAuthentication(const char* user, const char* pswd)
+CFStringRef CDirectoryService::AuthenticationGetNode(const char* user)
 {
 	// We need to find the 'native' node for the specifies user as the current node
 	// made not support this user's authentication directly.
-	
+	CFStringRef result = NULL;
+
 	CFMutableArrayRef users = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
 	CFStringUtil cfuser(user);
 	::CFArrayAppendValue(users, cfuser.get());
@@ -813,41 +397,61 @@ bool CDirectoryService::NativeAuthentication(const char* user, const char* pswd)
 	::CFArrayAppendValue(attrs, cfattr.get());
 	
 	// First list the record for the current user and get its node.
-	CFMutableDictionaryRef found = ListRecordsWithAttributes(kDSStdRecordTypeUsers, users, attrs);
+	CFMutableDictionaryRef found = _ListAllRecordsWithAttributes(kDSStdRecordTypeUsers, users, attrs);
 	::CFRelease(users);
 	::CFRelease(attrs);
 	if (found == NULL)
-		return false;
+		return result;
 
 	// Now extract the returned data.
 	CFDictionaryRef dictvalue = (CFDictionaryRef)CFDictionaryGetValue(found, cfuser.get());
 	if ((dictvalue == NULL) || (::CFDictionaryGetCount(dictvalue) == 0))
 	{
 		::CFRelease(found);
-		return false;
+		return result;
 	}
 	const void* value = ::CFDictionaryGetValue(dictvalue, cfattr.get());
 
 	// The dictionary value may be a string or a list
-	CFStringRef strvalue = NULL;
 	if (::CFGetTypeID((CFTypeRef)value) == ::CFStringGetTypeID())
 	{
-		strvalue = (CFStringRef)value;
+		result = (CFStringRef)value;
 	}
 	else if(::CFGetTypeID((CFTypeRef)value) == ::CFArrayGetTypeID())
 	{
 		CFArrayRef arrayvalue = (CFArrayRef)value;
 		if (::CFArrayGetCount(arrayvalue) == 0)
-			return false;
-		strvalue = (CFStringRef)CFArrayGetValueAtIndex(arrayvalue, 0);
+			return result;
+		result = (CFStringRef)CFArrayGetValueAtIndex(arrayvalue, 0);
 	}
 
-	CFStringUtil cfvalue(strvalue);
+	::CFRetain(result);
 	::CFRelease(found);
-	return NativeAuthenticationToNode(cfvalue.temp_str(), user, pswd);
+	return result;
 }
 
-// NativeAuthenticationToNode
+// NativeAuthenticationBasic
+// 
+// Authenticate a user to the directory.
+//
+// @param user: the uid of the user.
+// @param pswd: the plain text password to authenticate with.
+// @return: true if authentication succeeds, false otherwise.
+//
+bool CDirectoryService::NativeAuthenticationBasic(const char* user, const char* pswd)
+{
+	// We need to find the 'native' node for the specifies user as the current node
+	// made not support this user's authentication directly.
+	
+	CFStringRef result = AuthenticationGetNode(user);
+	if (result == NULL)
+		return false;
+	CFStringUtil cfvalue(result);
+	::CFRelease(result);
+	return NativeAuthenticationBasicToNode(cfvalue.temp_str(), user, pswd);
+}
+
+// NativeAuthenticationBasicToNode
 // 
 // Authenticate a user to the directory.
 //
@@ -856,7 +460,7 @@ bool CDirectoryService::NativeAuthentication(const char* user, const char* pswd)
 // @param pswd: the plain text password to authenticate with.
 // @return: true if authentication succeeds, false otherwise.
 //
-bool CDirectoryService::NativeAuthenticationToNode(const char* nodename, const char* user, const char* pswd)
+bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd)
 {	
 	bool result = false;
 	tDirNodeReference node = 0L;
@@ -875,8 +479,7 @@ bool CDirectoryService::NativeAuthenticationToNode(const char* nodename, const c
 		CreateBuffer();
 
 		// First, specify the type of authentication.
-		authType = ::dsDataNodeAllocateString(mDir, kDSStdAuthNodeNativeClearTextOK);
-		/* authType = ::dsDataNodeAllocate(mDir, kDSStdAuthNodeNativeNoClearText); */
+		authType = ::dsDataNodeAllocateString(mDir, kDSStdAuthClearText);
 
 		// Build input data
 		//  Native authentication is a one step authentication scheme.
@@ -901,6 +504,143 @@ bool CDirectoryService::NativeAuthenticationToNode(const char* nodename, const c
 		aCurLength += sizeof(long);
 
 		::memcpy(&(authData->fBufferData[aCurLength]), pswd,  aTempLength);
+		
+		authData->fBufferLength = aDataBufSize;
+		
+		// Do authentication
+		long dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
+		result = (dirStatus == eDSNoErr);
+		
+		// Cleanup
+		::dsDataBufferDeAllocate(mDir, authData);
+		authData = NULL;
+		::dsDataNodeDeAllocate(mDir, authType);
+		authType = NULL;
+		RemoveBuffer();
+		if (node != 0L)
+		{
+			::dsCloseDirNode(node);
+			node = 0L;
+		}
+		CloseService();
+	}
+	catch(...)
+	{
+		// Cleanup
+		if (authData != NULL)
+			::dsDataBufferDeAllocate(mDir, authData);
+		if (authType != NULL)
+			::dsDataNodeDeAllocate(mDir, authType);
+		RemoveBuffer();
+		if (node != 0L)
+		{
+			::dsCloseDirNode(node);
+			node = 0L;
+		}
+		CloseService();
+		
+		throw;
+	}
+
+    return result;
+}
+
+// NativeAuthenticationDigest
+// 
+// Authenticate a user to the directory.
+//
+// @param user: the uid of the user.
+// @param challenge: the server challenge.
+// @param response: the client response.
+// @param method: the HTTP method.
+// @return: true if authentication succeeds, false otherwise.
+//
+bool CDirectoryService::NativeAuthenticationDigest(const char* user, const char* challenge, const char* response, const char* method)
+{
+	// We need to find the 'native' node for the specifies user as the current node
+	// made not support this user's authentication directly.
+	
+	CFStringRef result = AuthenticationGetNode(user);
+	if (result == NULL)
+		return false;
+	CFStringUtil cfvalue(result);
+	::CFRelease(result);
+	return NativeAuthenticationDigestToNode(cfvalue.temp_str(), user, challenge, response, method);
+}
+
+// NativeAuthenticationDigestToNode
+// 
+// Authenticate a user to the directory.
+//
+// @param nodename: the node to authenticate to.
+// @param user: the uid of the user.
+// @param challenge: the server challenge.
+// @param response: the client response.
+// @param method: the HTTP method.
+// @return: true if authentication succeeds, false otherwise.
+//
+bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, const char* user,
+														 const char* challenge, const char* response, const char* method)
+{	
+	bool result = false;
+	tDirNodeReference node = 0L;
+    tDataNodePtr authType = NULL;
+    tDataBufferPtr authData = NULL;
+    tContextData context = NULL;
+	
+	try
+	{
+		// Make sure we have a valid directory service
+		OpenService();
+		
+		// Open the node we want to query
+		node = OpenNamedNode(nodename);
+		
+		CreateBuffer();
+
+		// First, specify the type of authentication.
+		authType = ::dsDataNodeAllocateString(mDir, kDSStdAuthDIGEST_MD5);
+
+		// Build input data
+		//  Native authentication is a one step authentication scheme.
+		//  Step 1
+		//      Send: <length><user>
+		//			  <length><challenge>
+		//            <length><response>
+		//			  <length><method>
+		//   Receive: success or failure.
+		long aDataBufSize = sizeof(long) + ::strlen(user) +
+							sizeof(long) + ::strlen(challenge) +
+							sizeof(long) + ::strlen(response) +
+							sizeof(long) + ::strlen(method);
+		authData = ::dsDataBufferAllocate(mDir, aDataBufSize);
+		if (authData == NULL)
+			throw eDSNullDataBuff;
+		long aCurLength = 0;
+		long aTempLength = ::strlen(user);
+		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+		aCurLength += sizeof(long);
+
+		::memcpy(&(authData->fBufferData[aCurLength]), user,  aTempLength);
+		aCurLength += aTempLength;
+
+		aTempLength = ::strlen(challenge);
+		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+		aCurLength += sizeof(long);
+
+		::memcpy(&(authData->fBufferData[aCurLength]), challenge,  aTempLength);
+		
+		aTempLength = ::strlen(response);
+		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+		aCurLength += sizeof(long);
+
+		::memcpy(&(authData->fBufferData[aCurLength]), response,  aTempLength);
+		
+		aTempLength = ::strlen(method);
+		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+		aCurLength += sizeof(long);
+
+		::memcpy(&(authData->fBufferData[aCurLength]), method,  aTempLength);
 		
 		authData->fBufferLength = aDataBufSize;
 		
@@ -1059,6 +799,7 @@ void CDirectoryService::CreateBuffer()
 		{
 			throw eDSNullDataBuff;
 		}
+		mDataSize = cBufferSize;
 	}
 }
 
@@ -1073,6 +814,21 @@ void CDirectoryService::RemoveBuffer()
 		::dsDataBufferDeAllocate(mDir, mData);
 		mData = NULL;
 	}
+}
+
+// ReallocBuffer
+// 
+// Destroy the data buffer, then re-create with double previous size.
+//
+void CDirectoryService::ReallocBuffer()
+{
+	RemoveBuffer();
+	mData = ::dsDataBufferAllocate(mDir, 2 * mDataSize);
+	if (mData == NULL)
+	{
+		throw eDSNullDataBuff;
+	}
+	mDataSize *= 2;
 }
 
 void CDirectoryService::BuildStringDataList(CFArrayRef strs, tDataListPtr data)

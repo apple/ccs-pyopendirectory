@@ -56,6 +56,17 @@ CFStringUtil::~CFStringUtil()
 	}
 }
 
+CFStringUtil& CFStringUtil::operator=(const CFStringUtil& copy)
+{
+	mRef = copy.get();
+	if (mRef != NULL)
+		::CFRetain(mRef);
+	mTemp = NULL;
+	
+	return *this;
+}
+
+
 // Return a new c-string from the CFString data.
 //
 // @return: c-string created from CFString - this must be deallocated (free) by caller.
