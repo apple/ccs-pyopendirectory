@@ -45,7 +45,7 @@ def authenticateUserBasic(obj, user, pswd):
     Authenticate a user with a password to Open Directory.
     
     @param obj: C{object} the object obtained from an odInit call.
-    @param user: C{str} container the user to check.
+    @param user: C{str} the user identifier/directory record name to check.
     @param pswd: C{str} containing the password to check.
     @return: C{True} if the user was found, C{False} otherwise.
     """
@@ -55,7 +55,7 @@ def authenticateUserDigest(obj, user, challenge, response, method):
     Authenticate using HTTP Digest credentials to Open Directory.
     
     @param obj: C{object} the object obtained from an odInit call.
-    @param user: C{str} container the user to check.
+    @param user: C{str} the user identifier/directory record name to check.
     @param challenge: C{str} the HTTP challenge sent to the client.
     @param response: C{str} the HTTP response sent from the client.
     @param method: C{str} the HTTP method being used.
