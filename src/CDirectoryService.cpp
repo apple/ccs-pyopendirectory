@@ -629,12 +629,14 @@ bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, c
 		aCurLength += sizeof(long);
 
 		::memcpy(&(authData->fBufferData[aCurLength]), challenge,  aTempLength);
+		aCurLength += aTempLength;
 		
 		aTempLength = ::strlen(response);
 		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
 		aCurLength += sizeof(long);
 
 		::memcpy(&(authData->fBufferData[aCurLength]), response,  aTempLength);
+		aCurLength += aTempLength;
 		
 		aTempLength = ::strlen(method);
 		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
