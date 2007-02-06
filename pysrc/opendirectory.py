@@ -40,6 +40,21 @@ def listAllRecordsWithAttributes(obj, recordType, attributes):
         or C{None} otherwise.
     """
 
+def queryRecordsWithAttributes(obj, query, matchType, casei, allmatch, recordType, attributes):
+    """
+    List records in Open Directory matching specified criteria, and return key attributes for each one.
+    
+    @param obj: C{object} the object obtained from an odInit call.
+    @param query: C{dict} containing attribute/value pairs to search.
+    @param matchType: C{int} DS match type to use when searching.
+    @param casei: C{True} to do case-insenstive match, C{False} otherwise.
+    @param allmatch: C{True} to do require all attribute/value pairs to match (AND), C{False} otherwise (OR).
+    @param recordType: C{str} containing the OD record type to lookup.
+    @param attributes: C{list} containing the attributes to return for each record.
+    @return: C{dict} containing a C{dict} of attributes for each record found, 
+        or C{None} otherwise.
+    """
+
 def authenticateUserBasic(obj, user, pswd):
     """
     Authenticate a user with a password to Open Directory.

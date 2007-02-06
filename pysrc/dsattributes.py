@@ -21,6 +21,18 @@ Record types and attribute names from Directory Service.
 This comes directly (with C->Python conversion) from <DirectoryServices/DirServicesConst.h>
 """
 
+# Specific match types
+
+eDSExact             =    0x2001
+eDSStartsWith        =    0x2002
+eDSEndsWith          =    0x2003
+eDSContains          =    0x2004
+
+eDSLessThan          =    0x2005
+eDSGreaterThan       =    0x2006
+eDSLessEqual         =    0x2007
+eDSGreaterEqual      =    0x2008
+
 # Specific Record Type Constants
 
 """
@@ -1549,6 +1561,12 @@ kDSNAttrResourceInfo = "dsAttrTypeStandard:ResourceInfo"
     Example: ConferenceRoom
 """
 kDSNAttrResourceType = "dsAttrTypeStandard:ResourceType"
+
+"""
+ kDSNAttrServicesLocator
+ Attribute describing the services hosted for the record.
+"""
+kDSNAttrServicesLocator = "dsAttrTypeStandard:ServicesLocator"
 
 """
  kDSNAttrState

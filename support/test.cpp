@@ -34,11 +34,13 @@ void PrintDictionary(const void* key, const void* value, void* ref);
 void PrintArrayArray(CFMutableArrayRef list);
 void PrintArray(CFArrayRef list);
 void AuthenticateUser(CDirectoryService* dir, const char* user, const char* pswd);
+void AuthenticateUserDigest(CDirectoryService* dir, const char* user, const char* challenge, const char* response, const char* method);
 
 int main (int argc, const char * argv[]) {
     
 	CDirectoryService* dir = new CDirectoryService("/Search");
 
+#if 0
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
 	strings[1] = CFSTR(kDS1AttrGeneratedUID);
@@ -74,15 +76,84 @@ int main (int argc, const char * argv[]) {
 	}
 	CFRelease(array);
 
-	AuthenticateUser(dir, "cdaboo", "appledav1234");
-	AuthenticateUser(dir, "cdaboo", "appledav6585");
+	AuthenticateUser(dir, "test", "test-no");
+	AuthenticateUser(dir, "test", "test-yes");
+#elif 0
+	CFStringRef keys[2];
+	keys[0] = CFSTR(kDS1AttrFirstName);
+	keys[1] = CFSTR(kDS1AttrLastName);
+	CFStringRef values[2];
+	values[0] = CFSTR("cyrus");
+	values[1] = CFSTR("daboo");
+	CFDictionaryRef kvdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void**)values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                        
+	CFStringRef strings[2];
+	strings[0] = CFSTR(kDS1AttrDistinguishedName);
+	strings[1] = CFSTR(kDS1AttrGeneratedUID);
+	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
+                        
+	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttributes(kvdict, eDSContains, false, false, kDSStdRecordTypeUsers, array);
+	if (dict != NULL)
+	{
+		printf("\n*** Users: %d ***\n", CFDictionaryGetCount(dict));
+		CFDictionaryApplyFunction(dict, PrintDictionaryDictionary, NULL);
+		CFRelease(dict);
+	}
+	else
+	{
+		printf("\nNo Users returned\n");
+	}
+	CFRelease(array);
 	
+#elif 1
+	CFStringRef keys[2];
+	keys[0] = CFSTR(kDS1AttrENetAddress);
+	CFStringRef values[2];
+	values[0] = CFSTR("00:17:f2:02:35:e4");
+	CFDictionaryRef kvdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void**)values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                        
+	CFStringRef strings[2];
+	strings[0] = CFSTR(kDS1AttrDistinguishedName);
+	strings[1] = CFSTR(kDS1AttrXMLPlist);
+	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
+                        
+	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttributes(kvdict, eDSExact, false, false, kDSStdRecordTypeComputers, array);
+	if (dict != NULL)
+	{
+		printf("\n*** Computers: %d ***\n", CFDictionaryGetCount(dict));
+		CFDictionaryApplyFunction(dict, PrintDictionaryDictionary, NULL);
+		CFRelease(dict);
+	}
+	else
+	{
+		printf("\nNo Users returned\n");
+	}
+	CFRelease(array);
+	
+#else
+	const char* u = "test";
+	//const char* c = "nonce=\"1\", qop=\"auth\", realm=\"Test\", algorithm=\"md5\", opaque=\"1\"";
+	//const char* r = "username=\"test\", nonce=\"1\", cnonce=\"1\", nc=\"1\", realm=\"Test\", algorithm=\"md5\", opaque=\"1\", qop=\"auth\", uri=\"/\", response=\"4241f31ffe6f9c99b891f88e9c41caa9\"";
+	const char* c = "WWW-Authenticate: digest nonce=\"1621696297327727918745238639\", opaque=\"121994e78694cbdff74f12cb32ee6f00-MTYyMTY5NjI5NzMyNzcyNzkxODc0NTIzODYzOSwxMjcuMC4wLjEsMTE2ODU2ODg5NQ==\", realm=\"Test Realm\", algorithm=\"md5\", qop=\"auth\"";
+	const char* r = "Authorization: Digest username=\"test\", realm=\"Test Realm\", nonce=\"1621696297327727918745238639\", uri=\"/principals/users/test/\", response=\"e260f13cffcc15572ddeec9c31de437b\", opaque=\"121994e78694cbdff74f12cb32ee6f00-MTYyMTY5NjI5NzMyNzcyNzkxODc0NTIzODYzOSwxMjcuMC4wLjEsMTE2ODU2ODg5NQ==\", algorithm=\"md5\", cnonce=\"70cbd8f04227d8d46c0193b290beaf0d\", nc=00000001, qop=\"auth\"";
+	AuthenticateUserDigest(dir, u, c, r, "GET");
+#endif
 	return 0;
 }
 
 void AuthenticateUser(CDirectoryService* dir, const char* user, const char* pswd)
 {
-	if (dir->AuthenticateUserBasic(user, pswd))
+	bool result = false;
+	if (dir->AuthenticateUserBasic(user, pswd, result))
+		printf("Authenticated user: %s\n", user);
+	else
+		printf("Not Authenticated user: %s\n", user);
+}
+
+void AuthenticateUserDigest(CDirectoryService* dir, const char* user, const char* challenge, const char* response, const char* method)
+{
+	bool result = false;
+	if (dir->AuthenticateUserDigest(user, challenge, response, method, result))
 		printf("Authenticated user: %s\n", user);
 	else
 		printf("Not Authenticated user: %s\n", user);

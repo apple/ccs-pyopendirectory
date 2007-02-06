@@ -77,13 +77,39 @@ char* CFStringUtil::c_str() const
 	
 	if (bytes == NULL)
 	{
-		char localBuffer[256];
-		localBuffer[0] = 0;
-		Boolean success = ::CFStringGetCString(mRef, localBuffer, 256, kCFStringEncodingUTF8);
-		if (!success)
-			localBuffer[0] = 0;
+		// Need to convert the CFString to UTF-8. Since we don't know the exact length of the UTF-8 data
+		// we have to iterate over the conversion process until we succeed or the length we are allocating
+		// is greater than the value it could maximally be. We start with half the UTF-16 encoded value,
+		// which will give an accurate count for an ascii only string (plus add one for \0).
+		CFIndex len = ::CFStringGetLength(mRef)/2 + 1;
+		CFIndex maxSize = ::CFStringGetMaximumSizeForEncoding(::CFStringGetLength(mRef), kCFStringEncodingUTF8) + 1;
+		char* buffer = NULL;
+		while(true)
+		{
+			buffer = (char*)::malloc(len);
+			if (buffer == NULL)
+				break;
+			buffer[0] = 0;
+			Boolean success = ::CFStringGetCString(mRef, buffer, len, kCFStringEncodingUTF8);
+			if (!success)
+			{
+				::free(buffer);
+				buffer = NULL;
+				if (len == maxSize)
+				{
+					buffer = (char*)::malloc(1);
+					buffer[0] = 0;
+					break;
+				}
+				len *= 2;
+				if (len > maxSize)
+					len = maxSize;
+			}
+			else
+				break;
+		}
 		
-		return ::strdup(localBuffer);
+		return buffer;
 	}
 	else
 	{

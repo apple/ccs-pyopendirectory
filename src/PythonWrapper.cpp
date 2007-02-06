@@ -35,23 +35,8 @@
 // Utility function - not exposed to Python
 static PyObject* CFStringToPyStr(CFStringRef str)
 {
-	PyObject* pystr = NULL;
-	const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
-	
-	if (bytes == NULL)
-	{
-		char localBuffer[256];
-		Boolean success = CFStringGetCString(str, localBuffer, 256, kCFStringEncodingUTF8);
-		if (!success)
-			localBuffer[0] = 0;
-		pystr = PyString_FromString(localBuffer);
-	}
-	else
-	{
-		pystr = PyString_FromString(bytes);
-	}
-	
-	return pystr;
+	CFStringUtil s(str);
+	return PyString_FromString(s.temp_str());
 }
 
 // Utility function - not exposed to Python
@@ -345,6 +330,83 @@ extern "C" PyObject *listAllRecordsWithAttributes(PyObject *self, PyObject *args
 }
 
 /*
+def queryRecordsWithAttributes(obj, query, matchType, casei, allmatch, recordType, attributes):
+    """
+    List records in Open Directory matching specified criteria, and return key attributes for each one.
+    
+    @param obj: C{object} the object obtained from an odInit call.
+    @param query: C{dict} containing attribute/value pairs to search.
+    @param matchType: C{int} DS match type to use when searching.
+    @param casei: C{True} to do case-insenstive match, C{False} otherwise.
+    @param allmatch: C{True} to do require all attribute/value pairs to match (AND), C{False} otherwise (OR).
+    @param recordType: C{str} containing the OD record type to lookup.
+    @param attributes: C{list} containing the attributes to return for each record.
+    @return: C{dict} containing a C{dict} of attributes for each record found, 
+        or C{None} otherwise.
+    """
+ */
+extern "C" PyObject *queryRecordsWithAttributes(PyObject *self, PyObject *args)
+{
+	PyObject* pyds;
+	PyObject* query;
+	int matchType;
+	PyObject* caseio;
+	bool casei;
+	PyObject* allmatcho;
+	bool allmatch;
+	const char* recordType;
+	PyObject* attributes;
+    if (!PyArg_ParseTuple(args, "OOiOOsO", &pyds, &query, &matchType, &caseio, &allmatcho, &recordType, &attributes) ||
+    	!PyCObject_Check(pyds) || !PyDict_Check(query) || !PyBool_Check(caseio) || !PyBool_Check(allmatcho) || !PyList_Check(attributes))
+    {
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes: could not parse arguments", 0));		
+        return NULL;
+    }
+	
+	// Convert dict to CFDictionary of CFString
+	CFDictionaryRef cfquery = PyDictToCFDictionary(query);
+	if (cfquery == NULL)
+    {
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes: could not parse query dict", 0));		
+        return NULL;
+    }
+
+	casei = (caseio == Py_True);
+
+	allmatch = (allmatcho == Py_True);
+
+	// Convert list to CFArray of CFString
+	CFArrayRef cfattributes = PyListToCFArray(attributes);
+	if (cfattributes == NULL)
+    {
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes: could not parse attributes list", 0));		
+		CFRelease(cfquery);
+        return NULL;
+    }
+
+	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
+	if (ds != NULL)
+	{
+		CFMutableDictionaryRef dict = ds->QueryRecordsWithAttributes(cfquery, matchType, casei, allmatch, recordType, cfattributes);
+		if (dict != NULL)
+		{
+			PyObject* result = CFDictionaryDictionaryToPyDict(dict);
+			CFRelease(dict);
+			CFRelease(cfquery);
+			CFRelease(cfattributes);
+			
+			return result;
+		}
+	}
+	else
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes: invalid directory service argument", 0));		
+	
+	CFRelease(cfquery);
+	CFRelease(cfattributes);
+	return NULL;
+}
+
+/*
 def authenticateUserBasic(obj, user, pswd):
 	"""
 	Authenticate a user with a password to Open Directory.
@@ -433,6 +495,8 @@ static PyMethodDef ODMethods[] = {
 		"Initialize the Open Directory system."},
     {"listAllRecordsWithAttributes",  listAllRecordsWithAttributes, METH_VARARGS,
 		"List all records of the specified type in Open Directory, returning requested attributes."},
+    {"queryRecordsWithAttributes",  queryRecordsWithAttributes, METH_VARARGS,
+		"List records in Open Directory matching specified criteria, and return key attributes for each one."},
     {"authenticateUserBasic",  authenticateUserBasic, METH_VARARGS,
 		"Authenticate a user with a password to Open Directory using plain text authentication."},
     {"authenticateUserDigest",  authenticateUserDigest, METH_VARARGS,
