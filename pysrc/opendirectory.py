@@ -55,21 +55,23 @@ def queryRecordsWithAttributes(obj, query, matchType, casei, allmatch, recordTyp
         or C{None} otherwise.
     """
 
-def authenticateUserBasic(obj, user, pswd):
+def authenticateUserBasic(obj, guid, user, pswd):
     """
     Authenticate a user with a password to Open Directory.
     
     @param obj: C{object} the object obtained from an odInit call.
+    @param guid: C{str} the GUID for the record to check.
     @param user: C{str} the user identifier/directory record name to check.
     @param pswd: C{str} containing the password to check.
     @return: C{True} if the user was found, C{False} otherwise.
     """
 
-def authenticateUserDigest(obj, user, challenge, response, method):
+def authenticateUserDigest(obj, guid, user, challenge, response, method):
     """
     Authenticate using HTTP Digest credentials to Open Directory.
     
     @param obj: C{object} the object obtained from an odInit call.
+    @param guid: C{str} the GUID for the record to check.
     @param user: C{str} the user identifier/directory record name to check.
     @param challenge: C{str} the HTTP challenge sent to the client.
     @param response: C{str} the HTTP response sent from the client.

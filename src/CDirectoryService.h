@@ -35,8 +35,8 @@ public:
 	CFMutableDictionaryRef ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes);
 	CFMutableDictionaryRef QueryRecordsWithAttributes(CFDictionaryRef query, int matchType, bool casei, bool allmatch, const char* recordType, CFArrayRef attributes);
 
-	bool AuthenticateUserBasic(const char* user, const char* pswd, bool& result);
-	bool AuthenticateUserDigest(const char* user, const char* challenge, const char* response, const char* method, bool& result);
+	bool AuthenticateUserBasic(const char* guid, const char* user, const char* pswd, bool& result);
+	bool AuthenticateUserDigest(const char* guid, const char* user, const char* challenge, const char* response, const char* method, bool& result);
 	
 private:
 	const char*			mNodeName;
@@ -48,10 +48,10 @@ private:
 	CFMutableDictionaryRef _ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs);
 	CFMutableDictionaryRef _QueryRecordsWithAttributes(CFDictionaryRef query, int matchType, bool casei, bool allmatch, const char* recordType, CFArrayRef attributes);
 
-	CFStringRef CDirectoryService::AuthenticationGetNode(const char* user);
-	bool NativeAuthenticationBasic(const char* user, const char* pswd);
+	CFStringRef CDirectoryService::AuthenticationGetNode(const char* guid);
+	bool NativeAuthenticationBasic(const char* guid, const char* user, const char* pswd);
 	bool NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd);
-	bool NativeAuthenticationDigest(const char* user, const char* challenge, const char* response, const char* method);
+	bool NativeAuthenticationDigest(const char* guid, const char* user, const char* challenge, const char* response, const char* method);
 	bool NativeAuthenticationDigestToNode(const char* nodename, const char* user, const char* challenge, const char* response, const char* method);
 	
 	void OpenService();

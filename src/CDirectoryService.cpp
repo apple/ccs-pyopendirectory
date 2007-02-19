@@ -145,15 +145,16 @@ CFMutableDictionaryRef CDirectoryService::QueryRecordsWithAttributes(CFDictionar
 // 
 // Authenticate a user to the directory using plain text credentials.
 //
+// @param guid: the GUID for the user record.
 // @param user: the uid of the user.
 // @param pswd: the plain text password to authenticate with.
 // @return: true if authentication succeeds, false otherwise.
 //
-bool CDirectoryService::AuthenticateUserBasic(const char* user, const char* pswd, bool& result)
+bool CDirectoryService::AuthenticateUserBasic(const char* guid, const char* user, const char* pswd, bool& result)
 {
 	try
 	{
-		result = NativeAuthenticationBasic(user, pswd);
+		result = NativeAuthenticationBasic(guid, user, pswd);
 		return true;
 	}
 	catch(long dserror)
@@ -172,15 +173,16 @@ bool CDirectoryService::AuthenticateUserBasic(const char* user, const char* pswd
 // 
 // Authenticate a user to the directory using HTTP DIGEST credentials.
 //
+// @param guid: the GUID for the user record.
 // @param challenge: HTTP challenge sent by server.
 // @param response: HTTP response sent by client.
 // @return: true if authentication succeeds, false otherwise.
 //
-bool CDirectoryService::AuthenticateUserDigest(const char* user, const char* challenge, const char* response, const char* method, bool& result)
+bool CDirectoryService::AuthenticateUserDigest(const char* guid, const char* user, const char* challenge, const char* response, const char* method, bool& result)
 {
 	try
 	{
-		result = NativeAuthenticationDigest(user, challenge, response, method);
+		result = NativeAuthenticationDigest(guid, user, challenge, response, method);
 		return true;
 	}
 	catch(long dserror)
@@ -413,7 +415,7 @@ CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const ch
 // 
 // Get specific attributes for records of a specified type in the directory.
 //
-// @param query: a dictionary containg attribute/value pairs to match in records.
+// @param query: a dictionary containing attribute/value pairs to match in records.
 // @param matchType: the match type to to use.
 // @param casei: true if case-insensitive match is to be used, false otherwise.
 // @param allmatch: true if a match to every attribute/value must occur (AND), false if only one needs to match (OR).
@@ -639,34 +641,44 @@ CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(CFDictiona
 
 // AuthenticationGetNode
 // 
-// Authenticate a user to the directory.
+// Get the node associated with the user we want to authenticate.
 //
-// @param user: the uid of the user.
+// @param guid: the GUID for the user record.
 // @return: CFStringUtil for node name.
 //
-CFStringRef CDirectoryService::AuthenticationGetNode(const char* user)
+CFStringRef CDirectoryService::AuthenticationGetNode(const char* guid)
 {
-	// We need to find the 'native' node for the specifies user as the current node
-	// made not support this user's authentication directly.
+	// We need to find the 'native' node for the specified record guid as the current node
+	// may not support this user's authentication directly.
 	CFStringRef result = NULL;
 
-	CFMutableArrayRef users = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-	CFStringUtil cfuser(user);
-	::CFArrayAppendValue(users, cfuser.get());
+	CFStringRef keys[1] = {CFSTR(kDS1AttrGeneratedUID)};
+	CFStringUtil cfguid(guid);
+	CFStringRef values[1] = {cfguid.get()};
+	CFDictionaryRef query = ::CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void**)values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 	
 	CFMutableArrayRef attrs = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
 	CFStringUtil cfattr(kDSNAttrMetaNodeLocation);
 	::CFArrayAppendValue(attrs, cfattr.get());
 	
-	// First list the record for the current user and get its node.
-	CFMutableDictionaryRef found = _ListAllRecordsWithAttributes(kDSStdRecordTypeUsers, users, attrs);
-	::CFRelease(users);
+	// First list the record for the current GUID and get its node.
+	CFMutableDictionaryRef found = _QueryRecordsWithAttributes(query, eDSExact, false, false, kDSStdRecordTypeUsers, attrs);
+	::CFRelease(query);
 	::CFRelease(attrs);
 	if (found == NULL)
 		return result;
 
+	// Must have only one result
+	if (CFDictionaryGetCount(found) != 1)
+	{
+		::CFRelease(found);
+		return result;
+	}
+
 	// Now extract the returned data.
-	CFDictionaryRef dictvalue = (CFDictionaryRef)CFDictionaryGetValue(found, cfuser.get());
+	const void* dictvalues[1] = {NULL};
+	::CFDictionaryGetKeysAndValues(found, NULL, &dictvalues[0]);
+	CFDictionaryRef dictvalue = (CFDictionaryRef)dictvalues[0];
 	if ((dictvalue == NULL) || (::CFDictionaryGetCount(dictvalue) == 0))
 	{
 		::CFRelease(found);
@@ -696,16 +708,17 @@ CFStringRef CDirectoryService::AuthenticationGetNode(const char* user)
 // 
 // Authenticate a user to the directory.
 //
+// @param guid: the GUID for the user record.
 // @param user: the uid of the user.
 // @param pswd: the plain text password to authenticate with.
 // @return: true if authentication succeeds, false otherwise.
 //
-bool CDirectoryService::NativeAuthenticationBasic(const char* user, const char* pswd)
+bool CDirectoryService::NativeAuthenticationBasic(const char* guid, const char* user, const char* pswd)
 {
 	// We need to find the 'native' node for the specifies user as the current node
 	// made not support this user's authentication directly.
 	
-	CFStringRef result = AuthenticationGetNode(user);
+	CFStringRef result = AuthenticationGetNode(guid);
 	if (result == NULL)
 		return false;
 	CFStringUtil cfvalue(result);
@@ -811,18 +824,19 @@ bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, co
 // 
 // Authenticate a user to the directory.
 //
+// @param guid: the GUID for the user record.
 // @param user: the uid of the user.
 // @param challenge: the server challenge.
 // @param response: the client response.
 // @param method: the HTTP method.
 // @return: true if authentication succeeds, false otherwise.
 //
-bool CDirectoryService::NativeAuthenticationDigest(const char* user, const char* challenge, const char* response, const char* method)
+bool CDirectoryService::NativeAuthenticationDigest(const char* guid, const char* user, const char* challenge, const char* response, const char* method)
 {
 	// We need to find the 'native' node for the specifies user as the current node
 	// made not support this user's authentication directly.
 	
-	CFStringRef result = AuthenticationGetNode(user);
+	CFStringRef result = AuthenticationGetNode(guid);
 	if (result == NULL)
 		return false;
 	CFStringUtil cfvalue(result);

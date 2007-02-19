@@ -8,9 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		8DD76F650486A84900D96B5E /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* test.cpp */; settings = {ATTRIBUTES = (); }; };
+		AF00155A0B8A21340045DAEE /* Python.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF0015590B8A21340045DAEE /* Python.framework */; };
+		AF00155E0B8A21FD0045DAEE /* PythonWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */; };
 		AF155A320A501F84007E1E6E /* CDirectoryService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */; };
 		AF155A330A501F84007E1E6E /* CDirectoryService.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = AF155A300A501F84007E1E6E /* CDirectoryService.h */; };
-		AF155A340A501F84007E1E6E /* PythonWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */; };
 		AF155A370A501F9D007E1E6E /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF155A350A501F9D007E1E6E /* CoreFoundation.framework */; };
 		AF155A380A501F9D007E1E6E /* DirectoryService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF155A360A501F9D007E1E6E /* DirectoryService.framework */; };
 		AF155AFD0A502C09007E1E6E /* CFStringUtil.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = AF155AFB0A502C09007E1E6E /* CFStringUtil.h */; };
@@ -34,6 +35,7 @@
 /* Begin PBXFileReference section */
 		08FB7796FE84155DC02AAC07 /* test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test.cpp; sourceTree = "<group>"; };
 		8DD76F6C0486A84900D96B5E /* PyOpenDirectory */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PyOpenDirectory; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF0015590B8A21340045DAEE /* Python.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Python.framework; path = /System/Library/Frameworks/Python.framework; sourceTree = "<absolute>"; };
 		AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CDirectoryService.cpp; path = ../src/CDirectoryService.cpp; sourceTree = SOURCE_ROOT; };
 		AF155A300A501F84007E1E6E /* CDirectoryService.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CDirectoryService.h; path = ../src/CDirectoryService.h; sourceTree = SOURCE_ROOT; };
 		AF155A310A501F84007E1E6E /* PythonWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PythonWrapper.cpp; path = ../src/PythonWrapper.cpp; sourceTree = SOURCE_ROOT; };
@@ -50,6 +52,7 @@
 			files = (
 				AF155A370A501F9D007E1E6E /* CoreFoundation.framework in Frameworks */,
 				AF155A380A501F9D007E1E6E /* DirectoryService.framework in Frameworks */,
+				AF00155A0B8A21340045DAEE /* Python.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +93,7 @@
 		AF155A3D0A501FA0007E1E6E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AF0015590B8A21340045DAEE /* Python.framework */,
 				AF155A350A501F9D007E1E6E /* CoreFoundation.framework */,
 				AF155A360A501F9D007E1E6E /* DirectoryService.framework */,
 			);
@@ -142,8 +146,8 @@
 			files = (
 				8DD76F650486A84900D96B5E /* test.cpp in Sources */,
 				AF155A320A501F84007E1E6E /* CDirectoryService.cpp in Sources */,
-				AF155A340A501F84007E1E6E /* PythonWrapper.cpp in Sources */,
 				AF155AFE0A502C09007E1E6E /* CFStringUtil.cpp in Sources */,
+				AF00155E0B8A21FD0045DAEE /* PythonWrapper.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -33,13 +33,14 @@ void PrintDictionaryDictionary(const void* key, const void* value, void* ref);
 void PrintDictionary(const void* key, const void* value, void* ref);
 void PrintArrayArray(CFMutableArrayRef list);
 void PrintArray(CFArrayRef list);
-void AuthenticateUser(CDirectoryService* dir, const char* user, const char* pswd);
-void AuthenticateUserDigest(CDirectoryService* dir, const char* user, const char* challenge, const char* response, const char* method);
+void AuthenticateUser(CDirectoryService* dir, const char* guid, const char* user, const char* pswd);
+void AuthenticateUserDigest(CDirectoryService* dir, const char* guid, const char* user, const char* challenge, const char* response, const char* method);
 
 int main (int argc, const char * argv[]) {
     
 	CDirectoryService* dir = new CDirectoryService("/Search");
 
+#if 1
 #if 0
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
@@ -75,9 +76,10 @@ int main (int argc, const char * argv[]) {
 		printf("\nNo Groups returned\n");
 	}
 	CFRelease(array);
+#endif
 
-	AuthenticateUser(dir, "test", "test-no");
-	AuthenticateUser(dir, "test", "test-yes");
+	AuthenticateUser(dir, "gooeyed", "test", "test-no");
+	AuthenticateUser(dir, "gooeyed", "test", "test-yes");
 #elif 0
 	CFStringRef keys[2];
 	keys[0] = CFSTR(kDS1AttrFirstName);
@@ -141,22 +143,32 @@ int main (int argc, const char * argv[]) {
 	return 0;
 }
 
-void AuthenticateUser(CDirectoryService* dir, const char* user, const char* pswd)
+void AuthenticateUser(CDirectoryService* dir, const char* guid, const char* user, const char* pswd)
 {
 	bool result = false;
-	if (dir->AuthenticateUserBasic(user, pswd, result))
-		printf("Authenticated user: %s\n", user);
+	if (dir->AuthenticateUserBasic(guid, user, pswd, result))
+	{
+		if (result)
+			printf("Authenticated user: %s\n", user);
+		else
+			printf("Not Authenticated user: %s\n", user);
+	}
 	else
-		printf("Not Authenticated user: %s\n", user);
+		printf("Failed authentication user: %s\n", user);
 }
 
-void AuthenticateUserDigest(CDirectoryService* dir, const char* user, const char* challenge, const char* response, const char* method)
+void AuthenticateUserDigest(CDirectoryService* dir, const char* guid, const char* user, const char* challenge, const char* response, const char* method)
 {
 	bool result = false;
-	if (dir->AuthenticateUserDigest(user, challenge, response, method, result))
-		printf("Authenticated user: %s\n", user);
+	if (dir->AuthenticateUserDigest(guid, user, challenge, response, method, result))
+	{
+		if (result)
+			printf("Authenticated user: %s\n", user);
+		else
+			printf("Not Authenticated user: %s\n", user);
+	}
 	else
-		printf("Not Authenticated user: %s\n", user);
+		printf("Failed authentication user: %s\n", user);
 }
 
 void CFDictionaryIterator(const void* key, const void* value, void* ref)

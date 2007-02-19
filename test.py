@@ -131,7 +131,7 @@ try:
 		)
 		
 	def authentciateBasic():
-		if opendirectory.authenticateUserBasic(ref, "test", "test"):
+		if opendirectory.authenticateUserBasic(ref, "gooeyed", "test", "test"):
 			print "Authenticated user"
 		else:
 			print "Failed to authenticate user"
@@ -143,7 +143,7 @@ try:
 	#queryUsersCompoundOr()
 	#queryUsersCompoundOrExact()
 	#queryUsersCompoundAnd()
-	#authentciateBasic()
+	authentciateBasic()
 
 	ref = None
 except opendirectory.ODError, ex:
