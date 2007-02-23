@@ -108,26 +108,57 @@ CFMutableDictionaryRef CDirectoryService::ListAllRecordsWithAttributes(const cha
 	}
 }
 
-// QueryRecordsWithAttributes
+// QueryRecordsWithAttribute
 // 
-// Get specific attributes for one or more user records with matching attributes in the directory.
+// Get specific attributes for one or more user records with matching attribute/value in the directory.
 //
-// @param query: CFDictionary of CFString listing the attributes to query.
-// @param matchType: the match type to query.
+// @param attr: the attribute to query.
+// @param value: the value to query.
+// @param matchType: the match type to use.
 // @param casei: true if case-insensitive match is to be used, false otherwise.
-// @param allmatch: true if a match to every attribute/value must occur (AND), false if only one needs to match (OR).
 // @param recordType: the record type to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
 // @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
 //			for each attribute/value requested in the record indexed by uid,
 //		    or NULL if it fails.
 //
-CFMutableDictionaryRef CDirectoryService::QueryRecordsWithAttributes(CFDictionaryRef query, int matchType, bool casei, bool allmatch, const char* recordType, CFArrayRef attributes)
+CFMutableDictionaryRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFArrayRef attributes)
 {
 	try
 	{
 		// Get attribute map
-		return _QueryRecordsWithAttributes(query, matchType, casei, allmatch, recordType, attributes);
+		return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordType, attributes);
+	}
+	catch(long dserror)
+	{
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices Error", dserror));		
+		return NULL;
+	}
+	catch(...)
+	{
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "Unknown Error", -1));		
+		return NULL;
+	}
+}
+
+// QueryRecordsWithAttributes
+// 
+// Get specific attributes for one or more user records with matching attributes in the directory.
+//
+// @param query: the compund query string to use.
+// @param casei: true if case-insensitive match is to be used, false otherwise.
+// @param recordType: the record type to list.
+// @param attributes: CFArray of CFString listing the attributes to return for each record.
+// @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
+//			for each attribute/value requested in the record indexed by uid,
+//		    or NULL if it fails.
+//
+CFMutableDictionaryRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFArrayRef attributes)
+{
+	try
+	{
+		// Get attribute map
+		return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordType, attributes);
 	}
 	catch(long dserror)
 	{
@@ -415,17 +446,18 @@ CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const ch
 // 
 // Get specific attributes for records of a specified type in the directory.
 //
-// @param query: a dictionary containing attribute/value pairs to match in records.
-// @param matchType: the match type to to use.
+// @param attr: the attribute to query (NULL if compound is being used).
+// @param value: the value to query (NULL if compound is being used).
+// @param matchType: the match type to use (0 if compound is being used).
+// @param attr: the compound query to use rather than single attribute/value (NULL if compound is not being used).
 // @param casei: true if case-insensitive match is to be used, false otherwise.
-// @param allmatch: true if a match to every attribute/value must occur (AND), false if only one needs to match (OR).
 // @param type: the record type to check.
 // @param attrs: a list of attributes to return.
 // @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
 //			for each attribute/value requested in the record indexed by uid,
 //		    or NULL if it fails.
 //
-CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(CFDictionaryRef query, int matchType, bool casei, bool allmatch, const char* type, CFArrayRef attrs)
+CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* type, CFArrayRef attrs)
 {
 	CFMutableDictionaryRef result = NULL;
 	CFMutableDictionaryRef vresult = NULL;
@@ -453,10 +485,15 @@ CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(CFDictiona
 		// We need a buffer for what comes next
 		CreateBuffer();
 		
-		// Determine attribute to search
-		if (::CFDictionaryGetCount(query) == 1)
+		if (compound == NULL)
 		{
-			BuildSimpleQuery(query, queryAttr, queryValue);
+			// Determine attribute to search
+			queryAttr = ::dsDataNodeAllocateString(mDir, attr);
+			ThrowIfNULL(queryAttr);
+
+			queryValue = ::dsDataNodeAllocateString(mDir, value);
+			ThrowIfNULL(queryValue);
+
 			if (casei)
 				matchType |= 0x0100;
 			else
@@ -465,10 +502,14 @@ CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(CFDictiona
 		else
 		{
 			queryAttr = ::dsDataNodeAllocateString(mDir, kDS1AttrDistinguishedName);
-			BuildCompoundQuery(query, (tDirPatternMatch)matchType, allmatch, queryValue);
+			ThrowIfNULL(queryAttr);
+
+			queryValue = ::dsDataNodeAllocateString(mDir, compound);
+			ThrowIfNULL(queryValue);
+
 			matchType = (casei) ? eDSiCompoundExpression : eDSCompoundExpression;
 		}
-
+	
 		// Build data list of types
 		recTypes = ::dsDataListAllocate(mDir);
 		ThrowIfNULL(recTypes);
@@ -651,19 +692,13 @@ CFStringRef CDirectoryService::AuthenticationGetNode(const char* guid)
 	// We need to find the 'native' node for the specified record guid as the current node
 	// may not support this user's authentication directly.
 	CFStringRef result = NULL;
-
-	CFStringRef keys[1] = {CFSTR(kDS1AttrGeneratedUID)};
-	CFStringUtil cfguid(guid);
-	CFStringRef values[1] = {cfguid.get()};
-	CFDictionaryRef query = ::CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void**)values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 	
 	CFMutableArrayRef attrs = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
 	CFStringUtil cfattr(kDSNAttrMetaNodeLocation);
 	::CFArrayAppendValue(attrs, cfattr.get());
 	
 	// First list the record for the current GUID and get its node.
-	CFMutableDictionaryRef found = _QueryRecordsWithAttributes(query, eDSExact, false, false, kDSStdRecordTypeUsers, attrs);
-	::CFRelease(query);
+	CFMutableDictionaryRef found = _QueryRecordsWithAttributes(kDS1AttrGeneratedUID, guid, eDSExact, NULL, false, kDSStdRecordTypeUsers, attrs);
 	::CFRelease(attrs);
 	if (found == NULL)
 		return result;
@@ -1120,106 +1155,6 @@ void CDirectoryService::BuildStringDataList(CFArrayRef strs, tDataListPtr data)
 		add_name.reset(add_cfname.c_str());
 		ThrowIfDSErr(::dsAppendStringToListAlloc(mDir, data,  add_name.get()));
 	}
-}
-
-struct SBuildSimpleQueryIterator
-{
-	tDirReference		mDir;
-	tDataNodePtr&		mAttr;
-	tDataNodePtr&		mValue;
-	
-	SBuildSimpleQueryIterator(tDirReference dir, tDataNodePtr& attr, tDataNodePtr& value) :
-		mDir(dir), mAttr(attr), mValue(value) {}
-};
-
-// CFDictionary iterator callback that adds either the key or value to a DS list.
-static void BuildSimpleQueryIterator(const void* key, const void* value, void* ref)
-{
-	SBuildSimpleQueryIterator* info = (SBuildSimpleQueryIterator*)ref;
-
-	CFStringRef strkey = (CFStringRef)key;
-	CFStringUtil cstrkey(strkey);
-	info->mAttr = ::dsDataNodeAllocateString(info->mDir, cstrkey.temp_str());
-	ThrowIfNULL(info->mAttr);
-
-	CFStringRef strvalue = (CFStringRef)value;
-	CFStringUtil cstrvalue(strvalue);
-	info->mValue = ::dsDataNodeAllocateString(info->mDir, cstrvalue.temp_str());
-	ThrowIfNULL(info->mValue);
-}
-
-void CDirectoryService::BuildSimpleQuery(CFDictionaryRef dict, tDataNodePtr& attr, tDataNodePtr& value)
-{
-	SBuildSimpleQueryIterator info(mDir, attr, value);
-
-	::CFDictionaryApplyFunction(dict, BuildSimpleQueryIterator, &info);
-}
-
-struct SBuildCompoundQueryIterator
-{
-	CFStringRef			mFormat;
-	CFMutableStringRef	mCompound;
-	
-	SBuildCompoundQueryIterator(CFStringRef format, CFMutableStringRef compound) :
-		mFormat(format), mCompound(compound) {}
-};
-
-// CFDictionary iterator callback that adds either the key or value to a DS list.
-static void BuildCompoundQueryIterator(const void* key, const void* value, void* ref)
-{
-	SBuildCompoundQueryIterator* info = (SBuildCompoundQueryIterator*)ref;
-
-	CFStringRef strkey = (CFStringRef)key;
-	CFStringRef strvalue = (CFStringRef)value;
-	::CFStringAppendFormat(info->mCompound, NULL, info->mFormat, strkey, strvalue);
-}
-
-void CDirectoryService::BuildCompoundQuery(CFDictionaryRef dict, tDirPatternMatch matchType, bool allmatch, tDataNodePtr& value)
-{	
-	CFStringRef format = NULL;
-	switch(matchType)
-	{
-		case eDSExact:
-		case eDSiExact:
-			format = CFSTR("(%@=%@)");
-			break;
-		case eDSStartsWith:
-		case eDSiStartsWith:
-			format = CFSTR("(%@=%@*)");
-			break;
-		case eDSEndsWith:
-		case eDSiEndsWith:
-			format = CFSTR("(%@=*%@)");
-			break;
-		case eDSContains:
-		case eDSiContains:
-			format = CFSTR("(%@=*%@*)");
-			break;
-		case eDSLessThan:
-		case eDSiLessThan:
-			format = CFSTR("(%@<%@)");
-			break;
-		case eDSGreaterThan:
-		case eDSiGreaterThan:
-			format = CFSTR("(%@>%@)");
-			break;
-		default:
-			format = CFSTR("(%@=*%@*)");
-			break;
-	}
-
-	// Now build the compound expression using the match type format we just setup
-	CFMutableStringRef compound = CFStringCreateMutable(kCFAllocatorDefault, 0);
-	::CFStringAppend(compound, allmatch ? CFSTR("(&") : CFSTR("(|"));
-	
-	SBuildCompoundQueryIterator info(format, compound);
-	::CFDictionaryApplyFunction(dict, BuildCompoundQueryIterator, &info);
-
-	::CFStringAppend(compound, CFSTR(")"));
-	CFStringUtil cstrvalue(compound);
-	value = ::dsDataNodeAllocateString(mDir, cstrvalue.temp_str());
-	::CFRelease(compound);
-	ThrowIfNULL(value);
 }
 
 // CStringFromBuffer

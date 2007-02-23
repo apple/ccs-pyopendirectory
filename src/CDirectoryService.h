@@ -33,7 +33,8 @@ public:
 	~CDirectoryService();
 	
 	CFMutableDictionaryRef ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes);
-	CFMutableDictionaryRef QueryRecordsWithAttributes(CFDictionaryRef query, int matchType, bool casei, bool allmatch, const char* recordType, CFArrayRef attributes);
+	CFMutableDictionaryRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFArrayRef attributes);
+	CFMutableDictionaryRef QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFArrayRef attributes);
 
 	bool AuthenticateUserBasic(const char* guid, const char* user, const char* pswd, bool& result);
 	bool AuthenticateUserDigest(const char* guid, const char* user, const char* challenge, const char* response, const char* method, bool& result);
@@ -46,7 +47,7 @@ private:
 	UInt32				mDataSize;
 	
 	CFMutableDictionaryRef _ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs);
-	CFMutableDictionaryRef _QueryRecordsWithAttributes(CFDictionaryRef query, int matchType, bool casei, bool allmatch, const char* recordType, CFArrayRef attributes);
+	CFMutableDictionaryRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* recordType, CFArrayRef attributes);
 
 	CFStringRef CDirectoryService::AuthenticationGetNode(const char* guid);
 	bool NativeAuthenticationBasic(const char* guid, const char* user, const char* pswd);
@@ -66,9 +67,6 @@ private:
 	void ReallocBuffer();
 
 	void BuildStringDataList(CFArrayRef strs, tDataListPtr data);
-	
-	void BuildSimpleQuery(CFDictionaryRef dict, tDataNodePtr& attr, tDataNodePtr& value);
-	void BuildCompoundQuery(CFDictionaryRef dict, tDirPatternMatch matchType, bool allmatch, tDataNodePtr& value);
 
 	char* CStringFromBuffer(tDataBufferPtr data);
 	char* CStringFromData(const char* data, size_t len);

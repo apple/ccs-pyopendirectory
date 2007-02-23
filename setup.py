@@ -38,7 +38,7 @@ if sys.platform in ["darwin", "macosx"]:
         description = 'This is a high-level interface to Open Directory for operations specific to a CalDAV server.',
         ext_modules = [module1],
         package_dir={'': 'pysrc'},
-        py_modules = ['dsattributes']
+        py_modules = ['dsattributes', 'dsquery',]
     )
 
 else:

@@ -36,11 +36,14 @@ void PrintArray(CFArrayRef list);
 void AuthenticateUser(CDirectoryService* dir, const char* guid, const char* user, const char* pswd);
 void AuthenticateUserDigest(CDirectoryService* dir, const char* guid, const char* user, const char* challenge, const char* response, const char* method);
 
+#define		kDSStdRecordTypeResources					"dsRecTypeStandard:Resources"
+#define		kDSNAttrServicesLocator						"dsAttrTypeStandard:ServicesLocator"
+
 int main (int argc, const char * argv[]) {
     
 	CDirectoryService* dir = new CDirectoryService("/Search");
 
-#if 1
+#if 0
 #if 0
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
@@ -107,19 +110,34 @@ int main (int argc, const char * argv[]) {
 	}
 	CFRelease(array);
 	
+#elif 0
+	CFStringRef strings[2];
+	strings[0] = CFSTR(kDS1AttrDistinguishedName);
+	strings[1] = CFSTR(kDS1AttrXMLPlist);
+	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
+                        
+	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttribute(kDSNAttrServicesLocator, "D9A8E41B", eDSStartsWith, false, kDSStdRecordTypeResources, array);
+	if (dict != NULL)
+	{
+		printf("\n*** Computers: %d ***\n", CFDictionaryGetCount(dict));
+		CFDictionaryApplyFunction(dict, PrintDictionaryDictionary, NULL);
+		CFRelease(dict);
+	}
+	else
+	{
+		printf("\nNo Users returned\n");
+	}
+	CFRelease(array);
+	
 #elif 1
-	CFStringRef keys[2];
-	keys[0] = CFSTR(kDS1AttrENetAddress);
-	CFStringRef values[2];
-	values[0] = CFSTR("00:17:f2:02:35:e4");
-	CFDictionaryRef kvdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void**)values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+	const char* compoundtest = "(&(|(dsAttrTypeStandard:RealName=U2*)(dsAttrTypeStandard:RealName=X S*))(dsAttrTypeStandard:ServicesLocator=D9A8E41B-C591-4D6B-A1CA-B57FFB8EF2F5:F967C034-54B8-4E65-9B38-7A6CD2600268:calendar))";
                         
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
 	strings[1] = CFSTR(kDS1AttrXMLPlist);
 	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
                         
-	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttributes(kvdict, eDSExact, false, false, kDSStdRecordTypeComputers, array);
+	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttributes(compoundtest, true, kDSStdRecordTypeResources, array);
 	if (dict != NULL)
 	{
 		printf("\n*** Computers: %d ***\n", CFDictionaryGetCount(dict));

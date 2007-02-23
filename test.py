@@ -19,6 +19,7 @@
 import opendirectory
 import dsattributes
 import time
+from dsquery import expression, match
 
 try:
 	ref = opendirectory.odInit("/Search")
@@ -66,13 +67,31 @@ try:
 				print "Name: %s" % n
 				print "dict: %s" % str(d[n])
 	
-	def query(title, dict, matchType, casei, allmatch, recordType, attrs):
-		d = opendirectory.queryRecordsWithAttributes(
+	def querySimple(title, attr, value, matchType, casei, recordType, attrs):
+		d = opendirectory.queryRecordsWithAttribute(
 		    ref,
-		    dict,
+		    attr,
+		    value,
 		    matchType,
 		    casei,
-		    allmatch,
+			recordType,
+			attrs
+		)
+		if d is None:
+			print "Failed to query users"
+		else:
+			names = [v for v in d.iterkeys()]
+			names.sort()
+			print "\n%s number of results = %d" % (title, len(names),)
+			for n in names:
+				print "Name: %s" % n
+				print "dict: %s" % str(d[n])
+		
+	def queryCompound(title, compound, casei, recordType, attrs):
+		d = opendirectory.queryRecordsWithAttributes(
+		    ref,
+		    compound,
+		    casei,
 			recordType,
 			attrs
 		)
@@ -87,44 +106,44 @@ try:
 				print "dict: %s" % str(d[n])
 		
 	def queryUsers():
-		query(
+		querySimple(
 			"queryUsers",
-		    {dsattributes.kDS1AttrFirstName: "cyrus",},
+		    dsattributes.kDS1AttrFirstName,
+		    "cyrus",
 		    dsattributes.eDSExact,
-		    True,
 		    True,
 			dsattributes.kDSStdRecordTypeUsers,
 			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,]
 		)
 		
 	def queryUsersCompoundOr():
-		query(
+		queryCompound(
 			"queryUsersCompoundOr",
-		    {dsattributes.kDS1AttrFirstName: "chris", dsattributes.kDS1AttrLastName: "roy",},
-		    dsattributes.eDSContains,
-		    True,
+		    expression(expression.OR,
+					   (match(dsattributes.kDS1AttrFirstName, "chris", dsattributes.eDSContains),
+					    match(dsattributes.kDS1AttrLastName, "roy", dsattributes.eDSContains))).generate(),
 		    False,
 			dsattributes.kDSStdRecordTypeUsers,
 			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,]
 		)
 		
 	def queryUsersCompoundOrExact():
-		query(
+		queryCompound(
 			"queryUsersCompoundOrExact",
-		    {dsattributes.kDS1AttrFirstName: "chris", dsattributes.kDS1AttrLastName: "roy",},
-		    dsattributes.eDSExact,
-		    True,
+		    expression(expression.OR,
+					   (match(dsattributes.kDS1AttrFirstName, "chris", dsattributes.eDSExact),
+					    match(dsattributes.kDS1AttrLastName, "roy", dsattributes.eDSExact))).generate(),
 		    False,
 			dsattributes.kDSStdRecordTypeUsers,
 			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,]
 		)
 		
 	def queryUsersCompoundAnd():
-		query(
+		queryCompound(
 			"queryUsersCompoundAnd",
-		    {dsattributes.kDS1AttrFirstName: "chris", dsattributes.kDS1AttrLastName: "roy",},
-		    dsattributes.eDSContains,
-		    True,
+		    expression(expression.AND,
+					   (match(dsattributes.kDS1AttrFirstName, "chris", dsattributes.eDSContains),
+					    match(dsattributes.kDS1AttrLastName, "roy", dsattributes.eDSContains))).generate(),
 		    True,
 			dsattributes.kDSStdRecordTypeUsers,
 			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,]
@@ -138,12 +157,12 @@ try:
 	
 	#listUsers()
 	#listGroups()
-	listComputers()
-	#queryUsers()
-	#queryUsersCompoundOr()
-	#queryUsersCompoundOrExact()
-	#queryUsersCompoundAnd()
-	authentciateBasic()
+	#listComputers()
+	queryUsers()
+	queryUsersCompoundOr()
+	queryUsersCompoundOrExact()
+	queryUsersCompoundAnd()
+	#authentciateBasic()
 
 	ref = None
 except opendirectory.ODError, ex:
