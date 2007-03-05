@@ -108,7 +108,7 @@ static CFDictionaryRef PyDictToCFDictionary(PyObject* dict)
 	CFMutableDictionaryRef result = CFDictionaryCreateMutable(kCFAllocatorDefault, PyDict_Size(dict), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 	PyObject* key;
 	PyObject* value;
-	int pos = 0;
+	Py_ssize_t pos = 0;
 	
 	while (PyDict_Next(dict, &pos, &key, &value))
 	{
