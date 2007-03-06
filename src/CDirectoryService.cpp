@@ -23,7 +23,7 @@
 
 #include "CFStringUtil.h"
 
-#include <Python/Python.h>
+#include <Python.h>
 
 #include <stdlib.h>
 #include <string.h>

@@ -17,7 +17,7 @@
  **/
 
 #include <CoreFoundation/CoreFoundation.h>
-#include <Python/Python.h>
+#include <Python.h>
 
 #include "CDirectoryService.h"
 #include "CFStringUtil.h"
@@ -30,6 +30,13 @@
 #endif
 #ifndef Py_RETURN_NONE
 #define Py_RETURN_NONE return Py_INCREF(Py_None), Py_None
+#endif
+
+#if PY_MAJOR_VERSION < 2
+#error Python major version must be >= 2
+#endif
+#if PY_MINOR_VERSION < 5
+typedef int Py_ssize_t;
 #endif
 
 // Utility function - not exposed to Python
