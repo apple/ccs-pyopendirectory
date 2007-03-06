@@ -32,34 +32,11 @@
 #define Py_RETURN_NONE return Py_INCREF(Py_None), Py_None
 #endif
 
-#if PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 5
-typedef int Py_ssize_t;
-#endif
-
 // Utility function - not exposed to Python
 static PyObject* CFStringToPyStr(CFStringRef str)
 {
 	CFStringUtil s(str);
 	return PyString_FromString(s.temp_str());
-}
-
-// Utility function - not exposed to Python
-static PyObject* CFArrayToPyTuple(CFArrayRef list, bool sorted = false)
-{
-	CFIndex lsize = CFArrayGetCount(list);
-	if (sorted)
-		CFArraySortValues((CFMutableArrayRef)list, CFRangeMake(0, lsize), (CFComparatorFunction)CFStringCompare, NULL);
-	
-	PyObject* result = PyTuple_New(lsize);
-	for(CFIndex i = 0; i < lsize; i++)
-	{
-		CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(list, i);
-		PyObject* pystr = CFStringToPyStr(str);
-		
-		PyTuple_SetItem(result, i, pystr);
-	}
-	
-	return result;
 }
 
 // Utility function - not exposed to Python
@@ -101,80 +78,6 @@ static CFArrayRef PyListToCFArray(PyObject* list)
 		}
 		CFStringUtil cfstr(cstr);
 		CFArrayAppendValue(result, cfstr.get());
-	}
-	
-	return result;
-}
-
-// Utility function - not exposed to Python
-static CFDictionaryRef PyDictToCFDictionary(PyObject* dict)
-{
-	CFMutableDictionaryRef result = CFDictionaryCreateMutable(kCFAllocatorDefault, PyDict_Size(dict), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-	PyObject* key;
-	PyObject* value;
-	Py_ssize_t pos = 0;
-	
-	while (PyDict_Next(dict, &pos, &key, &value))
-	{
-		if ((key == NULL) || !PyString_Check(key) ||
-			(value == NULL) || !PyString_Check(value))
-		{
-			CFRelease(result);
-			return NULL;
-		}
-		const char* ckey = PyString_AsString(key);
-		if (ckey == NULL)
-		{
-			CFRelease(result);
-			return NULL;
-		}
-		CFStringUtil cfkey(ckey);
-		const char* cvalue = PyString_AsString(value);
-		if (cvalue == NULL)
-		{
-			CFRelease(result);
-			return NULL;
-		}
-		CFStringUtil cfvalue(cvalue);
-		CFDictionaryAddValue(result, cfkey.get(), cfvalue.get());
-	}
-	
-	return result;
-}
-
-// Utility function - not exposed to Python
-static CFComparisonResult CompareRecordListValues(const void *val1, const void *val2, void *context)
-{
-	CFMutableArrayRef l1 = (CFMutableArrayRef)val1;
-	CFMutableArrayRef l2 = (CFMutableArrayRef)val2;
-	CFIndex c1 = CFArrayGetCount(l1);
-	CFIndex c2 = CFArrayGetCount(l2);
-	if ((c1 > 0) && (c2 > 0))
-	{
-		return CFStringCompare((CFStringRef)CFArrayGetValueAtIndex(l1, 0), (CFStringRef)CFArrayGetValueAtIndex(l2, 0), NULL);
-	}
-	else if (c1 > 0)
-		return kCFCompareGreaterThan;
-	else if (c2 > 0)
-		return kCFCompareLessThan;
-	else
-		return kCFCompareEqualTo;
-}
-
-// Utility function - not exposed to Python
-static PyObject* CFArrayArrayToPyList(CFMutableArrayRef list, bool sorted = false)
-{
-	CFIndex lsize = (list != NULL) ? CFArrayGetCount(list) : 0;
-	if (sorted and (list != NULL))
-		CFArraySortValues(list, CFRangeMake(0, lsize), CompareRecordListValues, NULL);
-	
-	PyObject* result = PyList_New(lsize);
-	for(CFIndex i = 0; i < lsize; i++)
-	{
-		CFMutableArrayRef array = (CFMutableArrayRef)CFArrayGetValueAtIndex(list, i);
-		PyObject* pytuple = CFArrayToPyTuple(array);
-		
-		PyList_SetItem(result, i, pytuple);
 	}
 	
 	return result;
