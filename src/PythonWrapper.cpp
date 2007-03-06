@@ -32,10 +32,7 @@
 #define Py_RETURN_NONE return Py_INCREF(Py_None), Py_None
 #endif
 
-#if PY_MAJOR_VERSION < 2
-#error Python major version must be >= 2
-#endif
-#if PY_MINOR_VERSION < 5
+#if PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 5
 typedef int Py_ssize_t;
 #endif
 
