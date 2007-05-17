@@ -40,6 +40,13 @@ public:
 	bool AuthenticateUserDigest(const char* guid, const char* user, const char* challenge, const char* response, const char* method, bool& result);
 	
 private:
+
+	struct SDirectoryServiceException
+	{
+		long		mDSError;
+		char		mDescription[1024];
+	};
+
 	const char*			mNodeName;
 	tDirReference		mDir;
 	tDirNodeReference	mNode;
@@ -70,4 +77,7 @@ private:
 
 	char* CStringFromBuffer(tDataBufferPtr data);
 	char* CStringFromData(const char* data, size_t len);
+
+	void ThrowDSError(long error, const char* file, long line);
+	void SetPythonException(const SDirectoryServiceException& ex);
 };
