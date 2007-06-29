@@ -185,6 +185,12 @@ kDSStdRecordTypeLocations = "dsRecTypeStandard:Locations"
 kDSStdRecordTypeMachines = "dsRecTypeStandard:Machines"
 
 """
+ kDSStdRecordTypeMaps
+  Identifies map records.
+"""
+kDSStdRecordTypeMaps = "dsRecTypeStandard:Maps"
+
+"""
  kDSStdRecordTypeMeta
   Identifies meta records.
 """
@@ -244,6 +250,12 @@ kDSStdRecordTypePasswordServer = "dsRecTypeStandard:PasswordServer"
   Record type that contains "People" records used for contact information.
 """
 kDSStdRecordTypePeople = "dsRecTypeStandard:People"
+
+"""
+ kDSStdRecordTypePlaces
+  Identifies places (rooms) records.
+"""
+kDSStdRecordTypePlaces = "dsRecTypeStandard:Places"
 
 """
  kDSStdRecordTypePresetComputers
