@@ -32,9 +32,9 @@ public:
 	CDirectoryService(const char* nodename);
 	~CDirectoryService();
 	
-	CFMutableDictionaryRef ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes);
-	CFMutableDictionaryRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFArrayRef attributes);
-	CFMutableDictionaryRef QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFArrayRef attributes);
+	CFMutableArrayRef ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes);
+	CFMutableArrayRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFArrayRef attributes);
+	CFMutableArrayRef QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFArrayRef attributes);
 
 	bool AuthenticateUserBasic(const char* guid, const char* user, const char* pswd, bool& result);
 	bool AuthenticateUserDigest(const char* guid, const char* user, const char* challenge, const char* response, const char* method, bool& result);
@@ -53,8 +53,8 @@ private:
 	tDataBufferPtr		mData;
 	UInt32				mDataSize;
 	
-	CFMutableDictionaryRef _ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs);
-	CFMutableDictionaryRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* recordType, CFArrayRef attributes);
+	CFMutableArrayRef _ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs);
+	CFMutableArrayRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* recordType, CFArrayRef attributes);
 
 	CFStringRef CDirectoryService::AuthenticationGetNode(const char* guid);
 	bool NativeAuthenticationBasic(const char* guid, const char* user, const char* pswd);

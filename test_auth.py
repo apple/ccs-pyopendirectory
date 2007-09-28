@@ -123,7 +123,7 @@ def doAuthDigest(username, password, qop, algorithm):
         False,
         dsattributes.kDSStdRecordTypeUsers,
         [dsattributes.kDS1AttrGeneratedUID])
-    guid = result[username][dsattributes.kDS1AttrGeneratedUID]
+    guid = result[0][1][dsattributes.kDS1AttrGeneratedUID]
     
     expected = calcResponse(
                 calcHA1(algorithm, username, realm, password, nonce, cnonce),
@@ -173,7 +173,7 @@ def doAuthBasic(username, password):
         False,
         dsattributes.kDSStdRecordTypeUsers,
         [dsattributes.kDS1AttrGeneratedUID])
-    guid = result[username][dsattributes.kDS1AttrGeneratedUID]
+    guid = result[0][1][dsattributes.kDS1AttrGeneratedUID]
     
     for x in xrange(attempts):
         success = opendirectory.authenticateUserBasic(
@@ -196,6 +196,4 @@ od = opendirectory.odInit(search)
 
 doAuthBasic(user, pswd)
 doAuthDigest(user, pswd, None, "md5")
-#doAuth(user, pswd, "auth", "md5")
-#doAuth(user, pswd, "auth", "md5-sess")
 

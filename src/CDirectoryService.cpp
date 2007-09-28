@@ -85,11 +85,12 @@ CDirectoryService::~CDirectoryService()
 //
 // @param recordType: the record type to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
-// @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
-//			for each attribute/value requested in the record indexed by uid,
+// @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
+//          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
+//			and value entries for each attribute/value requested in the record indexed by uid,
 //		    or NULL if it fails.
 //
-CFMutableDictionaryRef CDirectoryService::ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes)
+CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes)
 {
 	try
 	{
@@ -118,11 +119,12 @@ CFMutableDictionaryRef CDirectoryService::ListAllRecordsWithAttributes(const cha
 // @param casei: true if case-insensitive match is to be used, false otherwise.
 // @param recordType: the record type to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
-// @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
-//			for each attribute/value requested in the record indexed by uid,
+// @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
+//          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
+//			and value entries for each attribute/value requested in the record indexed by uid,
 //		    or NULL if it fails.
 //
-CFMutableDictionaryRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFArrayRef attributes)
+CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFArrayRef attributes)
 {
 	try
 	{
@@ -149,11 +151,12 @@ CFMutableDictionaryRef CDirectoryService::QueryRecordsWithAttribute(const char* 
 // @param casei: true if case-insensitive match is to be used, false otherwise.
 // @param recordType: the record type to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
-// @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
-//			for each attribute/value requested in the record indexed by uid,
+// @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
+//          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
+//			and value entries for each attribute/value requested in the record indexed by uid,
 //		    or NULL if it fails.
 //
-CFMutableDictionaryRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFArrayRef attributes)
+CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFArrayRef attributes)
 {
 	try
 	{
@@ -237,14 +240,16 @@ bool CDirectoryService::AuthenticateUserDigest(const char* guid, const char* use
 // @param type: the record type to check.
 // @param names: a list of record names to target if NULL all records are matched.
 // @param attrs: a list of attributes to return.
-// @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
-//			for each attribute/value requested in the record indexed by uid,
+// @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
+//          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
+//			and value entries for each attribute/value requested in the record indexed by uid,
 //		    or NULL if it fails.
 //
-CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs)
+CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs)
 {
-	CFMutableDictionaryRef result = NULL;
-	CFMutableDictionaryRef vresult = NULL;
+	CFMutableArrayRef result = NULL;
+	CFMutableArrayRef record_tuple = NULL;
+	CFMutableDictionaryRef record = NULL;
 	CFMutableArrayRef values = NULL;
 	tDataListPtr recNames = NULL;
 	tDataListPtr recTypes = NULL;
@@ -286,7 +291,7 @@ CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const ch
 		ThrowIfNULL(attrTypes);
 		BuildStringDataList(attrs, attrTypes);
 		
-		result = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+		result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
 		
 		do
 		{
@@ -311,7 +316,7 @@ CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const ch
 				std::auto_ptr<char> recname(temp);
 				
 				// Create a dictionary for the values
-				vresult = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+				record = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 				
 				// Look at each requested attribute and get one value
 				for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
@@ -342,7 +347,7 @@ CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const ch
 								::dsDeallocAttributeValueEntry(mDir, attributeValue);
 								attributeValue = NULL;
 							}
-							::CFDictionarySetValue(vresult, cfattrname.get(), values);
+							::CFDictionarySetValue(record, cfattrname.get(), values);
 							::CFRelease(values);
 							values = NULL;
 						}
@@ -353,7 +358,7 @@ CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const ch
 							ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, 1, attributeValueListRef, &attributeValue));
 							std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
 							CFStringUtil strvalue(data.get());
-							::CFDictionarySetValue(vresult, cfattrname.get(), strvalue.get());
+							::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
 							::dsDeallocAttributeValueEntry(mDir, attributeValue);
 							attributeValue = NULL;
 						}
@@ -365,11 +370,19 @@ CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const ch
 					attributeInfoPtr = NULL;
 				}
 				
-				// Add dictionary of values to result array
+				// Create tuple of record name and record values
 				CFStringUtil str(recname.get());
-				::CFDictionarySetValue(result, str.get(), vresult);
-				::CFRelease(vresult);
-				vresult = NULL;
+				
+				record_tuple = ::CFArrayCreateMutable(kCFAllocatorDefault, 2, &kCFTypeArrayCallBacks);
+				::CFArrayAppendValue(record_tuple, str.get());
+				::CFArrayAppendValue(record_tuple, record);
+				::CFRelease(record);
+				record = NULL;
+
+				// Append tuple to results array
+				::CFArrayAppendValue(result, record_tuple);
+				::CFRelease(record_tuple);
+				record_tuple = NULL;
 				
 				// Clean-up
 				::dsCloseAttributeList(attrListRef);
@@ -426,10 +439,15 @@ CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const ch
 			::CFRelease(values);
 			values = NULL;
 		}
-		if (vresult != NULL)
+		if (record != NULL)
 		{
-			::CFRelease(vresult);
-			vresult = NULL;
+			::CFRelease(record);
+			record = NULL;
+		}
+		if (record_tuple != NULL)
+		{
+			::CFRelease(record_tuple);
+			record_tuple = NULL;
 		}
 		if (result != NULL)
 		{
@@ -453,14 +471,16 @@ CFMutableDictionaryRef CDirectoryService::_ListAllRecordsWithAttributes(const ch
 // @param casei: true if case-insensitive match is to be used, false otherwise.
 // @param type: the record type to check.
 // @param attrs: a list of attributes to return.
-// @return: CFMutableDictionaryRef composed of CFMutableDictionaryRef of CFStringRef key and value entries
-//			for each attribute/value requested in the record indexed by uid,
+// @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
+//          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
+//			and value entries for each attribute/value requested in the record indexed by uid,
 //		    or NULL if it fails.
 //
-CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* type, CFArrayRef attrs)
+CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* type, CFArrayRef attrs)
 {
-	CFMutableDictionaryRef result = NULL;
-	CFMutableDictionaryRef vresult = NULL;
+	CFMutableArrayRef result = NULL;
+	CFMutableArrayRef record_tuple = NULL;
+	CFMutableDictionaryRef record = NULL;
 	CFMutableArrayRef values = NULL;
 	tDataNodePtr queryAttr = NULL;
 	tDataNodePtr queryValue = NULL;
@@ -520,7 +540,7 @@ CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(const char
 		ThrowIfNULL(attrTypes);
 		BuildStringDataList(attrs, attrTypes);
 		
-		result = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+		result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
 		
 		do
 		{
@@ -545,7 +565,7 @@ CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(const char
 				std::auto_ptr<char> recname(temp);
 				
 				// Create a dictionary for the values
-				vresult = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+				record = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 				
 				// Look at each requested attribute and get one value
 				for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
@@ -576,7 +596,7 @@ CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(const char
 								::dsDeallocAttributeValueEntry(mDir, attributeValue);
 								attributeValue = NULL;
 							}
-							::CFDictionarySetValue(vresult, cfattrname.get(), values);
+							::CFDictionarySetValue(record, cfattrname.get(), values);
 							::CFRelease(values);
 							values = NULL;
 						}
@@ -587,7 +607,7 @@ CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(const char
 							ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, 1, attributeValueListRef, &attributeValue));
 							std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
 							CFStringUtil strvalue(data.get());
-							::CFDictionarySetValue(vresult, cfattrname.get(), strvalue.get());
+							::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
 							::dsDeallocAttributeValueEntry(mDir, attributeValue);
 							attributeValue = NULL;
 						}
@@ -599,12 +619,20 @@ CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(const char
 					attributeInfoPtr = NULL;
 				}
 				
-				// Add dictionary of values to result array
+				// Create tuple of record name and record values
 				CFStringUtil str(recname.get());
-				::CFDictionarySetValue(result, str.get(), vresult);
-				::CFRelease(vresult);
-				vresult = NULL;
 				
+				record_tuple = ::CFArrayCreateMutable(kCFAllocatorDefault, 2, &kCFTypeArrayCallBacks);
+				::CFArrayAppendValue(record_tuple, str.get());
+				::CFArrayAppendValue(record_tuple, record);
+				::CFRelease(record);
+				record = NULL;
+
+				// Append tuple to results array
+				::CFArrayAppendValue(result, record_tuple);
+				::CFRelease(record_tuple);
+				record_tuple = NULL;
+
 				// Clean-up
 				::dsCloseAttributeList(attrListRef);
 				attrListRef = 0L;
@@ -664,10 +692,15 @@ CFMutableDictionaryRef CDirectoryService::_QueryRecordsWithAttributes(const char
 			::CFRelease(values);
 			values = NULL;
 		}
-		if (vresult != NULL)
+		if (record != NULL)
 		{
-			::CFRelease(vresult);
-			vresult = NULL;
+			::CFRelease(record);
+			record = NULL;
+		}
+		if (record_tuple != NULL)
+		{
+			::CFRelease(record_tuple);
+			record_tuple = NULL;
 		}
 		if (result != NULL)
 		{
@@ -698,22 +731,20 @@ CFStringRef CDirectoryService::AuthenticationGetNode(const char* guid)
 	::CFArrayAppendValue(attrs, cfattr.get());
 	
 	// First list the record for the current GUID and get its node.
-	CFMutableDictionaryRef found = _QueryRecordsWithAttributes(kDS1AttrGeneratedUID, guid, eDSExact, NULL, false, kDSStdRecordTypeUsers, attrs);
+	CFMutableArrayRef found = _QueryRecordsWithAttributes(kDS1AttrGeneratedUID, guid, eDSExact, NULL, false, kDSStdRecordTypeUsers, attrs);
 	::CFRelease(attrs);
 	if (found == NULL)
 		return result;
 
 	// Must have only one result
-	if (CFDictionaryGetCount(found) != 1)
+	if (CFArrayGetCount(found) != 1)
 	{
 		::CFRelease(found);
 		return result;
 	}
 
-	// Now extract the returned data.
-	const void* dictvalues[1] = {NULL};
-	::CFDictionaryGetKeysAndValues(found, NULL, &dictvalues[0]);
-	CFDictionaryRef dictvalue = (CFDictionaryRef)dictvalues[0];
+	// Now extract the returned record data.
+	CFDictionaryRef dictvalue = (CFDictionaryRef)::CFArrayGetValueAtIndex((CFArrayRef)::CFArrayGetValueAtIndex(found, 0), 1);
 	if ((dictvalue == NULL) || (::CFDictionaryGetCount(dictvalue) == 0))
 	{
 		::CFRelease(found);
