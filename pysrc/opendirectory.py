@@ -76,7 +76,7 @@ def listAllRecordsWithAttributes_list(obj, recordType, attributes):
     @param recordType: C{str} containing the OD record type to lookup.
     @param attributes: C{list} containing the attributes to return for each record.
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes 
-         for each record found, or C{None} otherwise.
+        for each record found, or C{None} otherwise.
     """
 
 def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordType, attributes):
@@ -91,7 +91,7 @@ def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordTyp
     @param recordType: C{str} containing the OD record type to lookup.
     @param attributes: C{list} containing the attributes to return for each record.
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes 
-         for each record found, or C{None} otherwise.
+        for each record found, or C{None} otherwise.
     """
 
 def queryRecordsWithAttributes_list(obj, compound, casei, recordType, attributes):
@@ -104,26 +104,26 @@ def queryRecordsWithAttributes_list(obj, compound, casei, recordType, attributes
     @param recordType: C{str} containing the OD record type to lookup.
     @param attributes: C{list} containing the attributes to return for each record.
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes 
-         for each record found, or C{None} otherwise.
+        for each record found, or C{None} otherwise.
     """
 
-def authenticateUserBasic(obj, guid, user, pswd):
+def authenticateUserBasic(obj, nodename, user, pswd):
     """
     Authenticate a user with a password to Open Directory.
     
     @param obj: C{object} the object obtained from an odInit call.
-    @param guid: C{str} the GUID for the record to check.
+    @param nodename: C{str} the directory nodename for the record to check.
     @param user: C{str} the user identifier/directory record name to check.
     @param pswd: C{str} containing the password to check.
     @return: C{True} if the user was found, C{False} otherwise.
     """
 
-def authenticateUserDigest(obj, guid, user, challenge, response, method):
+def authenticateUserDigest(obj, nodename, user, challenge, response, method):
     """
     Authenticate using HTTP Digest credentials to Open Directory.
     
     @param obj: C{object} the object obtained from an odInit call.
-    @param guid: C{str} the GUID for the record to check.
+    @param nodename: C{str} the directory nodename for the record to check.
     @param user: C{str} the user identifier/directory record name to check.
     @param challenge: C{str} the HTTP challenge sent to the client.
     @param response: C{str} the HTTP response sent from the client.
@@ -131,7 +131,7 @@ def authenticateUserDigest(obj, guid, user, challenge, response, method):
     @return: C{True} if the user was found, C{False} otherwise.
     """
 
-class ODError(exception):
+class ODError(Exception):
     """
     Exceptions from DirectoryServices errors.
     """

@@ -33,8 +33,8 @@ def calcHA1(
     @param pszCNonce: The cnonce
 
     @param preHA1: If available this is a str containing a previously
-       calculated HA1 as a hex string. If this is given then the values for
-       pszUserName, pszRealm, and pszPassword are ignored.
+        calculated HA1 as a hex string. If this is given then the values for
+        pszUserName, pszRealm, and pszPassword are ignored.
     """
 
     if (preHA1 and (pszUserName or pszRealm or pszPassword)):
@@ -115,15 +115,15 @@ method = "GET"
 def doAuthDigest(username, password, qop, algorithm):
     failures = 0
     
-    result = opendirectory.queryRecordsWithAttribute(
+    result = opendirectory.queryRecordsWithAttribute_list(
         od,
         dsattributes.kDSNAttrRecordName,
         username,
         dsattributes.eDSExact,
         False,
         dsattributes.kDSStdRecordTypeUsers,
-        [dsattributes.kDS1AttrGeneratedUID])
-    guid = result[0][1][dsattributes.kDS1AttrGeneratedUID]
+        [dsattributes.kDSNAttrMetaNodeLocation])
+    nodename = result[0][1][dsattributes.kDSNAttrMetaNodeLocation]
     
     expected = calcResponse(
                 calcHA1(algorithm, username, realm, password, nonce, cnonce),
@@ -147,10 +147,10 @@ def doAuthDigest(username, password, qop, algorithm):
     print "    Challenge: %s" % (challenge,)
     print "    Response:  %s" % (response, )
     
-    for x in xrange(attempts):
+    for _ignore_x in xrange(attempts):
         success = opendirectory.authenticateUserDigest(
             od, 
-            guid,
+            nodename,
             username,
             challenge,
             response,
@@ -165,20 +165,20 @@ def doAuthDigest(username, password, qop, algorithm):
 def doAuthBasic(username, password):
     failures = 0
     
-    result = opendirectory.queryRecordsWithAttribute(
+    result = opendirectory.queryRecordsWithAttribute_list(
         od,
         dsattributes.kDSNAttrRecordName,
         username,
         dsattributes.eDSExact,
         False,
         dsattributes.kDSStdRecordTypeUsers,
-        [dsattributes.kDS1AttrGeneratedUID])
-    guid = result[0][1][dsattributes.kDS1AttrGeneratedUID]
+        [dsattributes.kDSNAttrMetaNodeLocation])
+    nodename = result[0][1][dsattributes.kDSNAttrMetaNodeLocation]
     
-    for x in xrange(attempts):
+    for _ignore_x in xrange(attempts):
         success = opendirectory.authenticateUserBasic(
             od, 
-            guid,
+            nodename,
             username,
             password,
         )
@@ -191,6 +191,7 @@ def doAuthBasic(username, password):
 search = raw_input("DS search path: ")
 user = raw_input("User: ")
 pswd = getpass("Password: ")
+attempts = int(raw_input("Number of attempts: "))
 
 od = opendirectory.odInit(search)
 

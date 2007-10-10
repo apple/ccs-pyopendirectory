@@ -603,12 +603,12 @@ extern "C" PyObject *queryRecordsWithAttributes_list(PyObject *self, PyObject *a
 }
 
 /*
-def authenticateUserBasic(obj, guid, user, pswd):
+def authenticateUserBasic(obj, nodename, user, pswd):
 	"""
 	Authenticate a user with a password to Open Directory.
 	
 	@param obj: C{object} the object obtained from an odInit call.
-    @param guid: C{str} the GUID for the record to check.
+    @param nodename: C{str} the directory nodename for the record to check.
     @param user: C{str} the user identifier/directory record name to check.
 	@param pswd: C{str} containing the password to check.
 	@return: C{True} if the user was found, C{False} otherwise.
@@ -617,10 +617,10 @@ def authenticateUserBasic(obj, guid, user, pswd):
 extern "C" PyObject *authenticateUserBasic(PyObject *self, PyObject *args)
 {
 	PyObject* pyds;
-	const char* guid;
+	const char* nodename;
 	const char* user;
 	const char* pswd;
-    if (!PyArg_ParseTuple(args, "Osss", &pyds, &guid, &user, &pswd) || !PyCObject_Check(pyds))
+    if (!PyArg_ParseTuple(args, "Osss", &pyds, &nodename, &user, &pswd) || !PyCObject_Check(pyds))
     {
 		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserBasic: could not parse arguments", 0));		
         return NULL;
@@ -630,7 +630,7 @@ extern "C" PyObject *authenticateUserBasic(PyObject *self, PyObject *args)
 	if (ds != NULL)
 	{
 		bool result = false;
-		if (ds->AuthenticateUserBasic(guid, user, pswd, result))
+		if (ds->AuthenticateUserBasic(nodename, user, pswd, result))
 		{
 			if (result)
 				Py_RETURN_TRUE;
@@ -650,7 +650,7 @@ def authenticateUserDigest(obj, guid, user, challenge, response, method):
     Authenticate using HTTP Digest credentials to Open Directory.
     
     @param obj: C{object} the object obtained from an odInit call.
-    @param guid: C{str} the GUID for the record to check.
+    @param nodename: C{str} the directory nodename for the record to check.
 	@param user: C{str} the user identifier/directory record name to check.
     @param challenge: C{str} the HTTP challenge sent to the client.
     @param response: C{str} the HTTP response sent from the client.
@@ -661,12 +661,12 @@ def authenticateUserDigest(obj, guid, user, challenge, response, method):
 extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
 {
 	PyObject* pyds;
-	const char* guid;
+	const char* nodename;
 	const char* user;
 	const char* challenge;
 	const char* response;
 	const char* method;
-    if (!PyArg_ParseTuple(args, "Osssss", &pyds, &guid, &user, &challenge, &response, &method) || !PyCObject_Check(pyds))
+    if (!PyArg_ParseTuple(args, "Osssss", &pyds, &nodename, &user, &challenge, &response, &method) || !PyCObject_Check(pyds))
     {
 		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserDigest: could not parse arguments", 0));		
         return NULL;
@@ -676,7 +676,7 @@ extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
 	if (ds != NULL)
 	{
 		bool result = false;
-		if (ds->AuthenticateUserDigest(guid, user, challenge, response, method, result))
+		if (ds->AuthenticateUserDigest(nodename, user, challenge, response, method, result))
 		{
 			if (result)
 				Py_RETURN_TRUE;
