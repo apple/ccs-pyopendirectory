@@ -10,12 +10,14 @@
 		8DD76F650486A84900D96B5E /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* test.cpp */; settings = {ATTRIBUTES = (); }; };
 		AF00155A0B8A21340045DAEE /* Python.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF0015590B8A21340045DAEE /* Python.framework */; };
 		AF00155E0B8A21FD0045DAEE /* PythonWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */; };
+		AF02AC580CBE690500F478B8 /* CDirectoryServiceException.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF02AC560CBE690500F478B8 /* CDirectoryServiceException.cpp */; };
 		AF155A320A501F84007E1E6E /* CDirectoryService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */; };
 		AF155A330A501F84007E1E6E /* CDirectoryService.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = AF155A300A501F84007E1E6E /* CDirectoryService.h */; };
 		AF155A370A501F9D007E1E6E /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF155A350A501F9D007E1E6E /* CoreFoundation.framework */; };
 		AF155A380A501F9D007E1E6E /* DirectoryService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF155A360A501F9D007E1E6E /* DirectoryService.framework */; };
 		AF155AFD0A502C09007E1E6E /* CFStringUtil.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = AF155AFB0A502C09007E1E6E /* CFStringUtil.h */; };
 		AF155AFE0A502C09007E1E6E /* CFStringUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155AFC0A502C09007E1E6E /* CFStringUtil.cpp */; };
+		AF41D9AD0CBDBAE200AB863D /* CDirectoryServiceManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -36,6 +38,8 @@
 		08FB7796FE84155DC02AAC07 /* test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test.cpp; sourceTree = "<group>"; };
 		8DD76F6C0486A84900D96B5E /* PyOpenDirectory */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PyOpenDirectory; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF0015590B8A21340045DAEE /* Python.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Python.framework; path = /System/Library/Frameworks/Python.framework; sourceTree = "<absolute>"; };
+		AF02AC560CBE690500F478B8 /* CDirectoryServiceException.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CDirectoryServiceException.cpp; path = ../src/CDirectoryServiceException.cpp; sourceTree = SOURCE_ROOT; };
+		AF02AC570CBE690500F478B8 /* CDirectoryServiceException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDirectoryServiceException.h; path = ../src/CDirectoryServiceException.h; sourceTree = SOURCE_ROOT; };
 		AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CDirectoryService.cpp; path = ../src/CDirectoryService.cpp; sourceTree = SOURCE_ROOT; };
 		AF155A300A501F84007E1E6E /* CDirectoryService.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CDirectoryService.h; path = ../src/CDirectoryService.h; sourceTree = SOURCE_ROOT; };
 		AF155A310A501F84007E1E6E /* PythonWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PythonWrapper.cpp; path = ../src/PythonWrapper.cpp; sourceTree = SOURCE_ROOT; };
@@ -43,6 +47,8 @@
 		AF155A360A501F9D007E1E6E /* DirectoryService.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DirectoryService.framework; path = /System/Library/Frameworks/DirectoryService.framework; sourceTree = "<absolute>"; };
 		AF155AFB0A502C09007E1E6E /* CFStringUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFStringUtil.h; path = ../src/CFStringUtil.h; sourceTree = SOURCE_ROOT; };
 		AF155AFC0A502C09007E1E6E /* CFStringUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CFStringUtil.cpp; path = ../src/CFStringUtil.cpp; sourceTree = SOURCE_ROOT; };
+		AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CDirectoryServiceManager.cpp; path = ../src/CDirectoryServiceManager.cpp; sourceTree = SOURCE_ROOT; };
+		AF41D9AC0CBDBAE200AB863D /* CDirectoryServiceManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDirectoryServiceManager.h; path = ../src/CDirectoryServiceManager.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +78,10 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				AF02AC560CBE690500F478B8 /* CDirectoryServiceException.cpp */,
+				AF02AC570CBE690500F478B8 /* CDirectoryServiceException.h */,
+				AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */,
+				AF41D9AC0CBDBAE200AB863D /* CDirectoryServiceManager.h */,
 				AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */,
 				AF155A300A501F84007E1E6E /* CDirectoryService.h */,
 				AF155A310A501F84007E1E6E /* PythonWrapper.cpp */,
@@ -132,7 +142,6 @@
 			mainGroup = 08FB7794FE84155DC02AAC07 /* PyOpenDirectory */;
 			projectDirPath = "";
 			projectRoot = "";
-			shouldCheckCompatibility = 1;
 			targets = (
 				8DD76F620486A84900D96B5E /* PyOpenDirectory */,
 			);
@@ -148,6 +157,8 @@
 				AF155A320A501F84007E1E6E /* CDirectoryService.cpp in Sources */,
 				AF155AFE0A502C09007E1E6E /* CFStringUtil.cpp in Sources */,
 				AF00155E0B8A21FD0045DAEE /* PythonWrapper.cpp in Sources */,
+				AF41D9AD0CBDBAE200AB863D /* CDirectoryServiceManager.cpp in Sources */,
+				AF02AC580CBE690500F478B8 /* CDirectoryServiceException.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -187,7 +198,7 @@
 			buildSettings = {
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = /System/Library/Frameworks/Python.framework/Headers;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 				USER_HEADER_SEARCH_PATHS = ../src;

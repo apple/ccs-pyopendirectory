@@ -41,12 +41,6 @@ public:
 	
 private:
 
-	struct SDirectoryServiceException
-	{
-		long		mDSError;
-		char		mDescription[1024];
-	};
-
 	const char*			mNodeName;
 	tDirReference		mDir;
 	tDirNodeReference	mNode;
@@ -74,7 +68,4 @@ private:
 
 	char* CStringFromBuffer(tDataBufferPtr data);
 	char* CStringFromData(const char* data, size_t len);
-
-	void ThrowDSError(long error, const char* file, long line);
-	void SetPythonException(const SDirectoryServiceException& ex);
 };

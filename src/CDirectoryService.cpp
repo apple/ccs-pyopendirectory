@@ -21,6 +21,8 @@
 
 #include "CDirectoryService.h"
 
+#include "CDirectoryServiceException.h"
+
 #include "CFStringUtil.h"
 
 #include <Python.h>
@@ -30,9 +32,6 @@
 #include <memory>
 
 extern PyObject* ODException_class;
-
-# define ThrowIfDSErr(x) { if (x != eDSNoErr) ThrowDSError(x, __FILE__, __LINE__); }
-# define ThrowIfNULL(x) { if (x == NULL) ThrowDSError(-1, __FILE__, __LINE__); }
 
 // This is copied from WhitePages
 #define		kDSStdRecordTypeResources				"dsRecTypeStandard:Resources"
@@ -97,9 +96,9 @@ CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* re
 		// Get attribute map
 		return _ListAllRecordsWithAttributes(recordType, NULL, attributes);
 	}
-	catch(SDirectoryServiceException& dserror)
+	catch(CDirectoryServiceException& dserror)
 	{
-		SetPythonException(dserror);
+		dserror.SetPythonException();
 		return NULL;
 	}
 	catch(...)
@@ -131,9 +130,9 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
 		// Get attribute map
 		return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordType, attributes);
 	}
-	catch(SDirectoryServiceException& dserror)
+	catch(CDirectoryServiceException& dserror)
 	{
-		SetPythonException(dserror);		
+		dserror.SetPythonException();		
 		return NULL;
 	}
 	catch(...)
@@ -163,9 +162,9 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* quer
 		// Get attribute map
 		return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordType, attributes);
 	}
-	catch(SDirectoryServiceException& dserror)
+	catch(CDirectoryServiceException& dserror)
 	{
-		SetPythonException(dserror);
+		dserror.SetPythonException();
 		return NULL;
 	}
 	catch(...)
@@ -191,9 +190,9 @@ bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* 
 		result = NativeAuthenticationBasicToNode(nodename, user, pswd);
 		return true;
 	}
-	catch(SDirectoryServiceException& dserror)
+	catch(CDirectoryServiceException& dserror)
 	{
-		SetPythonException(dserror);
+		dserror.SetPythonException();
 		return false;
 	}
 	catch(...)
@@ -219,9 +218,9 @@ bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char*
 		result = NativeAuthenticationDigestToNode(nodename, user, challenge, response, method);
 		return true;
 	}
-	catch(SDirectoryServiceException& dserror)
+	catch(CDirectoryServiceException& dserror)
 	{
-		SetPythonException(dserror);	
+		dserror.SetPythonException();	
 		return false;
 	}
 	catch(...)
@@ -403,7 +402,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
 		CloseNode();
 		CloseService();
 	}
-	catch(SDirectoryServiceException& dsStatus)
+	catch(CDirectoryServiceException& dsStatus)
 	{
 		// Cleanup
 		if (context != NULL)
@@ -652,7 +651,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
 		CloseNode();
 		CloseService();
 	}
-	catch(SDirectoryServiceException& dsStatus)
+	catch(CDirectoryServiceException& dsStatus)
 	{
 		// Cleanup
 		if (context != NULL)
@@ -1111,20 +1110,5 @@ char* CDirectoryService::CStringFromData(const char* data, size_t len)
 	::strncpy(result, data, len);
 	result[len] = 0;
 	return result;
-}
-
-void CDirectoryService::ThrowDSError(long error, const char* file, long line)
-{
-	CDirectoryService::SDirectoryServiceException dirStatus;
-	dirStatus.mDSError = error;
-	::snprintf(dirStatus.mDescription, 1024, "Exception raised in file %s at line %ld", file, line);
-	throw dirStatus;
-}
-
-void CDirectoryService::SetPythonException(const SDirectoryServiceException& ex)
-{
-	char error[1024];
-	::snprintf(error, 1024, "%s %s", "DirectoryServices Error:", ex.mDescription);
-	PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", error, ex.mDSError));		
 }
 

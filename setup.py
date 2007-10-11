@@ -29,7 +29,13 @@ if sys.platform in ["darwin", "macosx"]:
     module1 = Extension(
         'opendirectory',
         extra_link_args = ['-framework', 'DirectoryService', "-framework", "CoreFoundation"],
-        sources = ['src/PythonWrapper.cpp', 'src/CDirectoryService.cpp', 'src/CFStringUtil.cpp'],
+        sources = [
+            'src/PythonWrapper.cpp',
+            'src/CDirectoryServiceManager.cpp',
+            'src/CDirectoryService.cpp',
+            'src/CDirectoryServiceException.cpp',
+            'src/CFStringUtil.cpp',
+        ],
     )
     
     setup (

@@ -19,8 +19,11 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <Python.h>
 
+#include "CDirectoryServiceManager.h"
 #include "CDirectoryService.h"
 #include "CFStringUtil.h"
+
+#include <memory>
 
 #ifndef Py_RETURN_TRUE
 #define Py_RETURN_TRUE return Py_INCREF(Py_True), Py_True
@@ -224,8 +227,8 @@ PyObject* ODException_class = NULL;
  */
 extern "C" void odDestroy(void* obj)
 {
-	CDirectoryService* ds = static_cast<CDirectoryService*>(obj);
-	delete ds;
+	CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(obj);
+	delete dsmgr;
 }
 
 /*
@@ -247,10 +250,10 @@ extern "C" PyObject* odInit(PyObject* self, PyObject* args)
         return NULL;
     }
 
-	CDirectoryService* ds = new CDirectoryService(nodename);
-	if (ds != NULL)
+	CDirectoryServiceManager* dsmgr = new CDirectoryServiceManager(nodename);
+	if (dsmgr != NULL)
 	{
-		return PyCObject_FromVoidPtr(ds, odDestroy);
+		return PyCObject_FromVoidPtr(dsmgr, odDestroy);
 	}
 	
 	PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices odInit: could not initialize directory service", 0));		
@@ -287,10 +290,14 @@ extern "C" PyObject *listAllRecordsWithAttributes(PyObject *self, PyObject *args
         return NULL;
     }
 
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
+	CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+	if (dsmgr != NULL)
 	{
-		CFMutableArrayRef list = ds->ListAllRecordsWithAttributes(recordType, cfattributes);
+		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+		CFMutableArrayRef list = NULL;
+		Py_BEGIN_ALLOW_THREADS
+		list = ds->ListAllRecordsWithAttributes(recordType, cfattributes);
+		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyDict(list);
@@ -350,10 +357,14 @@ extern "C" PyObject *queryRecordsWithAttribute(PyObject *self, PyObject *args)
         return NULL;
     }
 
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
+	CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+	if (dsmgr != NULL)
 	{
-		CFMutableArrayRef list = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, recordType, cfattributes);
+		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+		CFMutableArrayRef list = NULL;
+		Py_BEGIN_ALLOW_THREADS
+		list = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, recordType, cfattributes);
+		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyDict(list);
@@ -409,10 +420,14 @@ extern "C" PyObject *queryRecordsWithAttributes(PyObject *self, PyObject *args)
         return NULL;
     }
 
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
+	CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+	if (dsmgr != NULL)
 	{
-		CFMutableArrayRef list = ds->QueryRecordsWithAttributes(query, casei, recordType, cfattributes);
+		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+		CFMutableArrayRef list = NULL;
+		Py_BEGIN_ALLOW_THREADS
+		list = ds->QueryRecordsWithAttributes(query, casei, recordType, cfattributes);
+		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyDict(list);
@@ -460,10 +475,14 @@ extern "C" PyObject *listAllRecordsWithAttributes_list(PyObject *self, PyObject 
         return NULL;
     }
 
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
+	CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+	if (dsmgr != NULL)
 	{
-		CFMutableArrayRef list = ds->ListAllRecordsWithAttributes(recordType, cfattributes);
+		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+		CFMutableArrayRef list = NULL;
+		Py_BEGIN_ALLOW_THREADS
+		list = ds->ListAllRecordsWithAttributes(recordType, cfattributes);
+		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyList(list);
@@ -523,10 +542,14 @@ extern "C" PyObject *queryRecordsWithAttribute_list(PyObject *self, PyObject *ar
         return NULL;
     }
 
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
+	CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+	if (dsmgr != NULL)
 	{
-		CFMutableArrayRef list = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, recordType, cfattributes);
+		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+		CFMutableArrayRef list = NULL;
+		Py_BEGIN_ALLOW_THREADS
+		list = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, recordType, cfattributes);
+		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyList(list);
@@ -582,10 +605,14 @@ extern "C" PyObject *queryRecordsWithAttributes_list(PyObject *self, PyObject *a
         return NULL;
     }
 
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
+	CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+	if (dsmgr != NULL)
 	{
-		CFMutableArrayRef list = ds->QueryRecordsWithAttributes(query, casei, recordType, cfattributes);
+		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+		CFMutableArrayRef list = NULL;
+		Py_BEGIN_ALLOW_THREADS
+		list = ds->QueryRecordsWithAttributes(query, casei, recordType, cfattributes);
+		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyList(list);
@@ -626,13 +653,18 @@ extern "C" PyObject *authenticateUserBasic(PyObject *self, PyObject *args)
         return NULL;
     }
 	
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
+	CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+	if (dsmgr != NULL)
 	{
+		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		bool result = false;
-		if (ds->AuthenticateUserBasic(nodename, user, pswd, result))
+		bool authresult = false;
+		Py_BEGIN_ALLOW_THREADS
+		result = ds->AuthenticateUserBasic(nodename, user, pswd, authresult);
+		Py_END_ALLOW_THREADS
+		if (result)
 		{
-			if (result)
+			if (authresult)
 				Py_RETURN_TRUE;
 			else
 				Py_RETURN_FALSE;
@@ -672,13 +704,18 @@ extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
         return NULL;
     }
 	
-	CDirectoryService* ds = static_cast<CDirectoryService*>(PyCObject_AsVoidPtr(pyds));
-	if (ds != NULL)
+	CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+	if (dsmgr != NULL)
 	{
+		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		bool result = false;
-		if (ds->AuthenticateUserDigest(nodename, user, challenge, response, method, result))
+		bool authresult = false;
+		Py_BEGIN_ALLOW_THREADS
+		result = ds->AuthenticateUserDigest(nodename, user, challenge, response, method, authresult);
+		Py_END_ALLOW_THREADS
+		if (result)
 		{
-			if (result)
+			if (authresult)
 				Py_RETURN_TRUE;
 			else
 				Py_RETURN_FALSE;
