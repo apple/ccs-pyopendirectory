@@ -23,6 +23,7 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <DirectoryService/DirectoryService.h>
+#include <Python.h>
 
 class CFStringUtil;
 
@@ -40,6 +41,23 @@ public:
 	bool AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result);
 	
 private:
+
+	class StPythonThreadState
+	{
+	public:
+		StPythonThreadState()
+		{
+			mSavedState = PyEval_SaveThread();
+ 		}
+		
+		~StPythonThreadState()
+		{
+			PyEval_RestoreThread(mSavedState);
+		}
+	
+	private:
+		PyThreadState* mSavedState;
+	};
 
 	const char*			mNodeName;
 	tDirReference		mDir;

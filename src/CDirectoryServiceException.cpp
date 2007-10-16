@@ -30,6 +30,12 @@ extern PyObject* ODException_class;
 
 #pragma mark -----Public API
 
+CDirectoryServiceException::CDirectoryServiceException()
+{
+	mDSError = -1;
+	::snprintf(mDescription, 1024, "Unknown Error");
+}
+
 CDirectoryServiceException::CDirectoryServiceException(long error, const char* file, long line)
 {
 	mDSError = error;

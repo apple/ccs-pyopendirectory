@@ -295,9 +295,7 @@ extern "C" PyObject *listAllRecordsWithAttributes(PyObject *self, PyObject *args
 	{
 		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		CFMutableArrayRef list = NULL;
-		Py_BEGIN_ALLOW_THREADS
 		list = ds->ListAllRecordsWithAttributes(recordType, cfattributes);
-		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyDict(list);
@@ -362,9 +360,7 @@ extern "C" PyObject *queryRecordsWithAttribute(PyObject *self, PyObject *args)
 	{
 		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		CFMutableArrayRef list = NULL;
-		Py_BEGIN_ALLOW_THREADS
 		list = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, recordType, cfattributes);
-		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyDict(list);
@@ -425,9 +421,7 @@ extern "C" PyObject *queryRecordsWithAttributes(PyObject *self, PyObject *args)
 	{
 		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		CFMutableArrayRef list = NULL;
-		Py_BEGIN_ALLOW_THREADS
 		list = ds->QueryRecordsWithAttributes(query, casei, recordType, cfattributes);
-		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyDict(list);
@@ -480,9 +474,7 @@ extern "C" PyObject *listAllRecordsWithAttributes_list(PyObject *self, PyObject 
 	{
 		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		CFMutableArrayRef list = NULL;
-		Py_BEGIN_ALLOW_THREADS
 		list = ds->ListAllRecordsWithAttributes(recordType, cfattributes);
-		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyList(list);
@@ -547,9 +539,7 @@ extern "C" PyObject *queryRecordsWithAttribute_list(PyObject *self, PyObject *ar
 	{
 		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		CFMutableArrayRef list = NULL;
-		Py_BEGIN_ALLOW_THREADS
 		list = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, recordType, cfattributes);
-		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyList(list);
@@ -610,9 +600,7 @@ extern "C" PyObject *queryRecordsWithAttributes_list(PyObject *self, PyObject *a
 	{
 		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		CFMutableArrayRef list = NULL;
-		Py_BEGIN_ALLOW_THREADS
 		list = ds->QueryRecordsWithAttributes(query, casei, recordType, cfattributes);
-		Py_END_ALLOW_THREADS
 		if (list != NULL)
 		{
 			PyObject* result = CFArrayArrayDictionaryToPyList(list);
@@ -659,9 +647,7 @@ extern "C" PyObject *authenticateUserBasic(PyObject *self, PyObject *args)
 		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		bool result = false;
 		bool authresult = false;
-		Py_BEGIN_ALLOW_THREADS
 		result = ds->AuthenticateUserBasic(nodename, user, pswd, authresult);
-		Py_END_ALLOW_THREADS
 		if (result)
 		{
 			if (authresult)
@@ -710,9 +696,7 @@ extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
 		std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
 		bool result = false;
 		bool authresult = false;
-		Py_BEGIN_ALLOW_THREADS
 		result = ds->AuthenticateUserDigest(nodename, user, challenge, response, method, authresult);
-		Py_END_ALLOW_THREADS
 		if (result)
 		{
 			if (authresult)

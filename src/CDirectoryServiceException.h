@@ -24,6 +24,7 @@
 class CDirectoryServiceException
 {
 public:
+	CDirectoryServiceException();
 	CDirectoryServiceException(long error, const char* file, long line);
 	~CDirectoryServiceException();
 	

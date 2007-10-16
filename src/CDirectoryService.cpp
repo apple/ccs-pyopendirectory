@@ -93,6 +93,8 @@ CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* re
 {
 	try
 	{
+		StPythonThreadState threading;
+
 		// Get attribute map
 		return _ListAllRecordsWithAttributes(recordType, NULL, attributes);
 	}
@@ -103,7 +105,8 @@ CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* re
 	}
 	catch(...)
 	{
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "Unknown Error", -1));		
+		CDirectoryServiceException dserror;
+		dserror.SetPythonException();
 		return NULL;
 	}
 }
@@ -127,6 +130,8 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
 {
 	try
 	{
+		StPythonThreadState threading;
+
 		// Get attribute map
 		return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordType, attributes);
 	}
@@ -137,7 +142,8 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
 	}
 	catch(...)
 	{
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "Unknown Error", -1));		
+		CDirectoryServiceException dserror;
+		dserror.SetPythonException();
 		return NULL;
 	}
 }
@@ -159,6 +165,8 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* quer
 {
 	try
 	{
+		StPythonThreadState threading;
+
 		// Get attribute map
 		return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordType, attributes);
 	}
@@ -169,7 +177,8 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* quer
 	}
 	catch(...)
 	{
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "Unknown Error", -1));		
+		CDirectoryServiceException dserror;
+		dserror.SetPythonException();
 		return NULL;
 	}
 }
@@ -187,6 +196,8 @@ bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* 
 {
 	try
 	{
+		StPythonThreadState threading;
+
 		result = NativeAuthenticationBasicToNode(nodename, user, pswd);
 		return true;
 	}
@@ -197,7 +208,8 @@ bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* 
 	}
 	catch(...)
 	{
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "Unknown Error", -1));		
+		CDirectoryServiceException dserror;
+		dserror.SetPythonException();
 		return false;
 	}
 }
@@ -215,6 +227,8 @@ bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char*
 {
 	try
 	{
+		StPythonThreadState threading;
+
 		result = NativeAuthenticationDigestToNode(nodename, user, challenge, response, method);
 		return true;
 	}
@@ -225,7 +239,8 @@ bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char*
 	}
 	catch(...)
 	{
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "Unknown Error", -1));		
+		CDirectoryServiceException dserror;
+		dserror.SetPythonException();
 		return false;
 	}
 }
