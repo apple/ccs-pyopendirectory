@@ -24,17 +24,17 @@
 class CDirectoryServiceException
 {
 public:
-	CDirectoryServiceException();
-	CDirectoryServiceException(long error, const char* file, long line);
-	~CDirectoryServiceException();
-	
-	static void ThrowDSError(long error, const char* file, long line);
+    CDirectoryServiceException();
+    CDirectoryServiceException(long error, const char* file, long line);
+    ~CDirectoryServiceException();
+    
+    static void ThrowDSError(long error, const char* file, long line);
 
-	void SetPythonException();
-	
+    void SetPythonException();
+    
 private:
-	long		mDSError;
-	char		mDescription[1024];
+    long        mDSError;
+    char        mDescription[1024];
 };
 
 # define ThrowIfDSErr(x) { if (x != eDSNoErr) CDirectoryServiceException::ThrowDSError(x, __FILE__, __LINE__); }

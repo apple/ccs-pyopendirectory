@@ -32,14 +32,14 @@ extern PyObject* ODException_class;
 
 CDirectoryServiceException::CDirectoryServiceException()
 {
-	mDSError = -1;
-	::snprintf(mDescription, 1024, "Unknown Error");
+    mDSError = -1;
+    ::snprintf(mDescription, 1024, "Unknown Error");
 }
 
 CDirectoryServiceException::CDirectoryServiceException(long error, const char* file, long line)
 {
-	mDSError = error;
-	::snprintf(mDescription, 1024, "Exception raised in file %s at line %ld", file, line);
+    mDSError = error;
+    ::snprintf(mDescription, 1024, "Exception raised in file %s at line %ld", file, line);
 }
 
 CDirectoryServiceException::~CDirectoryServiceException()
@@ -48,14 +48,14 @@ CDirectoryServiceException::~CDirectoryServiceException()
 
 void CDirectoryServiceException::ThrowDSError(long error, const char* file, long line)
 {
-	CDirectoryServiceException dirStatus(error, file, line);
-	throw dirStatus;
+    CDirectoryServiceException dirStatus(error, file, line);
+    throw dirStatus;
 }
 
 void CDirectoryServiceException::SetPythonException()
 {
-	char error[1024];
-	::snprintf(error, 1024, "%s %s", "DirectoryServices Error:", mDescription);
-	PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", error, mDSError));		
+    char error[1024];
+    ::snprintf(error, 1024, "%s %s", "DirectoryServices Error:", mDescription);
+    PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", error, mDSError));
 }
 

@@ -28,15 +28,15 @@
 
 CDirectoryServiceManager::CDirectoryServiceManager(const char* nodename)
 {
-	mNodeName = ::strdup(nodename);
+    mNodeName = ::strdup(nodename);
 }
 
 CDirectoryServiceManager::~CDirectoryServiceManager()
 {
-	::free(mNodeName);
+    ::free(mNodeName);
 }
 
 CDirectoryService* CDirectoryServiceManager::GetService()
 {
-	return new CDirectoryService(mNodeName);
+    return new CDirectoryService(mNodeName);
 }

@@ -26,14 +26,14 @@ class CDirectoryService;
 class CDirectoryServiceManager
 {
 public:
-	CDirectoryServiceManager(const char* nodename);
-	~CDirectoryServiceManager();
+    CDirectoryServiceManager(const char* nodename);
+    ~CDirectoryServiceManager();
 
-	void OpenService();
-	void CloseService();
+    void OpenService();
+    void CloseService();
 
-	CDirectoryService* GetService();
+    CDirectoryService* GetService();
 
 private:
-	char*			mNodeName;
+    char*            mNodeName;
 };

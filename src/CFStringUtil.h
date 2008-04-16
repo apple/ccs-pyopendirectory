@@ -25,23 +25,23 @@
 class CFStringUtil
 {
 public:
-	CFStringUtil(const char* cstr);
-	CFStringUtil(CFStringRef ref);
-	~CFStringUtil();
-	
-	CFStringUtil& operator=(const CFStringUtil& copy);
+    CFStringUtil(const char* cstr);
+    CFStringUtil(CFStringRef ref);
+    ~CFStringUtil();
+    
+    CFStringUtil& operator=(const CFStringUtil& copy);
 
-	CFStringRef get() const
-	{
-		return mRef;
-	}
+    CFStringRef get() const
+    {
+        return mRef;
+    }
 
-	char* c_str() const;
-	const char* temp_str() const;
+    char* c_str() const;
+    const char* temp_str() const;
 
-	void reset(CFStringRef ref);
+    void reset(CFStringRef ref);
 
 private:
-	CFStringRef mRef;
-	mutable const char* mTemp;
+    CFStringRef mRef;
+    mutable const char* mTemp;
 };

@@ -34,48 +34,48 @@
 extern PyObject* ODException_class;
 
 // This is copied from WhitePages
-#define		kDSStdRecordTypeResources				"dsRecTypeStandard:Resources"
+#define        kDSStdRecordTypeResources                "dsRecTypeStandard:Resources"
 
 // Calendar attribute.
-#define		kDS1AttrCalendarPrincipalURI			"dsAttrTypeStandard:CalendarPrincipalURI"
+#define        kDS1AttrCalendarPrincipalURI            "dsAttrTypeStandard:CalendarPrincipalURI"
 
-const int cBufferSize = 32 * 1024;		// 32K buffer for Directory Services operations
+const int cBufferSize = 32 * 1024;        // 32K buffer for Directory Services operations
 
 #pragma mark -----Public API
 
 CDirectoryService::CDirectoryService(const char* nodename)
 {
-	mNodeName = CStringFromData(nodename, ::strlen(nodename));
-	mDir = 0L;
-	mNode = 0L;
-	mData = NULL;
-	mDataSize = 0;
+    mNodeName = CStringFromData(nodename, ::strlen(nodename));
+    mDir = 0L;
+    mNode = 0L;
+    mData = NULL;
+    mDataSize = 0;
 }
 
 CDirectoryService::~CDirectoryService()
 {
-	// Clean-up any allocated objects
-	if (mData != NULL)
-	{
-		assert(mDir != 0L);
-		::dsDataBufferDeAllocate(mDir, mData);
-		mData = 0L;
-	}
-	
-	if (mNode != 0L)
-	{
-		::dsCloseDirNode(mNode);
-		mNode = 0L;
-	}
-	
-	if (mDir != 0L)
-	{
+    // Clean-up any allocated objects
+    if (mData != NULL)
+    {
+        assert(mDir != 0L);
+        ::dsDataBufferDeAllocate(mDir, mData);
+        mData = 0L;
+    }
+    
+    if (mNode != 0L)
+    {
+        ::dsCloseDirNode(mNode);
+        mNode = 0L;
+    }
+    
+    if (mDir != 0L)
+    {
         ::dsCloseDirService(mDir);
-		mDir = 0L;
-	}
-	
-	delete mNodeName;
-	mNodeName = NULL;
+        mDir = 0L;
+    }
+    
+    delete mNodeName;
+    mNodeName = NULL;
 }
 
 // ListAllRecordsWithAttributes
@@ -86,29 +86,29 @@ CDirectoryService::~CDirectoryService()
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
-//			and value entries for each attribute/value requested in the record indexed by uid,
-//		    or NULL if it fails.
+//            and value entries for each attribute/value requested in the record indexed by uid,
+//            or NULL if it fails.
 //
 CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes)
 {
-	try
-	{
-		StPythonThreadState threading;
+    try
+    {
+        StPythonThreadState threading;
 
-		// Get attribute map
-		return _ListAllRecordsWithAttributes(recordType, NULL, attributes);
-	}
-	catch(CDirectoryServiceException& dserror)
-	{
-		dserror.SetPythonException();
-		return NULL;
-	}
-	catch(...)
-	{
-		CDirectoryServiceException dserror;
-		dserror.SetPythonException();
-		return NULL;
-	}
+        // Get attribute map
+        return _ListAllRecordsWithAttributes(recordType, NULL, attributes);
+    }
+    catch(CDirectoryServiceException& dserror)
+    {
+        dserror.SetPythonException();
+        return NULL;
+    }
+    catch(...)
+    {
+        CDirectoryServiceException dserror;
+        dserror.SetPythonException();
+        return NULL;
+    }
 }
 
 // QueryRecordsWithAttribute
@@ -123,29 +123,29 @@ CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* re
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
-//			and value entries for each attribute/value requested in the record indexed by uid,
-//		    or NULL if it fails.
+//          and value entries for each attribute/value requested in the record indexed by uid,
+//          or NULL if it fails.
 //
 CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFArrayRef attributes)
 {
-	try
-	{
-		StPythonThreadState threading;
+    try
+    {
+        StPythonThreadState threading;
 
-		// Get attribute map
-		return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordType, attributes);
-	}
-	catch(CDirectoryServiceException& dserror)
-	{
-		dserror.SetPythonException();		
-		return NULL;
-	}
-	catch(...)
-	{
-		CDirectoryServiceException dserror;
-		dserror.SetPythonException();
-		return NULL;
-	}
+        // Get attribute map
+        return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordType, attributes);
+    }
+    catch(CDirectoryServiceException& dserror)
+    {
+        dserror.SetPythonException();        
+        return NULL;
+    }
+    catch(...)
+    {
+        CDirectoryServiceException dserror;
+        dserror.SetPythonException();
+        return NULL;
+    }
 }
 
 // QueryRecordsWithAttributes
@@ -158,29 +158,29 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
-//			and value entries for each attribute/value requested in the record indexed by uid,
-//		    or NULL if it fails.
+//          and value entries for each attribute/value requested in the record indexed by uid,
+//          or NULL if it fails.
 //
 CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFArrayRef attributes)
 {
-	try
-	{
-		StPythonThreadState threading;
+    try
+    {
+        StPythonThreadState threading;
 
-		// Get attribute map
-		return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordType, attributes);
-	}
-	catch(CDirectoryServiceException& dserror)
-	{
-		dserror.SetPythonException();
-		return NULL;
-	}
-	catch(...)
-	{
-		CDirectoryServiceException dserror;
-		dserror.SetPythonException();
-		return NULL;
-	}
+        // Get attribute map
+        return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordType, attributes);
+    }
+    catch(CDirectoryServiceException& dserror)
+    {
+        dserror.SetPythonException();
+        return NULL;
+    }
+    catch(...)
+    {
+        CDirectoryServiceException dserror;
+        dserror.SetPythonException();
+        return NULL;
+    }
 }
 
 // AuthenticateUserBasic
@@ -194,24 +194,24 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* quer
 //
 bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result)
 {
-	try
-	{
-		StPythonThreadState threading;
+    try
+    {
+        StPythonThreadState threading;
 
-		result = NativeAuthenticationBasicToNode(nodename, user, pswd);
-		return true;
-	}
-	catch(CDirectoryServiceException& dserror)
-	{
-		dserror.SetPythonException();
-		return false;
-	}
-	catch(...)
-	{
-		CDirectoryServiceException dserror;
-		dserror.SetPythonException();
-		return false;
-	}
+        result = NativeAuthenticationBasicToNode(nodename, user, pswd);
+        return true;
+    }
+    catch(CDirectoryServiceException& dserror)
+    {
+        dserror.SetPythonException();
+        return false;
+    }
+    catch(...)
+    {
+        CDirectoryServiceException dserror;
+        dserror.SetPythonException();
+        return false;
+    }
 }
 
 // AuthenticateUserDigest
@@ -225,24 +225,24 @@ bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* 
 //
 bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result)
 {
-	try
-	{
-		StPythonThreadState threading;
+    try
+    {
+        StPythonThreadState threading;
 
-		result = NativeAuthenticationDigestToNode(nodename, user, challenge, response, method);
-		return true;
-	}
-	catch(CDirectoryServiceException& dserror)
-	{
-		dserror.SetPythonException();	
-		return false;
-	}
-	catch(...)
-	{
-		CDirectoryServiceException dserror;
-		dserror.SetPythonException();
-		return false;
-	}
+        result = NativeAuthenticationDigestToNode(nodename, user, challenge, response, method);
+        return true;
+    }
+    catch(CDirectoryServiceException& dserror)
+    {
+        dserror.SetPythonException();    
+        return false;
+    }
+    catch(...)
+    {
+        CDirectoryServiceException dserror;
+        dserror.SetPythonException();
+        return false;
+    }
 }
 
 #pragma mark -----Private API
@@ -256,222 +256,222 @@ bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char*
 // @param attrs: a list of attributes to return.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
-//			and value entries for each attribute/value requested in the record indexed by uid,
-//		    or NULL if it fails.
+//          and value entries for each attribute/value requested in the record indexed by uid,
+//          or NULL if it fails.
 //
 CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs)
 {
-	CFMutableArrayRef result = NULL;
-	CFMutableArrayRef record_tuple = NULL;
-	CFMutableDictionaryRef record = NULL;
-	CFMutableArrayRef values = NULL;
-	tDataListPtr recNames = NULL;
-	tDataListPtr recTypes = NULL;
-	tDataListPtr attrTypes = NULL;
-	tContextData context = NULL;
-	tAttributeListRef attrListRef = 0L;
-	tRecordEntry* pRecEntry = NULL;
-	
-	// Must have attributes
-	if (::CFArrayGetCount(attrs) == 0)
-		return NULL;
+    CFMutableArrayRef result = NULL;
+    CFMutableArrayRef record_tuple = NULL;
+    CFMutableDictionaryRef record = NULL;
+    CFMutableArrayRef values = NULL;
+    tDataListPtr recNames = NULL;
+    tDataListPtr recTypes = NULL;
+    tDataListPtr attrTypes = NULL;
+    tContextData context = NULL;
+    tAttributeListRef attrListRef = 0L;
+    tRecordEntry* pRecEntry = NULL;
+    
+    // Must have attributes
+    if (::CFArrayGetCount(attrs) == 0)
+        return NULL;
 
-	try
-	{
-		// Make sure we have a valid directory service
-		OpenService();
-		
-		// Open the node we want to query
-		OpenNode();
-		
-		// We need a buffer for what comes next
-		CreateBuffer();
-		
-		// Build data list of names
-		recNames = ::dsDataListAllocate(mDir);
-		ThrowIfNULL(recNames);
-		if (names != NULL)
-			BuildStringDataList(names, recNames);
-		else
-			ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recNames,  kDSRecordsAll, NULL));
+    try
+    {
+        // Make sure we have a valid directory service
+        OpenService();
+        
+        // Open the node we want to query
+        OpenNode();
+        
+        // We need a buffer for what comes next
+        CreateBuffer();
+        
+        // Build data list of names
+        recNames = ::dsDataListAllocate(mDir);
+        ThrowIfNULL(recNames);
+        if (names != NULL)
+            BuildStringDataList(names, recNames);
+        else
+            ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recNames,  kDSRecordsAll, NULL));
 
-		// Build data list of types
-		recTypes = ::dsDataListAllocate(mDir);
-		ThrowIfNULL(recTypes);
-		ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recTypes,  type, NULL));
+        // Build data list of types
+        recTypes = ::dsDataListAllocate(mDir);
+        ThrowIfNULL(recTypes);
+        ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recTypes,  type, NULL));
 
-		// Build data list of attributes
-		attrTypes = ::dsDataListAllocate(mDir);
-		ThrowIfNULL(attrTypes);
-		BuildStringDataList(attrs, attrTypes);
-		
-		result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-		
-		do
-		{
-			// List all the appropriate records
-			unsigned long recCount = 0;
-			tDirStatus err;
-			do
-			{
-				err = ::dsGetRecordList(mNode, mData, recNames, eDSExact, recTypes, attrTypes, false, &recCount, &context);
-				if (err == eDSBufferTooSmall)
-					ReallocBuffer();
-			} while(err == eDSBufferTooSmall);
-			ThrowIfDSErr(err);
-			for(unsigned long i = 1; i <= recCount; i++)
-			{
-				// Get the record entry
-				ThrowIfDSErr(::dsGetRecordEntry(mNode, mData, i, &attrListRef, &pRecEntry));
-				
-				// Get the entry's name
-				char* temp = NULL;
-				ThrowIfDSErr(::dsGetRecordNameFromEntry(pRecEntry, &temp));
-				std::auto_ptr<char> recname(temp);
-				
-				// Create a dictionary for the values
-				record = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-				
-				// Look at each requested attribute and get one value
-				for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
-				{
-					tAttributeValueListRef attributeValueListRef = NULL;
-					tAttributeEntryPtr attributeInfoPtr = NULL;
-					
-					ThrowIfDSErr(::dsGetAttributeEntry(mNode, mData, attrListRef, j, &attributeValueListRef, &attributeInfoPtr));
-					
-					if (attributeInfoPtr->fAttributeValueCount > 0)
-					{
-						// Determine what the attribute is and where in the result list it should be put
-						std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
-						CFStringUtil cfattrname(attrname.get());
-						
-						if (attributeInfoPtr->fAttributeValueCount > 1)
-						{
-							values = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+        // Build data list of attributes
+        attrTypes = ::dsDataListAllocate(mDir);
+        ThrowIfNULL(attrTypes);
+        BuildStringDataList(attrs, attrTypes);
+        
+        result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+        
+        do
+        {
+            // List all the appropriate records
+            unsigned long recCount = 0;
+            tDirStatus err;
+            do
+            {
+                err = ::dsGetRecordList(mNode, mData, recNames, eDSExact, recTypes, attrTypes, false, &recCount, &context);
+                if (err == eDSBufferTooSmall)
+                    ReallocBuffer();
+            } while(err == eDSBufferTooSmall);
+            ThrowIfDSErr(err);
+            for(unsigned long i = 1; i <= recCount; i++)
+            {
+                // Get the record entry
+                ThrowIfDSErr(::dsGetRecordEntry(mNode, mData, i, &attrListRef, &pRecEntry));
+                
+                // Get the entry's name
+                char* temp = NULL;
+                ThrowIfDSErr(::dsGetRecordNameFromEntry(pRecEntry, &temp));
+                std::auto_ptr<char> recname(temp);
+                
+                // Create a dictionary for the values
+                record = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                
+                // Look at each requested attribute and get one value
+                for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
+                {
+                    tAttributeValueListRef attributeValueListRef = NULL;
+                    tAttributeEntryPtr attributeInfoPtr = NULL;
+                    
+                    ThrowIfDSErr(::dsGetAttributeEntry(mNode, mData, attrListRef, j, &attributeValueListRef, &attributeInfoPtr));
+                    
+                    if (attributeInfoPtr->fAttributeValueCount > 0)
+                    {
+                        // Determine what the attribute is and where in the result list it should be put
+                        std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
+                        CFStringUtil cfattrname(attrname.get());
+                        
+                        if (attributeInfoPtr->fAttributeValueCount > 1)
+                        {
+                            values = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
 
-							for(unsigned long k = 1; k <= attributeInfoPtr->fAttributeValueCount; k++)
-							{
-								// Get the attribute value and store in results
-								tAttributeValueEntryPtr attributeValue = NULL;
-								ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, k, attributeValueListRef, &attributeValue));
-								std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
-								CFStringUtil strvalue(data.get());
-								::CFArrayAppendValue(values, strvalue.get());
-								::dsDeallocAttributeValueEntry(mDir, attributeValue);
-								attributeValue = NULL;
-							}
-							::CFDictionarySetValue(record, cfattrname.get(), values);
-							::CFRelease(values);
-							values = NULL;
-						}
-						else
-						{
-							// Get the attribute value and store in results
-							tAttributeValueEntryPtr attributeValue = NULL;
-							ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, 1, attributeValueListRef, &attributeValue));
-							std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
-							CFStringUtil strvalue(data.get());
-							::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
-							::dsDeallocAttributeValueEntry(mDir, attributeValue);
-							attributeValue = NULL;
-						}
-					}
-					
-					::dsCloseAttributeValueList(attributeValueListRef);
-					attributeValueListRef = NULL;
-					::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
-					attributeInfoPtr = NULL;
-				}
-				
-				// Create tuple of record name and record values
-				CFStringUtil str(recname.get());
-				
-				record_tuple = ::CFArrayCreateMutable(kCFAllocatorDefault, 2, &kCFTypeArrayCallBacks);
-				::CFArrayAppendValue(record_tuple, str.get());
-				::CFArrayAppendValue(record_tuple, record);
-				::CFRelease(record);
-				record = NULL;
+                            for(unsigned long k = 1; k <= attributeInfoPtr->fAttributeValueCount; k++)
+                            {
+                                // Get the attribute value and store in results
+                                tAttributeValueEntryPtr attributeValue = NULL;
+                                ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, k, attributeValueListRef, &attributeValue));
+                                std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
+                                CFStringUtil strvalue(data.get());
+                                ::CFArrayAppendValue(values, strvalue.get());
+                                ::dsDeallocAttributeValueEntry(mDir, attributeValue);
+                                attributeValue = NULL;
+                            }
+                            ::CFDictionarySetValue(record, cfattrname.get(), values);
+                            ::CFRelease(values);
+                            values = NULL;
+                        }
+                        else
+                        {
+                            // Get the attribute value and store in results
+                            tAttributeValueEntryPtr attributeValue = NULL;
+                            ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, 1, attributeValueListRef, &attributeValue));
+                            std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
+                            CFStringUtil strvalue(data.get());
+                            ::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
+                            ::dsDeallocAttributeValueEntry(mDir, attributeValue);
+                            attributeValue = NULL;
+                        }
+                    }
+                    
+                    ::dsCloseAttributeValueList(attributeValueListRef);
+                    attributeValueListRef = NULL;
+                    ::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
+                    attributeInfoPtr = NULL;
+                }
+                
+                // Create tuple of record name and record values
+                CFStringUtil str(recname.get());
+                
+                record_tuple = ::CFArrayCreateMutable(kCFAllocatorDefault, 2, &kCFTypeArrayCallBacks);
+                ::CFArrayAppendValue(record_tuple, str.get());
+                ::CFArrayAppendValue(record_tuple, record);
+                ::CFRelease(record);
+                record = NULL;
 
-				// Append tuple to results array
-				::CFArrayAppendValue(result, record_tuple);
-				::CFRelease(record_tuple);
-				record_tuple = NULL;
-				
-				// Clean-up
-				::dsCloseAttributeList(attrListRef);
-				attrListRef = 0L;
-				::dsDeallocRecordEntry(mDir, pRecEntry);
-				pRecEntry = NULL;
-			}
-		} while (context != NULL); // Loop until all data has been obtained.
-		
-		// Cleanup
-		::dsDataListDeallocate(mDir, recNames);
-		::dsDataListDeallocate(mDir, recTypes);
-		::dsDataListDeallocate(mDir, attrTypes);
-		free(recNames);
-		free(recTypes);
-		free(attrTypes);
-		RemoveBuffer();
-		CloseNode();
-		CloseService();
-	}
-	catch(CDirectoryServiceException& dsStatus)
-	{
-		// Cleanup
-		if (context != NULL)
-			::dsReleaseContinueData(mDir, context);
-		if (attrListRef != 0L)
-			::dsCloseAttributeList(attrListRef);
-		if (pRecEntry != NULL)
-			dsDeallocRecordEntry(mDir, pRecEntry);
-		if (recNames != NULL)
-		{
-			::dsDataListDeallocate(mDir, recNames);
-			free(recNames);
-			recNames = NULL;
-		}
-		if (recTypes != NULL)
-		{
-			::dsDataListDeallocate(mDir, recTypes);
-			free(recTypes);
-			recTypes = NULL;
-		}
-		if (attrTypes != NULL)
-		{
-			::dsDataListDeallocate(mDir, attrTypes);
-			free(attrTypes);
-			attrTypes = NULL;
-		}
-		RemoveBuffer();
-		CloseNode();
-		CloseService();
-		
-		if (values != NULL)
-		{
-			::CFRelease(values);
-			values = NULL;
-		}
-		if (record != NULL)
-		{
-			::CFRelease(record);
-			record = NULL;
-		}
-		if (record_tuple != NULL)
-		{
-			::CFRelease(record_tuple);
-			record_tuple = NULL;
-		}
-		if (result != NULL)
-		{
-			::CFRelease(result);
-			result = NULL;
-		}
-		throw;
-	}
-	
-	return result;
+                // Append tuple to results array
+                ::CFArrayAppendValue(result, record_tuple);
+                ::CFRelease(record_tuple);
+                record_tuple = NULL;
+                
+                // Clean-up
+                ::dsCloseAttributeList(attrListRef);
+                attrListRef = 0L;
+                ::dsDeallocRecordEntry(mDir, pRecEntry);
+                pRecEntry = NULL;
+            }
+        } while (context != NULL); // Loop until all data has been obtained.
+        
+        // Cleanup
+        ::dsDataListDeallocate(mDir, recNames);
+        ::dsDataListDeallocate(mDir, recTypes);
+        ::dsDataListDeallocate(mDir, attrTypes);
+        free(recNames);
+        free(recTypes);
+        free(attrTypes);
+        RemoveBuffer();
+        CloseNode();
+        CloseService();
+    }
+    catch(CDirectoryServiceException& dsStatus)
+    {
+        // Cleanup
+        if (context != NULL)
+            ::dsReleaseContinueData(mDir, context);
+        if (attrListRef != 0L)
+            ::dsCloseAttributeList(attrListRef);
+        if (pRecEntry != NULL)
+            dsDeallocRecordEntry(mDir, pRecEntry);
+        if (recNames != NULL)
+        {
+            ::dsDataListDeallocate(mDir, recNames);
+            free(recNames);
+            recNames = NULL;
+        }
+        if (recTypes != NULL)
+        {
+            ::dsDataListDeallocate(mDir, recTypes);
+            free(recTypes);
+            recTypes = NULL;
+        }
+        if (attrTypes != NULL)
+        {
+            ::dsDataListDeallocate(mDir, attrTypes);
+            free(attrTypes);
+            attrTypes = NULL;
+        }
+        RemoveBuffer();
+        CloseNode();
+        CloseService();
+        
+        if (values != NULL)
+        {
+            ::CFRelease(values);
+            values = NULL;
+        }
+        if (record != NULL)
+        {
+            ::CFRelease(record);
+            record = NULL;
+        }
+        if (record_tuple != NULL)
+        {
+            ::CFRelease(record_tuple);
+            record_tuple = NULL;
+        }
+        if (result != NULL)
+        {
+            ::CFRelease(result);
+            result = NULL;
+        }
+        throw;
+    }
+    
+    return result;
 }
 
 // _QueryRecordsWithAttributes
@@ -487,244 +487,244 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
 // @param attrs: a list of attributes to return.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
-//			and value entries for each attribute/value requested in the record indexed by uid,
-//		    or NULL if it fails.
+//          and value entries for each attribute/value requested in the record indexed by uid,
+//          or NULL if it fails.
 //
 CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* type, CFArrayRef attrs)
 {
-	CFMutableArrayRef result = NULL;
-	CFMutableArrayRef record_tuple = NULL;
-	CFMutableDictionaryRef record = NULL;
-	CFMutableArrayRef values = NULL;
-	tDataNodePtr queryAttr = NULL;
-	tDataNodePtr queryValue = NULL;
-	tDataListPtr recTypes = NULL;
-	tDataListPtr attrTypes = NULL;
-	tContextData context = NULL;
-	tAttributeListRef attrListRef = 0L;
-	tRecordEntry* pRecEntry = NULL;
-	
-	// Must have attributes
-	if (::CFArrayGetCount(attrs) == 0)
-		return NULL;
+    CFMutableArrayRef result = NULL;
+    CFMutableArrayRef record_tuple = NULL;
+    CFMutableDictionaryRef record = NULL;
+    CFMutableArrayRef values = NULL;
+    tDataNodePtr queryAttr = NULL;
+    tDataNodePtr queryValue = NULL;
+    tDataListPtr recTypes = NULL;
+    tDataListPtr attrTypes = NULL;
+    tContextData context = NULL;
+    tAttributeListRef attrListRef = 0L;
+    tRecordEntry* pRecEntry = NULL;
+    
+    // Must have attributes
+    if (::CFArrayGetCount(attrs) == 0)
+        return NULL;
 
-	try
-	{
-		// Make sure we have a valid directory service
-		OpenService();
-		
-		// Open the node we want to query
-		OpenNode();
-		
-		// We need a buffer for what comes next
-		CreateBuffer();
-		
-		if (compound == NULL)
-		{
-			// Determine attribute to search
-			queryAttr = ::dsDataNodeAllocateString(mDir, attr);
-			ThrowIfNULL(queryAttr);
+    try
+    {
+        // Make sure we have a valid directory service
+        OpenService();
+        
+        // Open the node we want to query
+        OpenNode();
+        
+        // We need a buffer for what comes next
+        CreateBuffer();
+        
+        if (compound == NULL)
+        {
+            // Determine attribute to search
+            queryAttr = ::dsDataNodeAllocateString(mDir, attr);
+            ThrowIfNULL(queryAttr);
 
-			queryValue = ::dsDataNodeAllocateString(mDir, value);
-			ThrowIfNULL(queryValue);
+            queryValue = ::dsDataNodeAllocateString(mDir, value);
+            ThrowIfNULL(queryValue);
 
-			if (casei)
-				matchType |= 0x0100;
-			else
-				matchType &= 0xFEFF;
-		}
-		else
-		{
-			queryAttr = ::dsDataNodeAllocateString(mDir, kDS1AttrDistinguishedName);
-			ThrowIfNULL(queryAttr);
+            if (casei)
+                matchType |= 0x0100;
+            else
+                matchType &= 0xFEFF;
+        }
+        else
+        {
+            queryAttr = ::dsDataNodeAllocateString(mDir, kDS1AttrDistinguishedName);
+            ThrowIfNULL(queryAttr);
 
-			queryValue = ::dsDataNodeAllocateString(mDir, compound);
-			ThrowIfNULL(queryValue);
+            queryValue = ::dsDataNodeAllocateString(mDir, compound);
+            ThrowIfNULL(queryValue);
 
-			matchType = (casei) ? eDSiCompoundExpression : eDSCompoundExpression;
-		}
-	
-		// Build data list of types
-		recTypes = ::dsDataListAllocate(mDir);
-		ThrowIfNULL(recTypes);
-		ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recTypes,  type, NULL));
+            matchType = (casei) ? eDSiCompoundExpression : eDSCompoundExpression;
+        }
+    
+        // Build data list of types
+        recTypes = ::dsDataListAllocate(mDir);
+        ThrowIfNULL(recTypes);
+        ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recTypes,  type, NULL));
 
-		// Build data list of attributes
-		attrTypes = ::dsDataListAllocate(mDir);
-		ThrowIfNULL(attrTypes);
-		BuildStringDataList(attrs, attrTypes);
-		
-		result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-		
-		do
-		{
-			// List all the appropriate records
-			unsigned long recCount = 0;
-			tDirStatus err;
-			do
-			{
-				err = ::dsDoAttributeValueSearchWithData(mNode, mData, recTypes, queryAttr, (tDirPatternMatch)matchType, queryValue, attrTypes, false, &recCount, &context);
-				if (err == eDSBufferTooSmall)
-					ReallocBuffer();
-			} while(err == eDSBufferTooSmall);
-			ThrowIfDSErr(err);
-			for(unsigned long i = 1; i <= recCount; i++)
-			{
-				// Get the record entry
-				ThrowIfDSErr(::dsGetRecordEntry(mNode, mData, i, &attrListRef, &pRecEntry));
-				
-				// Get the entry's name
-				char* temp = NULL;
-				ThrowIfDSErr(::dsGetRecordNameFromEntry(pRecEntry, &temp));
-				std::auto_ptr<char> recname(temp);
-				
-				// Create a dictionary for the values
-				record = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-				
-				// Look at each requested attribute and get one value
-				for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
-				{
-					tAttributeValueListRef attributeValueListRef = NULL;
-					tAttributeEntryPtr attributeInfoPtr = NULL;
-					
-					ThrowIfDSErr(::dsGetAttributeEntry(mNode, mData, attrListRef, j, &attributeValueListRef, &attributeInfoPtr));
-					
-					if (attributeInfoPtr->fAttributeValueCount > 0)
-					{
-						// Determine what the attribute is and where in the result list it should be put
-						std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
-						CFStringUtil cfattrname(attrname.get());
-						
-						if (attributeInfoPtr->fAttributeValueCount > 1)
-						{
-							values = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+        // Build data list of attributes
+        attrTypes = ::dsDataListAllocate(mDir);
+        ThrowIfNULL(attrTypes);
+        BuildStringDataList(attrs, attrTypes);
+        
+        result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+        
+        do
+        {
+            // List all the appropriate records
+            unsigned long recCount = 0;
+            tDirStatus err;
+            do
+            {
+                err = ::dsDoAttributeValueSearchWithData(mNode, mData, recTypes, queryAttr, (tDirPatternMatch)matchType, queryValue, attrTypes, false, &recCount, &context);
+                if (err == eDSBufferTooSmall)
+                    ReallocBuffer();
+            } while(err == eDSBufferTooSmall);
+            ThrowIfDSErr(err);
+            for(unsigned long i = 1; i <= recCount; i++)
+            {
+                // Get the record entry
+                ThrowIfDSErr(::dsGetRecordEntry(mNode, mData, i, &attrListRef, &pRecEntry));
+                
+                // Get the entry's name
+                char* temp = NULL;
+                ThrowIfDSErr(::dsGetRecordNameFromEntry(pRecEntry, &temp));
+                std::auto_ptr<char> recname(temp);
+                
+                // Create a dictionary for the values
+                record = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                
+                // Look at each requested attribute and get one value
+                for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
+                {
+                    tAttributeValueListRef attributeValueListRef = NULL;
+                    tAttributeEntryPtr attributeInfoPtr = NULL;
+                    
+                    ThrowIfDSErr(::dsGetAttributeEntry(mNode, mData, attrListRef, j, &attributeValueListRef, &attributeInfoPtr));
+                    
+                    if (attributeInfoPtr->fAttributeValueCount > 0)
+                    {
+                        // Determine what the attribute is and where in the result list it should be put
+                        std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
+                        CFStringUtil cfattrname(attrname.get());
+                        
+                        if (attributeInfoPtr->fAttributeValueCount > 1)
+                        {
+                            values = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
 
-							for(unsigned long k = 1; k <= attributeInfoPtr->fAttributeValueCount; k++)
-							{
-								// Get the attribute value and store in results
-								tAttributeValueEntryPtr attributeValue = NULL;
-								ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, k, attributeValueListRef, &attributeValue));
-								std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
-								CFStringUtil strvalue(data.get());
-								::CFArrayAppendValue(values, strvalue.get());
-								::dsDeallocAttributeValueEntry(mDir, attributeValue);
-								attributeValue = NULL;
-							}
-							::CFDictionarySetValue(record, cfattrname.get(), values);
-							::CFRelease(values);
-							values = NULL;
-						}
-						else
-						{
-							// Get the attribute value and store in results
-							tAttributeValueEntryPtr attributeValue = NULL;
-							ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, 1, attributeValueListRef, &attributeValue));
-							std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
-							CFStringUtil strvalue(data.get());
-							::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
-							::dsDeallocAttributeValueEntry(mDir, attributeValue);
-							attributeValue = NULL;
-						}
-					}
-					
-					::dsCloseAttributeValueList(attributeValueListRef);
-					attributeValueListRef = NULL;
-					::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
-					attributeInfoPtr = NULL;
-				}
-				
-				// Create tuple of record name and record values
-				CFStringUtil str(recname.get());
-				
-				record_tuple = ::CFArrayCreateMutable(kCFAllocatorDefault, 2, &kCFTypeArrayCallBacks);
-				::CFArrayAppendValue(record_tuple, str.get());
-				::CFArrayAppendValue(record_tuple, record);
-				::CFRelease(record);
-				record = NULL;
+                            for(unsigned long k = 1; k <= attributeInfoPtr->fAttributeValueCount; k++)
+                            {
+                                // Get the attribute value and store in results
+                                tAttributeValueEntryPtr attributeValue = NULL;
+                                ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, k, attributeValueListRef, &attributeValue));
+                                std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
+                                CFStringUtil strvalue(data.get());
+                                ::CFArrayAppendValue(values, strvalue.get());
+                                ::dsDeallocAttributeValueEntry(mDir, attributeValue);
+                                attributeValue = NULL;
+                            }
+                            ::CFDictionarySetValue(record, cfattrname.get(), values);
+                            ::CFRelease(values);
+                            values = NULL;
+                        }
+                        else
+                        {
+                            // Get the attribute value and store in results
+                            tAttributeValueEntryPtr attributeValue = NULL;
+                            ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, 1, attributeValueListRef, &attributeValue));
+                            std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
+                            CFStringUtil strvalue(data.get());
+                            ::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
+                            ::dsDeallocAttributeValueEntry(mDir, attributeValue);
+                            attributeValue = NULL;
+                        }
+                    }
+                    
+                    ::dsCloseAttributeValueList(attributeValueListRef);
+                    attributeValueListRef = NULL;
+                    ::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
+                    attributeInfoPtr = NULL;
+                }
+                
+                // Create tuple of record name and record values
+                CFStringUtil str(recname.get());
+                
+                record_tuple = ::CFArrayCreateMutable(kCFAllocatorDefault, 2, &kCFTypeArrayCallBacks);
+                ::CFArrayAppendValue(record_tuple, str.get());
+                ::CFArrayAppendValue(record_tuple, record);
+                ::CFRelease(record);
+                record = NULL;
 
-				// Append tuple to results array
-				::CFArrayAppendValue(result, record_tuple);
-				::CFRelease(record_tuple);
-				record_tuple = NULL;
+                // Append tuple to results array
+                ::CFArrayAppendValue(result, record_tuple);
+                ::CFRelease(record_tuple);
+                record_tuple = NULL;
 
-				// Clean-up
-				::dsCloseAttributeList(attrListRef);
-				attrListRef = 0L;
-				::dsDeallocRecordEntry(mDir, pRecEntry);
-				pRecEntry = NULL;
-			}
-		} while (context != NULL); // Loop until all data has been obtained.
-		
-		// Cleanup
-		::dsDataListDeallocate(mDir, recTypes);
-		::dsDataListDeallocate(mDir, attrTypes);
-		::dsDataNodeDeAllocate(mDir, queryValue);
-		::dsDataNodeDeAllocate(mDir, queryAttr);
-		free(recTypes);
-		free(attrTypes);
-		RemoveBuffer();
-		CloseNode();
-		CloseService();
-	}
-	catch(CDirectoryServiceException& dsStatus)
-	{
-		// Cleanup
-		if (context != NULL)
-			::dsReleaseContinueData(mDir, context);
-		if (attrListRef != 0L)
-			::dsCloseAttributeList(attrListRef);
-		if (pRecEntry != NULL)
-			dsDeallocRecordEntry(mDir, pRecEntry);
-		if (recTypes != NULL)
-		{
-			::dsDataListDeallocate(mDir, recTypes);
-			free(recTypes);
-			recTypes = NULL;
-		}
-		if (attrTypes != NULL)
-		{
-			::dsDataListDeallocate(mDir, attrTypes);
-			free(attrTypes);
-			attrTypes = NULL;
-		}
-		if (queryValue != NULL)
-		{
-			::dsDataNodeDeAllocate(mDir, queryValue);
-			queryValue = NULL;
-		}
-		if (queryAttr != NULL)
-		{
-			::dsDataNodeDeAllocate(mDir, queryAttr);
-			queryAttr = NULL;
-		}
-		RemoveBuffer();
-		CloseNode();
-		CloseService();
-		
-		if (values != NULL)
-		{
-			::CFRelease(values);
-			values = NULL;
-		}
-		if (record != NULL)
-		{
-			::CFRelease(record);
-			record = NULL;
-		}
-		if (record_tuple != NULL)
-		{
-			::CFRelease(record_tuple);
-			record_tuple = NULL;
-		}
-		if (result != NULL)
-		{
-			::CFRelease(result);
-			result = NULL;
-		}
-		throw;
-	}
-	
-	return result;
+                // Clean-up
+                ::dsCloseAttributeList(attrListRef);
+                attrListRef = 0L;
+                ::dsDeallocRecordEntry(mDir, pRecEntry);
+                pRecEntry = NULL;
+            }
+        } while (context != NULL); // Loop until all data has been obtained.
+        
+        // Cleanup
+        ::dsDataListDeallocate(mDir, recTypes);
+        ::dsDataListDeallocate(mDir, attrTypes);
+        ::dsDataNodeDeAllocate(mDir, queryValue);
+        ::dsDataNodeDeAllocate(mDir, queryAttr);
+        free(recTypes);
+        free(attrTypes);
+        RemoveBuffer();
+        CloseNode();
+        CloseService();
+    }
+    catch(CDirectoryServiceException& dsStatus)
+    {
+        // Cleanup
+        if (context != NULL)
+            ::dsReleaseContinueData(mDir, context);
+        if (attrListRef != 0L)
+            ::dsCloseAttributeList(attrListRef);
+        if (pRecEntry != NULL)
+            dsDeallocRecordEntry(mDir, pRecEntry);
+        if (recTypes != NULL)
+        {
+            ::dsDataListDeallocate(mDir, recTypes);
+            free(recTypes);
+            recTypes = NULL;
+        }
+        if (attrTypes != NULL)
+        {
+            ::dsDataListDeallocate(mDir, attrTypes);
+            free(attrTypes);
+            attrTypes = NULL;
+        }
+        if (queryValue != NULL)
+        {
+            ::dsDataNodeDeAllocate(mDir, queryValue);
+            queryValue = NULL;
+        }
+        if (queryAttr != NULL)
+        {
+            ::dsDataNodeDeAllocate(mDir, queryAttr);
+            queryAttr = NULL;
+        }
+        RemoveBuffer();
+        CloseNode();
+        CloseService();
+        
+        if (values != NULL)
+        {
+            ::CFRelease(values);
+            values = NULL;
+        }
+        if (record != NULL)
+        {
+            ::CFRelease(record);
+            record = NULL;
+        }
+        if (record_tuple != NULL)
+        {
+            ::CFRelease(record_tuple);
+            record_tuple = NULL;
+        }
+        if (result != NULL)
+        {
+            ::CFRelease(result);
+            result = NULL;
+        }
+        throw;
+    }
+    
+    return result;
 }
 
 // NativeAuthenticationBasicToNode
@@ -737,86 +737,86 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
 // @return: true if authentication succeeds, false otherwise.
 //
 bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd)
-{	
-	bool result = false;
-	tDirNodeReference node = 0L;
+{    
+    bool result = false;
+    tDirNodeReference node = 0L;
     tDataNodePtr authType = NULL;
     tDataBufferPtr authData = NULL;
     tContextData context = NULL;
-	
-	try
-	{
-		// Make sure we have a valid directory service
-		OpenService();
-		
-		// Open the node we want to query
-		node = OpenNamedNode(nodename);
-		
-		CreateBuffer();
+    
+    try
+    {
+        // Make sure we have a valid directory service
+        OpenService();
+        
+        // Open the node we want to query
+        node = OpenNamedNode(nodename);
+        
+        CreateBuffer();
 
-		// First, specify the type of authentication.
-		authType = ::dsDataNodeAllocateString(mDir, kDSStdAuthClearText);
+        // First, specify the type of authentication.
+        authType = ::dsDataNodeAllocateString(mDir, kDSStdAuthClearText);
 
-		// Build input data
-		//  Native authentication is a one step authentication scheme.
-		//  Step 1
-		//      Send: <length><recordname>
-		//            <length><cleartextpassword>
-		//   Receive: success or failure.
-		long aDataBufSize = sizeof(long) + ::strlen(user) + sizeof(long) + ::strlen(pswd);
-		authData = ::dsDataBufferAllocate(mDir, aDataBufSize);
-		if (authData == NULL)
-			ThrowIfDSErr(eDSNullDataBuff);
-		long aCurLength = 0;
-		long aTempLength = ::strlen(user);
-		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-		aCurLength += sizeof(long);
+        // Build input data
+        //  Native authentication is a one step authentication scheme.
+        //  Step 1
+        //      Send: <length><recordname>
+        //            <length><cleartextpassword>
+        //   Receive: success or failure.
+        long aDataBufSize = sizeof(long) + ::strlen(user) + sizeof(long) + ::strlen(pswd);
+        authData = ::dsDataBufferAllocate(mDir, aDataBufSize);
+        if (authData == NULL)
+            ThrowIfDSErr(eDSNullDataBuff);
+        long aCurLength = 0;
+        long aTempLength = ::strlen(user);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+        aCurLength += sizeof(long);
 
-		::memcpy(&(authData->fBufferData[aCurLength]), user,  aTempLength);
-		aCurLength += aTempLength;
+        ::memcpy(&(authData->fBufferData[aCurLength]), user,  aTempLength);
+        aCurLength += aTempLength;
 
-		aTempLength = ::strlen(pswd);
-		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-		aCurLength += sizeof(long);
+        aTempLength = ::strlen(pswd);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+        aCurLength += sizeof(long);
 
-		::memcpy(&(authData->fBufferData[aCurLength]), pswd,  aTempLength);
-		
-		authData->fBufferLength = aDataBufSize;
-		
-		// Do authentication
-		long dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
-		result = (dirStatus == eDSNoErr);
-		
-		// Cleanup
-		::dsDataBufferDeAllocate(mDir, authData);
-		authData = NULL;
-		::dsDataNodeDeAllocate(mDir, authType);
-		authType = NULL;
-		RemoveBuffer();
-		if (node != 0L)
-		{
-			::dsCloseDirNode(node);
-			node = 0L;
-		}
-		CloseService();
-	}
-	catch(...)
-	{
-		// Cleanup
-		if (authData != NULL)
-			::dsDataBufferDeAllocate(mDir, authData);
-		if (authType != NULL)
-			::dsDataNodeDeAllocate(mDir, authType);
-		RemoveBuffer();
-		if (node != 0L)
-		{
-			::dsCloseDirNode(node);
-			node = 0L;
-		}
-		CloseService();
-		
-		throw;
-	}
+        ::memcpy(&(authData->fBufferData[aCurLength]), pswd,  aTempLength);
+        
+        authData->fBufferLength = aDataBufSize;
+        
+        // Do authentication
+        long dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
+        result = (dirStatus == eDSNoErr);
+        
+        // Cleanup
+        ::dsDataBufferDeAllocate(mDir, authData);
+        authData = NULL;
+        ::dsDataNodeDeAllocate(mDir, authType);
+        authType = NULL;
+        RemoveBuffer();
+        if (node != 0L)
+        {
+            ::dsCloseDirNode(node);
+            node = 0L;
+        }
+        CloseService();
+    }
+    catch(...)
+    {
+        // Cleanup
+        if (authData != NULL)
+            ::dsDataBufferDeAllocate(mDir, authData);
+        if (authType != NULL)
+            ::dsDataNodeDeAllocate(mDir, authType);
+        RemoveBuffer();
+        if (node != 0L)
+        {
+            ::dsCloseDirNode(node);
+            node = 0L;
+        }
+        CloseService();
+        
+        throw;
+    }
 
     return result;
 }
@@ -833,106 +833,106 @@ bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, co
 // @return: true if authentication succeeds, false otherwise.
 //
 bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, const char* user,
-														 const char* challenge, const char* response, const char* method)
-{	
-	bool result = false;
-	tDirNodeReference node = 0L;
+                                                         const char* challenge, const char* response, const char* method)
+{    
+    bool result = false;
+    tDirNodeReference node = 0L;
     tDataNodePtr authType = NULL;
     tDataBufferPtr authData = NULL;
     tContextData context = NULL;
-	
-	try
-	{
-		// Make sure we have a valid directory service
-		OpenService();
-		
-		// Open the node we want to query
-		node = OpenNamedNode(nodename);
-		
-		CreateBuffer();
+    
+    try
+    {
+        // Make sure we have a valid directory service
+        OpenService();
+        
+        // Open the node we want to query
+        node = OpenNamedNode(nodename);
+        
+        CreateBuffer();
 
-		// First, specify the type of authentication.
-		authType = ::dsDataNodeAllocateString(mDir, kDSStdAuthDIGEST_MD5);
+        // First, specify the type of authentication.
+        authType = ::dsDataNodeAllocateString(mDir, kDSStdAuthDIGEST_MD5);
 
-		// Build input data
-		//  Native authentication is a one step authentication scheme.
-		//  Step 1
-		//      Send: <length><user>
-		//			  <length><challenge>
-		//            <length><response>
-		//			  <length><method>
-		//   Receive: success or failure.
-		long aDataBufSize = sizeof(long) + ::strlen(user) +
-							sizeof(long) + ::strlen(challenge) +
-							sizeof(long) + ::strlen(response) +
-							sizeof(long) + ::strlen(method);
-		authData = ::dsDataBufferAllocate(mDir, aDataBufSize);
-		if (authData == NULL)
-			ThrowIfDSErr(eDSNullDataBuff);
-		long aCurLength = 0;
-		long aTempLength = ::strlen(user);
-		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-		aCurLength += sizeof(long);
+        // Build input data
+        //  Native authentication is a one step authentication scheme.
+        //  Step 1
+        //      Send: <length><user>
+        //              <length><challenge>
+        //            <length><response>
+        //              <length><method>
+        //   Receive: success or failure.
+        long aDataBufSize = sizeof(long) + ::strlen(user) +
+                            sizeof(long) + ::strlen(challenge) +
+                            sizeof(long) + ::strlen(response) +
+                            sizeof(long) + ::strlen(method);
+        authData = ::dsDataBufferAllocate(mDir, aDataBufSize);
+        if (authData == NULL)
+            ThrowIfDSErr(eDSNullDataBuff);
+        long aCurLength = 0;
+        long aTempLength = ::strlen(user);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+        aCurLength += sizeof(long);
 
-		::memcpy(&(authData->fBufferData[aCurLength]), user,  aTempLength);
-		aCurLength += aTempLength;
+        ::memcpy(&(authData->fBufferData[aCurLength]), user,  aTempLength);
+        aCurLength += aTempLength;
 
-		aTempLength = ::strlen(challenge);
-		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-		aCurLength += sizeof(long);
+        aTempLength = ::strlen(challenge);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+        aCurLength += sizeof(long);
 
-		::memcpy(&(authData->fBufferData[aCurLength]), challenge,  aTempLength);
-		aCurLength += aTempLength;
-		
-		aTempLength = ::strlen(response);
-		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-		aCurLength += sizeof(long);
+        ::memcpy(&(authData->fBufferData[aCurLength]), challenge,  aTempLength);
+        aCurLength += aTempLength;
+        
+        aTempLength = ::strlen(response);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+        aCurLength += sizeof(long);
 
-		::memcpy(&(authData->fBufferData[aCurLength]), response,  aTempLength);
-		aCurLength += aTempLength;
-		
-		aTempLength = ::strlen(method);
-		::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-		aCurLength += sizeof(long);
+        ::memcpy(&(authData->fBufferData[aCurLength]), response,  aTempLength);
+        aCurLength += aTempLength;
+        
+        aTempLength = ::strlen(method);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
+        aCurLength += sizeof(long);
 
-		::memcpy(&(authData->fBufferData[aCurLength]), method,  aTempLength);
-		
-		authData->fBufferLength = aDataBufSize;
-		
-		// Do authentication
-		long dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
-		result = (dirStatus == eDSNoErr);
-		
-		// Cleanup
-		::dsDataBufferDeAllocate(mDir, authData);
-		authData = NULL;
-		::dsDataNodeDeAllocate(mDir, authType);
-		authType = NULL;
-		RemoveBuffer();
-		if (node != 0L)
-		{
-			::dsCloseDirNode(node);
-			node = 0L;
-		}
-		CloseService();
-	}
-	catch(...)
-	{
-		// Cleanup
-		if (authData != NULL)
-			::dsDataBufferDeAllocate(mDir, authData);
-		if (authType != NULL)
-			::dsDataNodeDeAllocate(mDir, authType);
-		RemoveBuffer();
-		if (node != 0L)
-		{
-			::dsCloseDirNode(node);
-			node = 0L;
-		}
-		CloseService();
-		
-		throw;
-	}
+        ::memcpy(&(authData->fBufferData[aCurLength]), method,  aTempLength);
+        
+        authData->fBufferLength = aDataBufSize;
+        
+        // Do authentication
+        long dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
+        result = (dirStatus == eDSNoErr);
+        
+        // Cleanup
+        ::dsDataBufferDeAllocate(mDir, authData);
+        authData = NULL;
+        ::dsDataNodeDeAllocate(mDir, authType);
+        authType = NULL;
+        RemoveBuffer();
+        if (node != 0L)
+        {
+            ::dsCloseDirNode(node);
+            node = 0L;
+        }
+        CloseService();
+    }
+    catch(...)
+    {
+        // Cleanup
+        if (authData != NULL)
+            ::dsDataBufferDeAllocate(mDir, authData);
+        if (authType != NULL)
+            ::dsDataNodeDeAllocate(mDir, authType);
+        RemoveBuffer();
+        if (node != 0L)
+        {
+            ::dsCloseDirNode(node);
+            node = 0L;
+        }
+        CloseService();
+        
+        throw;
+    }
 
     return result;
 }
@@ -945,15 +945,15 @@ bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, c
 //
 void CDirectoryService::OpenService()
 {
-	if (mDir == 0L)
-	{
-		long dirStatus = ::dsOpenDirService(&mDir);
-		if (dirStatus != eDSNoErr)
-		{
-			mDir = 0L;
-			ThrowIfDSErr(dirStatus);
-		}
-	}
+    if (mDir == 0L)
+    {
+        long dirStatus = ::dsOpenDirService(&mDir);
+        if (dirStatus != eDSNoErr)
+        {
+            mDir = 0L;
+            ThrowIfDSErr(dirStatus);
+        }
+    }
 }
 
 // CloseService
@@ -962,11 +962,11 @@ void CDirectoryService::OpenService()
 //
 void CDirectoryService::CloseService()
 {
-	if (mDir != 0L)
-	{
+    if (mDir != 0L)
+    {
         ::dsCloseDirService(mDir);
-		mDir = 0L;
-	}
+        mDir = 0L;
+    }
 }
 
 // OpenNode
@@ -977,7 +977,7 @@ void CDirectoryService::CloseService()
 //
 void CDirectoryService::OpenNode()
 {
-	mNode = OpenNamedNode(mNodeName);
+    mNode = OpenNamedNode(mNodeName);
 }
 
 // OpenNode
@@ -990,40 +990,40 @@ void CDirectoryService::OpenNode()
 //
 tDirNodeReference CDirectoryService::OpenNamedNode(const char* nodename)
 {
-	long dirStatus = eDSNoErr;
+    long dirStatus = eDSNoErr;
     tDataListPtr nodePath = NULL;
-	tDirNodeReference result = NULL;
-	
-	try
-	{
-		nodePath = ::dsDataListAllocate(mDir);
-		ThrowIfNULL(nodePath);
-		ThrowIfDSErr(::dsBuildListFromPathAlloc(mDir, nodePath, nodename, "/"));
-		dirStatus = ::dsOpenDirNode(mDir, nodePath, &result);
-		if (dirStatus == eDSNoErr)
-		{
-			// OK
-		}
-		else
-		{
-			result = NULL;
-			ThrowIfDSErr(dirStatus);
-		}
-		dirStatus = ::dsDataListDeallocate(mDir, nodePath);
-		free(nodePath);
-	}
-	catch(...)
-	{
-		if (nodePath != NULL)
-		{
-			dirStatus = ::dsDataListDeallocate(mDir, nodePath);
-			free(nodePath);
-			nodePath = NULL;
-		}
-		throw;
-	}
-	
-	return result;
+    tDirNodeReference result = NULL;
+    
+    try
+    {
+        nodePath = ::dsDataListAllocate(mDir);
+        ThrowIfNULL(nodePath);
+        ThrowIfDSErr(::dsBuildListFromPathAlloc(mDir, nodePath, nodename, "/"));
+        dirStatus = ::dsOpenDirNode(mDir, nodePath, &result);
+        if (dirStatus == eDSNoErr)
+        {
+            // OK
+        }
+        else
+        {
+            result = NULL;
+            ThrowIfDSErr(dirStatus);
+        }
+        dirStatus = ::dsDataListDeallocate(mDir, nodePath);
+        free(nodePath);
+    }
+    catch(...)
+    {
+        if (nodePath != NULL)
+        {
+            dirStatus = ::dsDataListDeallocate(mDir, nodePath);
+            free(nodePath);
+            nodePath = NULL;
+        }
+        throw;
+    }
+    
+    return result;
 }
 
 // CloseNode
@@ -1032,11 +1032,11 @@ tDirNodeReference CDirectoryService::OpenNamedNode(const char* nodename)
 //
 void CDirectoryService::CloseNode()
 {
-	if (mNode != 0L)
-	{
-		::dsCloseDirNode(mNode);
-		mNode = 0L;
-	}
+    if (mNode != 0L)
+    {
+        ::dsCloseDirNode(mNode);
+        mNode = 0L;
+    }
 }
 
 // CreateBuffer
@@ -1047,15 +1047,15 @@ void CDirectoryService::CloseNode()
 //
 void CDirectoryService::CreateBuffer()
 {
-	if (mData == NULL)
-	{
-		mData = ::dsDataBufferAllocate(mDir, cBufferSize);
-		if (mData == NULL)
-		{
-			ThrowIfDSErr(eDSNullDataBuff);
-		}
-		mDataSize = cBufferSize;
-	}
+    if (mData == NULL)
+    {
+        mData = ::dsDataBufferAllocate(mDir, cBufferSize);
+        if (mData == NULL)
+        {
+            ThrowIfDSErr(eDSNullDataBuff);
+        }
+        mDataSize = cBufferSize;
+    }
 }
 
 // RemoveBuffer
@@ -1064,11 +1064,11 @@ void CDirectoryService::CreateBuffer()
 //
 void CDirectoryService::RemoveBuffer()
 {
-	if (mData != NULL)
-	{
-		::dsDataBufferDeAllocate(mDir, mData);
-		mData = NULL;
-	}
+    if (mData != NULL)
+    {
+        ::dsDataBufferDeAllocate(mDir, mData);
+        mData = NULL;
+    }
 }
 
 // ReallocBuffer
@@ -1077,26 +1077,26 @@ void CDirectoryService::RemoveBuffer()
 //
 void CDirectoryService::ReallocBuffer()
 {
-	RemoveBuffer();
-	mData = ::dsDataBufferAllocate(mDir, 2 * mDataSize);
-	if (mData == NULL)
-	{
-		ThrowIfDSErr(eDSNullDataBuff);
-	}
-	mDataSize *= 2;
+    RemoveBuffer();
+    mData = ::dsDataBufferAllocate(mDir, 2 * mDataSize);
+    if (mData == NULL)
+    {
+        ThrowIfDSErr(eDSNullDataBuff);
+    }
+    mDataSize *= 2;
 }
 
 void CDirectoryService::BuildStringDataList(CFArrayRef strs, tDataListPtr data)
 {
-	CFStringUtil add_cfname((CFStringRef)::CFArrayGetValueAtIndex(strs, 0));
-	std::auto_ptr<char> add_name(add_cfname.c_str());
-	ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, data,  add_name.get(), NULL));
-	for(CFIndex i = 1; i < ::CFArrayGetCount(strs); i++)
-	{
-		add_cfname.reset((CFStringRef)::CFArrayGetValueAtIndex(strs, i));
-		add_name.reset(add_cfname.c_str());
-		ThrowIfDSErr(::dsAppendStringToListAlloc(mDir, data,  add_name.get()));
-	}
+    CFStringUtil add_cfname((CFStringRef)::CFArrayGetValueAtIndex(strs, 0));
+    std::auto_ptr<char> add_name(add_cfname.c_str());
+    ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, data,  add_name.get(), NULL));
+    for(CFIndex i = 1; i < ::CFArrayGetCount(strs); i++)
+    {
+        add_cfname.reset((CFStringRef)::CFArrayGetValueAtIndex(strs, i));
+        add_name.reset(add_cfname.c_str());
+        ThrowIfDSErr(::dsAppendStringToListAlloc(mDir, data,  add_name.get()));
+    }
 }
 
 // CStringFromBuffer
@@ -1107,10 +1107,10 @@ void CDirectoryService::BuildStringDataList(CFArrayRef strs, tDataListPtr data)
 //
 char* CDirectoryService::CStringFromBuffer(tDataBufferPtr data)
 {
-	char* result = new char[data->fBufferLength + 1];
-	::strncpy(result, data->fBufferData, data->fBufferLength);
-	result[data->fBufferLength] = 0;
-	return result;
+    char* result = new char[data->fBufferLength + 1];
+    ::strncpy(result, data->fBufferData, data->fBufferLength);
+    result[data->fBufferLength] = 0;
+    return result;
 }
 
 // CStringFromData
@@ -1121,9 +1121,9 @@ char* CDirectoryService::CStringFromBuffer(tDataBufferPtr data)
 //
 char* CDirectoryService::CStringFromData(const char* data, size_t len)
 {
-	char* result = new char[len + 1];
-	::strncpy(result, data, len);
-	result[len] = 0;
-	return result;
+    char* result = new char[len + 1];
+    ::strncpy(result, data, len);
+    result[len] = 0;
+    return result;
 }
 
