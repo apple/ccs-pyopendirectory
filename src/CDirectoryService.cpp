@@ -23,6 +23,7 @@
 
 #include "CDirectoryServiceException.h"
 
+#include "base64.h"
 #include "CFStringUtil.h"
 
 #include <Python.h>
@@ -89,11 +90,11 @@ CDirectoryService::~CDirectoryService()
 //            and value entries for each attribute/value requested in the record indexed by uid,
 //            or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes)
+CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* recordType, CFDictionaryRef attributes, bool using_python)
 {
     try
     {
-        StPythonThreadState threading;
+        StPythonThreadState threading(using_python);
 
         // Get attribute map
         return _ListAllRecordsWithAttributes(recordType, NULL, attributes);
@@ -126,11 +127,11 @@ CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* re
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFArrayRef attributes)
+CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python)
 {
     try
     {
-        StPythonThreadState threading;
+        StPythonThreadState threading(using_python);
 
         // Get attribute map
         return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordType, attributes);
@@ -161,11 +162,11 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFArrayRef attributes)
+CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python)
 {
     try
     {
-        StPythonThreadState threading;
+        StPythonThreadState threading(using_python);
 
         // Get attribute map
         return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordType, attributes);
@@ -192,11 +193,11 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* quer
 // @param pswd: the plain text password to authenticate with.
 // @return: true if authentication succeeds, false otherwise.
 //
-bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result)
+bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result, bool using_python)
 {
     try
     {
-        StPythonThreadState threading;
+        StPythonThreadState threading(using_python);
 
         result = NativeAuthenticationBasicToNode(nodename, user, pswd);
         return true;
@@ -223,11 +224,11 @@ bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* 
 // @param response: HTTP response sent by client.
 // @return: true if authentication succeeds, false otherwise.
 //
-bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result)
+bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result, bool using_python)
 {
     try
     {
-        StPythonThreadState threading;
+        StPythonThreadState threading(using_python);
 
         result = NativeAuthenticationDigestToNode(nodename, user, challenge, response, method);
         return true;
@@ -253,13 +254,13 @@ bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char*
 //
 // @param type: the record type to check.
 // @param names: a list of record names to target if NULL all records are matched.
-// @param attrs: a list of attributes to return.
+// @param attributes: a list of attributes to return.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs)
+CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFDictionaryRef attributes)
 {
     CFMutableArrayRef result = NULL;
     CFMutableArrayRef record_tuple = NULL;
@@ -273,7 +274,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
     tRecordEntry* pRecEntry = NULL;
     
     // Must have attributes
-    if (::CFArrayGetCount(attrs) == 0)
+    if (::CFDictionaryGetCount(attributes) == 0)
         return NULL;
 
     try
@@ -303,7 +304,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
         // Build data list of attributes
         attrTypes = ::dsDataListAllocate(mDir);
         ThrowIfNULL(attrTypes);
-        BuildStringDataList(attrs, attrTypes);
+        BuildStringDataListFromKeys(attributes, attrTypes);
         
         result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
         
@@ -346,6 +347,12 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
                         std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
                         CFStringUtil cfattrname(attrname.get());
                         
+						// Determine whether string/base64 encoding is needed
+						bool base64 = false;
+						CFStringRef encoding = (CFStringRef)::CFDictionaryGetValue(attributes, cfattrname.get());
+						if (encoding && (::CFStringCompare(encoding, CFSTR("base64"), 0) == kCFCompareEqualTo))
+							base64 = true;
+						
                         if (attributeInfoPtr->fAttributeValueCount > 1)
                         {
                             values = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
@@ -355,7 +362,11 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
                                 // Get the attribute value and store in results
                                 tAttributeValueEntryPtr attributeValue = NULL;
                                 ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, k, attributeValueListRef, &attributeValue));
-                                std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
+								std::auto_ptr<char> data;
+								if (base64)
+									data.reset(CStringBase64FromBuffer(&attributeValue->fAttributeValueData));
+								else
+									data.reset(CStringFromBuffer(&attributeValue->fAttributeValueData));
                                 CFStringUtil strvalue(data.get());
                                 ::CFArrayAppendValue(values, strvalue.get());
                                 ::dsDeallocAttributeValueEntry(mDir, attributeValue);
@@ -370,10 +381,17 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
                             // Get the attribute value and store in results
                             tAttributeValueEntryPtr attributeValue = NULL;
                             ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, 1, attributeValueListRef, &attributeValue));
-                            std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
+                            std::auto_ptr<char> data;
+							if (base64)
+								data.reset(CStringBase64FromBuffer(&attributeValue->fAttributeValueData));
+							else
+								data.reset(CStringFromBuffer(&attributeValue->fAttributeValueData));
                             CFStringUtil strvalue(data.get());
-                            ::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
-                            ::dsDeallocAttributeValueEntry(mDir, attributeValue);
+							if (strvalue.get() != NULL)
+							{
+								::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
+							}
+							::dsDeallocAttributeValueEntry(mDir, attributeValue);
                             attributeValue = NULL;
                         }
                     }
@@ -484,13 +502,13 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
 // @param attr: the compound query to use rather than single attribute/value (NULL if compound is not being used).
 // @param casei: true if case-insensitive match is to be used, false otherwise.
 // @param type: the record type to check.
-// @param attrs: a list of attributes to return.
+// @param attributes: a list of attributes to return.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* type, CFArrayRef attrs)
+CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* type, CFDictionaryRef attributes)
 {
     CFMutableArrayRef result = NULL;
     CFMutableArrayRef record_tuple = NULL;
@@ -505,7 +523,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
     tRecordEntry* pRecEntry = NULL;
     
     // Must have attributes
-    if (::CFArrayGetCount(attrs) == 0)
+    if (::CFDictionaryGetCount(attributes) == 0)
         return NULL;
 
     try
@@ -552,7 +570,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
         // Build data list of attributes
         attrTypes = ::dsDataListAllocate(mDir);
         ThrowIfNULL(attrTypes);
-        BuildStringDataList(attrs, attrTypes);
+        BuildStringDataListFromKeys(attributes, attrTypes);
         
         result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
         
@@ -595,6 +613,12 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
                         std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
                         CFStringUtil cfattrname(attrname.get());
                         
+						// Determine whether string/base64 encoding is needed
+						bool base64 = false;
+						CFStringRef encoding = (CFStringRef)::CFDictionaryGetValue(attributes, cfattrname.get());
+						if (encoding && (::CFStringCompare(encoding, CFSTR("base64"), 0) == kCFCompareEqualTo))
+							base64 = true;
+						
                         if (attributeInfoPtr->fAttributeValueCount > 1)
                         {
                             values = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
@@ -604,9 +628,14 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
                                 // Get the attribute value and store in results
                                 tAttributeValueEntryPtr attributeValue = NULL;
                                 ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, k, attributeValueListRef, &attributeValue));
-                                std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
+								std::auto_ptr<char> data;
+								if (base64)
+									data.reset(CStringBase64FromBuffer(&attributeValue->fAttributeValueData));
+								else
+									data.reset(CStringFromBuffer(&attributeValue->fAttributeValueData));
                                 CFStringUtil strvalue(data.get());
-                                ::CFArrayAppendValue(values, strvalue.get());
+								if (strvalue.get() != NULL)
+									::CFArrayAppendValue(values, strvalue.get());
                                 ::dsDeallocAttributeValueEntry(mDir, attributeValue);
                                 attributeValue = NULL;
                             }
@@ -619,9 +648,14 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
                             // Get the attribute value and store in results
                             tAttributeValueEntryPtr attributeValue = NULL;
                             ThrowIfDSErr(::dsGetAttributeValue(mNode, mData, 1, attributeValueListRef, &attributeValue));
-                            std::auto_ptr<char> data(CStringFromBuffer(&attributeValue->fAttributeValueData));
+                            std::auto_ptr<char> data;
+							if (base64)
+								data.reset(CStringBase64FromBuffer(&attributeValue->fAttributeValueData));
+							else
+								data.reset(CStringFromBuffer(&attributeValue->fAttributeValueData));
                             CFStringUtil strvalue(data.get());
-                            ::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
+							if (strvalue.get() != NULL)
+								::CFDictionarySetValue(record, cfattrname.get(), strvalue.get());
                             ::dsDeallocAttributeValueEntry(mDir, attributeValue);
                             attributeValue = NULL;
                         }
@@ -1099,6 +1133,21 @@ void CDirectoryService::BuildStringDataList(CFArrayRef strs, tDataListPtr data)
     }
 }
 
+void CDirectoryService::BuildStringDataListFromKeys(CFDictionaryRef strs, tDataListPtr data)
+{
+	CFStringRef strings[::CFDictionaryGetCount(strs)];
+	::CFDictionaryGetKeysAndValues(strs, (const void**)&strings, NULL);
+    CFStringUtil add_cfname(strings[0]);
+    std::auto_ptr<char> add_name(add_cfname.c_str());
+    ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, data,  add_name.get(), NULL));
+    for(CFIndex i = 1; i < ::CFDictionaryGetCount(strs); i++)
+    {
+        add_cfname.reset((CFStringRef)strings[i]);
+        add_name.reset(add_cfname.c_str());
+        ThrowIfDSErr(::dsAppendStringToListAlloc(mDir, data,  add_name.get()));
+    }
+}
+
 // CStringFromBuffer
 // 
 // Convert data in a buffer into a c-string.
@@ -1111,6 +1160,17 @@ char* CDirectoryService::CStringFromBuffer(tDataBufferPtr data)
     ::strncpy(result, data->fBufferData, data->fBufferLength);
     result[data->fBufferLength] = 0;
     return result;
+}
+
+// CStringBase64FromBuffer
+// 
+// Convert data in a buffer into a base64 encoded c-string.
+//
+// @return: the converted string.
+//
+char* CDirectoryService::CStringBase64FromBuffer(tDataBufferPtr data)
+{
+	return ::base64_encode((const unsigned char*)data->fBufferData, data->fBufferLength);
 }
 
 // CStringFromData
@@ -1126,4 +1186,3 @@ char* CDirectoryService::CStringFromData(const char* data, size_t len)
     result[len] = 0;
     return result;
 }
-

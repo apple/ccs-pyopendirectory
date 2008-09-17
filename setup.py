@@ -35,6 +35,7 @@ if sys.platform in ["darwin", "macosx"]:
             'src/CDirectoryService.cpp',
             'src/CDirectoryServiceException.cpp',
             'src/CFStringUtil.cpp',
+            'src/base64.cpp',
         ],
     )
     
