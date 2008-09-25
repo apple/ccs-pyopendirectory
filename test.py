@@ -18,7 +18,6 @@
 
 import opendirectory
 import dsattributes
-import time
 from dsquery import expression, match
 
 try:
@@ -30,7 +29,11 @@ try:
 
 	def listUsers():
 		d = opendirectory.listAllRecordsWithAttributes(ref, dsattributes.kDSStdRecordTypeUsers,
-													   [dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,])
+													   (
+													   	dsattributes.kDS1AttrGeneratedUID,
+													    dsattributes.kDS1AttrDistinguishedName,
+													    ("dsAttrTypeStandard:JPEGPhoto", "base64"),
+													   ))
 		if d is None:
 			print "Failed to list users"
 		else:

@@ -33,26 +33,30 @@ public:
     CDirectoryService(const char* nodename);
     ~CDirectoryService();
     
-    CFMutableArrayRef ListAllRecordsWithAttributes(const char* recordType, CFArrayRef attributes);
-    CFMutableArrayRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFArrayRef attributes);
-    CFMutableArrayRef QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFArrayRef attributes);
+    CFMutableArrayRef ListAllRecordsWithAttributes(const char* recordType, CFDictionaryRef attributes, bool using_python=true);
+    CFMutableArrayRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python=true);
+    CFMutableArrayRef QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python=true);
 
-    bool AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result);
-    bool AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result);
+    bool AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result, bool using_python=true);
+    bool AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result, bool using_python=true);
     
 private:
 
     class StPythonThreadState
     {
     public:
-        StPythonThreadState()
+        StPythonThreadState(bool using_python=true)
         {
-            mSavedState = PyEval_SaveThread();
-         }
+			if (using_python)
+				mSavedState = PyEval_SaveThread();
+			else
+				mSavedState = NULL;
+		}
         
         ~StPythonThreadState()
         {
-            PyEval_RestoreThread(mSavedState);
+			if (mSavedState != NULL)
+				PyEval_RestoreThread(mSavedState);
         }
     
     private:
@@ -65,8 +69,8 @@ private:
     tDataBufferPtr        mData;
     UInt32                mDataSize;
     
-    CFMutableArrayRef _ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFArrayRef attrs);
-    CFMutableArrayRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* recordType, CFArrayRef attributes);
+    CFMutableArrayRef _ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFDictionaryRef attrs);
+    CFMutableArrayRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* recordType, CFDictionaryRef attrs);
 
     bool NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd);
     bool NativeAuthenticationDigestToNode(const char* nodename, const char* user, const char* challenge, const char* response, const char* method);
@@ -83,7 +87,9 @@ private:
     void ReallocBuffer();
 
     void BuildStringDataList(CFArrayRef strs, tDataListPtr data);
+    void BuildStringDataListFromKeys(CFDictionaryRef strs, tDataListPtr data);
 
     char* CStringFromBuffer(tDataBufferPtr data);
+    char* CStringBase64FromBuffer(tDataBufferPtr data);
     char* CStringFromData(const char* data, size_t len);
 };

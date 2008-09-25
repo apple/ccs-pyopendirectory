@@ -18,6 +18,7 @@
 		AF155AFD0A502C09007E1E6E /* CFStringUtil.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = AF155AFB0A502C09007E1E6E /* CFStringUtil.h */; };
 		AF155AFE0A502C09007E1E6E /* CFStringUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155AFC0A502C09007E1E6E /* CFStringUtil.cpp */; };
 		AF41D9AD0CBDBAE200AB863D /* CDirectoryServiceManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */; };
+		AFC1CA790E809C5200FAB3DB /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFC1CA780E809C5200FAB3DB /* base64.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -49,6 +50,8 @@
 		AF155AFC0A502C09007E1E6E /* CFStringUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CFStringUtil.cpp; path = ../src/CFStringUtil.cpp; sourceTree = SOURCE_ROOT; };
 		AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CDirectoryServiceManager.cpp; path = ../src/CDirectoryServiceManager.cpp; sourceTree = SOURCE_ROOT; };
 		AF41D9AC0CBDBAE200AB863D /* CDirectoryServiceManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDirectoryServiceManager.h; path = ../src/CDirectoryServiceManager.h; sourceTree = SOURCE_ROOT; };
+		AFC1CA770E809C5200FAB3DB /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../src/base64.h; sourceTree = SOURCE_ROOT; };
+		AFC1CA780E809C5200FAB3DB /* base64.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = base64.cpp; path = ../src/base64.cpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,8 +89,10 @@
 				AF155A300A501F84007E1E6E /* CDirectoryService.h */,
 				AF155A310A501F84007E1E6E /* PythonWrapper.cpp */,
 				08FB7796FE84155DC02AAC07 /* test.cpp */,
-				AF155AFB0A502C09007E1E6E /* CFStringUtil.h */,
 				AF155AFC0A502C09007E1E6E /* CFStringUtil.cpp */,
+				AF155AFB0A502C09007E1E6E /* CFStringUtil.h */,
+				AFC1CA780E809C5200FAB3DB /* base64.cpp */,
+				AFC1CA770E809C5200FAB3DB /* base64.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -159,6 +164,7 @@
 				AF00155E0B8A21FD0045DAEE /* PythonWrapper.cpp in Sources */,
 				AF41D9AD0CBDBAE200AB863D /* CDirectoryServiceManager.cpp in Sources */,
 				AF02AC580CBE690500F478B8 /* CDirectoryServiceException.cpp in Sources */,
+				AFC1CA790E809C5200FAB3DB /* base64.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,11 +202,12 @@
 		1DEB923608733DC60010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = /System/Library/Frameworks/Python.framework/Headers;
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 				USER_HEADER_SEARCH_PATHS = ../src;
 			};
 			name = Debug;
@@ -208,11 +215,12 @@
 		1DEB923708733DC60010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "";
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 				USER_HEADER_SEARCH_PATHS = ../src;
 			};
 			name = Release;

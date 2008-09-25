@@ -38,41 +38,82 @@ void AuthenticateUserDigest(CDirectoryService* dir, const char* guid, const char
 
 #define		kDSStdRecordTypeResources					"dsRecTypeStandard:Resources"
 #define		kDSNAttrServicesLocator						"dsAttrTypeStandard:ServicesLocator"
+#define		kDSNAttrJPEGPhoto						    "dsAttrTypeStandard:JPEGPhoto"
 
 int main (int argc, const char * argv[]) {
     
 	CDirectoryService* dir = new CDirectoryService("/Search");
 
-#if 0
-#if 0
-	CFStringRef strings[2];
-	strings[0] = CFSTR(kDS1AttrDistinguishedName);
-	strings[1] = CFSTR(kDS1AttrGeneratedUID);
-	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
+#if 1
+#if 1
+	CFStringRef attrs[3];
+	attrs[0] = CFSTR(kDS1AttrDistinguishedName);
+	attrs[1] = CFSTR(kDS1AttrGeneratedUID);
+	attrs[2] = CFSTR(kDSNAttrJPEGPhoto);
                         
-	CFMutableDictionaryRef dict = dir->ListAllRecordsWithAttributes(kDSStdRecordTypeUsers, array);
-	if (dict != NULL)
+	CFStringRef types[3];
+	types[0] = CFSTR("str");
+	types[1] = CFSTR("str");
+	types[2] = CFSTR("base64");
+	CFDictionaryRef attrsdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)attrs, (const void **)types, 3, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                        
+	CFMutableArrayRef data = dir->ListAllRecordsWithAttributes(kDSStdRecordTypeUsers, attrsdict, false);
+	if (data != NULL)
 	{
-		printf("\n*** Users: %d ***\n", CFDictionaryGetCount(dict));
-		CFDictionaryApplyFunction(dict, PrintDictionaryDictionary, NULL);
-		CFRelease(dict);
+		printf("\n*** Users: %d ***\n", CFArrayGetCount(data));
+		for(CFIndex i = 0; i < CFArrayGetCount(data); i++)
+		{
+			CFArrayRef tuple = (CFArrayRef)CFArrayGetValueAtIndex(data, i);
+			CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(tuple, 0);
+			const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
+			
+			if (bytes == NULL)
+			{
+				char localBuffer[256];
+				Boolean success;
+				success = CFStringGetCString(str, localBuffer, 256, kCFStringEncodingUTF8);
+				printf("%d: %s\n", i, localBuffer);
+			}
+			else
+			{
+				printf("%d: %s\n", i, (const char*)bytes);
+			}
+		}
+		CFRelease(data);
 	}
 	else
 	{
 		printf("\nNo Users returned\n");
 	}
-	CFRelease(array);
-
+	CFRelease(attrsdict);
+#if 0
 	strings[0] = CFSTR(kDSNAttrGroupMembers);
 	strings[1] = CFSTR(kDS1AttrGeneratedUID);
 	array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
                         
-	dict = dir->ListAllRecordsWithAttributes(kDSStdRecordTypeGroups, array);
-	if (dict != NULL)
+	data = NULL;//dir->ListAllRecordsWithAttributes(kDSStdRecordTypeGroups, array);
+	if (data != NULL)
 	{
-		printf("\n*** Groups: %d ***\n", CFDictionaryGetCount(dict));
-		CFDictionaryApplyFunction(dict, PrintDictionaryDictionary, NULL);
-		CFRelease(dict);
+		printf("\n*** Groups: %d ***\n", CFArrayGetCount(data));
+		for(CFIndex i = 0; i < CFArrayGetCount(data); i++)
+		{
+			CFArrayRef tuple = (CFArrayRef)CFArrayGetValueAtIndex(data, i);
+			CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(tuple, 0);
+			const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
+			
+			if (bytes == NULL)
+			{
+				char localBuffer[256];
+				Boolean success;
+				success = CFStringGetCString(str, localBuffer, 256, kCFStringEncodingUTF8);
+				printf("%d: %s\n", i, localBuffer);
+			}
+			else
+			{
+				printf("%d: %s\n", i, (const char*)bytes);
+			}
+		}
+		CFRelease(data);
 	}
 	else
 	{
@@ -80,9 +121,10 @@ int main (int argc, const char * argv[]) {
 	}
 	CFRelease(array);
 #endif
+#endif
 
-	AuthenticateUser(dir, "gooeyed", "test", "test-no");
-	AuthenticateUser(dir, "gooeyed", "test", "test-yes");
+	//AuthenticateUser(dir, "gooeyed", "test", "test-no");
+	//AuthenticateUser(dir, "gooeyed", "test", "test-yes");
 #elif 0
 	CFStringRef keys[2];
 	keys[0] = CFSTR(kDS1AttrFirstName);
