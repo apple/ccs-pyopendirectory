@@ -311,7 +311,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
         do
         {
             // List all the appropriate records
-            unsigned long recCount = 0;
+            UInt32 recCount = 0;
             tDirStatus err;
             do
             {
@@ -320,7 +320,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
                     ReallocBuffer();
             } while(err == eDSBufferTooSmall);
             ThrowIfDSErr(err);
-            for(unsigned long i = 1; i <= recCount; i++)
+            for(UInt32 i = 1; i <= recCount; i++)
             {
                 // Get the record entry
                 ThrowIfDSErr(::dsGetRecordEntry(mNode, mData, i, &attrListRef, &pRecEntry));
@@ -577,7 +577,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
         do
         {
             // List all the appropriate records
-            unsigned long recCount = 0;
+            UInt32 recCount = 0;
             tDirStatus err;
             do
             {
@@ -586,7 +586,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
                     ReallocBuffer();
             } while(err == eDSBufferTooSmall);
             ThrowIfDSErr(err);
-            for(unsigned long i = 1; i <= recCount; i++)
+            for(UInt32 i = 1; i <= recCount; i++)
             {
                 // Get the record entry
                 ThrowIfDSErr(::dsGetRecordEntry(mNode, mData, i, &attrListRef, &pRecEntry));
