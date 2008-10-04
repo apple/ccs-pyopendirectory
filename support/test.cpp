@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2006-2007 Apple Inc. All rights reserved.
+ * Copyright (c) 2006-2008 Apple Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * DRI: Cyrus Daboo, cdaboo@apple.com
  **/
 
 #include <stdio.h>
@@ -41,7 +39,7 @@ void AuthenticateUserDigest(CDirectoryService* dir, const char* guid, const char
 #define		kDSNAttrJPEGPhoto						    "dsAttrTypeStandard:JPEGPhoto"
 
 int main (int argc, const char * argv[]) {
-    
+
 	CDirectoryService* dir = new CDirectoryService("/Search");
 
 #if 1
@@ -50,13 +48,13 @@ int main (int argc, const char * argv[]) {
 	attrs[0] = CFSTR(kDS1AttrDistinguishedName);
 	attrs[1] = CFSTR(kDS1AttrGeneratedUID);
 	attrs[2] = CFSTR(kDSNAttrJPEGPhoto);
-                        
+
 	CFStringRef types[3];
 	types[0] = CFSTR("str");
 	types[1] = CFSTR("str");
 	types[2] = CFSTR("base64");
 	CFDictionaryRef attrsdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)attrs, (const void **)types, 3, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-                        
+
 	CFMutableArrayRef data = dir->ListAllRecordsWithAttributes(kDSStdRecordTypeUsers, attrsdict, false);
 	if (data != NULL)
 	{
@@ -66,7 +64,7 @@ int main (int argc, const char * argv[]) {
 			CFArrayRef tuple = (CFArrayRef)CFArrayGetValueAtIndex(data, i);
 			CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(tuple, 0);
 			const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
-			
+
 			if (bytes == NULL)
 			{
 				char localBuffer[256];
@@ -90,7 +88,7 @@ int main (int argc, const char * argv[]) {
 	strings[0] = CFSTR(kDSNAttrGroupMembers);
 	strings[1] = CFSTR(kDS1AttrGeneratedUID);
 	array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
-                        
+
 	data = NULL;//dir->ListAllRecordsWithAttributes(kDSStdRecordTypeGroups, array);
 	if (data != NULL)
 	{
@@ -100,7 +98,7 @@ int main (int argc, const char * argv[]) {
 			CFArrayRef tuple = (CFArrayRef)CFArrayGetValueAtIndex(data, i);
 			CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(tuple, 0);
 			const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
-			
+
 			if (bytes == NULL)
 			{
 				char localBuffer[256];
@@ -133,12 +131,12 @@ int main (int argc, const char * argv[]) {
 	values[0] = CFSTR("cyrus");
 	values[1] = CFSTR("daboo");
 	CFDictionaryRef kvdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void**)values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-                        
+
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
 	strings[1] = CFSTR(kDS1AttrGeneratedUID);
 	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
-                        
+
 	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttributes(kvdict, eDSContains, false, false, kDSStdRecordTypeUsers, array);
 	if (dict != NULL)
 	{
@@ -151,13 +149,13 @@ int main (int argc, const char * argv[]) {
 		printf("\nNo Users returned\n");
 	}
 	CFRelease(array);
-	
+
 #elif 0
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
 	strings[1] = CFSTR(kDS1AttrXMLPlist);
 	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
-                        
+
 	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttribute(kDSNAttrServicesLocator, "D9A8E41B", eDSStartsWith, false, kDSStdRecordTypeResources, array);
 	if (dict != NULL)
 	{
@@ -170,15 +168,15 @@ int main (int argc, const char * argv[]) {
 		printf("\nNo Users returned\n");
 	}
 	CFRelease(array);
-	
+
 #elif 1
 	const char* compoundtest = "(&(|(dsAttrTypeStandard:RealName=U2*)(dsAttrTypeStandard:RealName=X S*))(dsAttrTypeStandard:ServicesLocator=D9A8E41B-C591-4D6B-A1CA-B57FFB8EF2F5:F967C034-54B8-4E65-9B38-7A6CD2600268:calendar))";
-                        
+
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
 	strings[1] = CFSTR(kDS1AttrXMLPlist);
 	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
-                        
+
 	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttributes(compoundtest, true, kDSStdRecordTypeResources, array);
 	if (dict != NULL)
 	{
@@ -191,7 +189,7 @@ int main (int argc, const char * argv[]) {
 		printf("\nNo Users returned\n");
 	}
 	CFRelease(array);
-	
+
 #else
 	const char* u = "test";
 	//const char* c = "nonce=\"1\", qop=\"auth\", realm=\"Test\", algorithm=\"md5\", opaque=\"1\"";
@@ -235,13 +233,13 @@ void CFDictionaryIterator(const void* key, const void* value, void* ref)
 {
 	CFStringRef strkey = (CFStringRef)key;
 	CFStringRef strvalue = (CFStringRef)value;
-	
+
 	char* pystrkey = CStringFromCFString(strkey);
 	char* pystrvalue = CStringFromCFString(strvalue);
-	
-	
+
+
 	printf("%s: %s\n", pystrkey, pystrvalue);
-	
+
 	free(pystrkey);
 	free(pystrvalue);
 }
@@ -249,7 +247,7 @@ void CFDictionaryIterator(const void* key, const void* value, void* ref)
 char* CStringFromCFString(CFStringRef str)
 {
 	const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
-	
+
 	if (bytes == NULL)
 	{
 		char localBuffer[256];
@@ -269,7 +267,7 @@ void PrintDictionaryDictionary(const void* key, const void* value, void* ref)
 {
 	CFStringUtil strkey((CFStringRef)key);
 	CFDictionaryRef dictvalue = (CFDictionaryRef)value;
-	
+
 	printf("Dictionary Entry: \"%s\"\n", strkey.temp_str());
 	CFDictionaryApplyFunction(dictvalue, PrintDictionary, NULL);
 	printf("\n");
@@ -330,7 +328,7 @@ void PrintArray(CFArrayRef list)
 	{
 		CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(list, i);
 		const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
-		
+
 		if (bytes == NULL)
 		{
 			char localBuffer[256];

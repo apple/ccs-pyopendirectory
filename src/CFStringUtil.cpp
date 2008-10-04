@@ -1,7 +1,7 @@
 /**
  * A class that wraps CFString.
  **
- * Copyright (c) 2006-2007 Apple Inc. All rights reserved.
+ * Copyright (c) 2006-2008 Apple Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * DRI: Cyrus Daboo, cdaboo@apple.com
  **/
 
 #include "CFStringUtil.h"
@@ -62,7 +60,7 @@ CFStringUtil& CFStringUtil::operator=(const CFStringUtil& copy)
     if (mRef != NULL)
         ::CFRetain(mRef);
     mTemp = NULL;
-    
+
     return *this;
 }
 
@@ -74,7 +72,7 @@ CFStringUtil& CFStringUtil::operator=(const CFStringUtil& copy)
 char* CFStringUtil::c_str() const
 {
     const char* bytes = (mRef != NULL) ? CFStringGetCStringPtr(mRef, kCFStringEncodingUTF8) : "";
-    
+
     if (bytes == NULL)
     {
         // Need to convert the CFString to UTF-8. Since we don't know the exact length of the UTF-8 data
@@ -108,7 +106,7 @@ char* CFStringUtil::c_str() const
             else
                 break;
         }
-        
+
         return buffer;
     }
     else

@@ -2,7 +2,7 @@
  * A class that wraps high-level Directory Service calls needed by the
  * CalDAV server.
  **
- * Copyright (c) 2006-2007 Apple Inc. All rights reserved.
+ * Copyright (c) 2006-2008 Apple Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * DRI: Cyrus Daboo, cdaboo@apple.com
  **/
 
 #include "CDirectoryService.h"
@@ -62,25 +60,25 @@ CDirectoryService::~CDirectoryService()
         ::dsDataBufferDeAllocate(mDir, mData);
         mData = 0L;
     }
-    
+
     if (mNode != 0L)
     {
         ::dsCloseDirNode(mNode);
         mNode = 0L;
     }
-    
+
     if (mDir != 0L)
     {
         ::dsCloseDirService(mDir);
         mDir = 0L;
     }
-    
+
     delete mNodeName;
     mNodeName = NULL;
 }
 
 // ListAllRecordsWithAttributes
-// 
+//
 // Get specific attributes for one or more user records in the directory.
 //
 // @param recordType: the record type to list.
@@ -113,7 +111,7 @@ CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* re
 }
 
 // QueryRecordsWithAttribute
-// 
+//
 // Get specific attributes for one or more user records with matching attribute/value in the directory.
 //
 // @param attr: the attribute to query.
@@ -138,7 +136,7 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
     }
     catch(CDirectoryServiceException& dserror)
     {
-        dserror.SetPythonException();        
+        dserror.SetPythonException();
         return NULL;
     }
     catch(...)
@@ -150,7 +148,7 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
 }
 
 // QueryRecordsWithAttributes
-// 
+//
 // Get specific attributes for one or more user records with matching attributes in the directory.
 //
 // @param query: the compund query string to use.
@@ -185,7 +183,7 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* quer
 }
 
 // AuthenticateUserBasic
-// 
+//
 // Authenticate a user to the directory using plain text credentials.
 //
 // @param nodename: the directory nodename for the user record.
@@ -216,7 +214,7 @@ bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* 
 }
 
 // AuthenticateUserDigest
-// 
+//
 // Authenticate a user to the directory using HTTP DIGEST credentials.
 //
 // @param nodename: the directory nodename for the user record.
@@ -235,7 +233,7 @@ bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char*
     }
     catch(CDirectoryServiceException& dserror)
     {
-        dserror.SetPythonException();    
+        dserror.SetPythonException();
         return false;
     }
     catch(...)
@@ -249,7 +247,7 @@ bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char*
 #pragma mark -----Private API
 
 // _ListAllRecordsWithAttributes
-// 
+//
 // Get specific attributes for records of a specified type in the directory.
 //
 // @param type: the record type to check.
@@ -272,7 +270,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
     tContextData context = NULL;
     tAttributeListRef attrListRef = 0L;
     tRecordEntry* pRecEntry = NULL;
-    
+
     // Must have attributes
     if (::CFDictionaryGetCount(attributes) == 0)
         return NULL;
@@ -281,13 +279,13 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
     {
         // Make sure we have a valid directory service
         OpenService();
-        
+
         // Open the node we want to query
         OpenNode();
-        
+
         // We need a buffer for what comes next
         CreateBuffer();
-        
+
         // Build data list of names
         recNames = ::dsDataListAllocate(mDir);
         ThrowIfNULL(recNames);
@@ -305,9 +303,9 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
         attrTypes = ::dsDataListAllocate(mDir);
         ThrowIfNULL(attrTypes);
         BuildStringDataListFromKeys(attributes, attrTypes);
-        
+
         result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-        
+
         do
         {
             // List all the appropriate records
@@ -324,35 +322,35 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
             {
                 // Get the record entry
                 ThrowIfDSErr(::dsGetRecordEntry(mNode, mData, i, &attrListRef, &pRecEntry));
-                
+
                 // Get the entry's name
                 char* temp = NULL;
                 ThrowIfDSErr(::dsGetRecordNameFromEntry(pRecEntry, &temp));
                 std::auto_ptr<char> recname(temp);
-                
+
                 // Create a dictionary for the values
                 record = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-                
+
                 // Look at each requested attribute and get one value
                 for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
                 {
                     tAttributeValueListRef attributeValueListRef = NULL;
                     tAttributeEntryPtr attributeInfoPtr = NULL;
-                    
+
                     ThrowIfDSErr(::dsGetAttributeEntry(mNode, mData, attrListRef, j, &attributeValueListRef, &attributeInfoPtr));
-                    
+
                     if (attributeInfoPtr->fAttributeValueCount > 0)
                     {
                         // Determine what the attribute is and where in the result list it should be put
                         std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
                         CFStringUtil cfattrname(attrname.get());
-                        
+
 						// Determine whether string/base64 encoding is needed
 						bool base64 = false;
 						CFStringRef encoding = (CFStringRef)::CFDictionaryGetValue(attributes, cfattrname.get());
 						if (encoding && (::CFStringCompare(encoding, CFSTR("base64"), 0) == kCFCompareEqualTo))
 							base64 = true;
-						
+
                         if (attributeInfoPtr->fAttributeValueCount > 1)
                         {
                             values = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
@@ -395,16 +393,16 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
                             attributeValue = NULL;
                         }
                     }
-                    
+
                     ::dsCloseAttributeValueList(attributeValueListRef);
                     attributeValueListRef = NULL;
                     ::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
                     attributeInfoPtr = NULL;
                 }
-                
+
                 // Create tuple of record name and record values
                 CFStringUtil str(recname.get());
-                
+
                 record_tuple = ::CFArrayCreateMutable(kCFAllocatorDefault, 2, &kCFTypeArrayCallBacks);
                 ::CFArrayAppendValue(record_tuple, str.get());
                 ::CFArrayAppendValue(record_tuple, record);
@@ -415,7 +413,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
                 ::CFArrayAppendValue(result, record_tuple);
                 ::CFRelease(record_tuple);
                 record_tuple = NULL;
-                
+
                 // Clean-up
                 ::dsCloseAttributeList(attrListRef);
                 attrListRef = 0L;
@@ -423,7 +421,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
                 pRecEntry = NULL;
             }
         } while (context != NULL); // Loop until all data has been obtained.
-        
+
         // Cleanup
         ::dsDataListDeallocate(mDir, recNames);
         ::dsDataListDeallocate(mDir, recTypes);
@@ -465,7 +463,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
         RemoveBuffer();
         CloseNode();
         CloseService();
-        
+
         if (values != NULL)
         {
             ::CFRelease(values);
@@ -488,12 +486,12 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
         }
         throw;
     }
-    
+
     return result;
 }
 
 // _QueryRecordsWithAttributes
-// 
+//
 // Get specific attributes for records of a specified type in the directory.
 //
 // @param attr: the attribute to query (NULL if compound is being used).
@@ -521,7 +519,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
     tContextData context = NULL;
     tAttributeListRef attrListRef = 0L;
     tRecordEntry* pRecEntry = NULL;
-    
+
     // Must have attributes
     if (::CFDictionaryGetCount(attributes) == 0)
         return NULL;
@@ -530,13 +528,13 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
     {
         // Make sure we have a valid directory service
         OpenService();
-        
+
         // Open the node we want to query
         OpenNode();
-        
+
         // We need a buffer for what comes next
         CreateBuffer();
-        
+
         if (compound == NULL)
         {
             // Determine attribute to search
@@ -561,7 +559,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
 
             matchType = (casei) ? eDSiCompoundExpression : eDSCompoundExpression;
         }
-    
+
         // Build data list of types
         recTypes = ::dsDataListAllocate(mDir);
         ThrowIfNULL(recTypes);
@@ -571,9 +569,9 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
         attrTypes = ::dsDataListAllocate(mDir);
         ThrowIfNULL(attrTypes);
         BuildStringDataListFromKeys(attributes, attrTypes);
-        
+
         result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-        
+
         do
         {
             // List all the appropriate records
@@ -590,35 +588,35 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
             {
                 // Get the record entry
                 ThrowIfDSErr(::dsGetRecordEntry(mNode, mData, i, &attrListRef, &pRecEntry));
-                
+
                 // Get the entry's name
                 char* temp = NULL;
                 ThrowIfDSErr(::dsGetRecordNameFromEntry(pRecEntry, &temp));
                 std::auto_ptr<char> recname(temp);
-                
+
                 // Create a dictionary for the values
                 record = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-                
+
                 // Look at each requested attribute and get one value
                 for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
                 {
                     tAttributeValueListRef attributeValueListRef = NULL;
                     tAttributeEntryPtr attributeInfoPtr = NULL;
-                    
+
                     ThrowIfDSErr(::dsGetAttributeEntry(mNode, mData, attrListRef, j, &attributeValueListRef, &attributeInfoPtr));
-                    
+
                     if (attributeInfoPtr->fAttributeValueCount > 0)
                     {
                         // Determine what the attribute is and where in the result list it should be put
                         std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
                         CFStringUtil cfattrname(attrname.get());
-                        
+
 						// Determine whether string/base64 encoding is needed
 						bool base64 = false;
 						CFStringRef encoding = (CFStringRef)::CFDictionaryGetValue(attributes, cfattrname.get());
 						if (encoding && (::CFStringCompare(encoding, CFSTR("base64"), 0) == kCFCompareEqualTo))
 							base64 = true;
-						
+
                         if (attributeInfoPtr->fAttributeValueCount > 1)
                         {
                             values = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
@@ -660,16 +658,16 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
                             attributeValue = NULL;
                         }
                     }
-                    
+
                     ::dsCloseAttributeValueList(attributeValueListRef);
                     attributeValueListRef = NULL;
                     ::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
                     attributeInfoPtr = NULL;
                 }
-                
+
                 // Create tuple of record name and record values
                 CFStringUtil str(recname.get());
-                
+
                 record_tuple = ::CFArrayCreateMutable(kCFAllocatorDefault, 2, &kCFTypeArrayCallBacks);
                 ::CFArrayAppendValue(record_tuple, str.get());
                 ::CFArrayAppendValue(record_tuple, record);
@@ -688,7 +686,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
                 pRecEntry = NULL;
             }
         } while (context != NULL); // Loop until all data has been obtained.
-        
+
         // Cleanup
         ::dsDataListDeallocate(mDir, recTypes);
         ::dsDataListDeallocate(mDir, attrTypes);
@@ -734,7 +732,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
         RemoveBuffer();
         CloseNode();
         CloseService();
-        
+
         if (values != NULL)
         {
             ::CFRelease(values);
@@ -757,12 +755,12 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
         }
         throw;
     }
-    
+
     return result;
 }
 
 // NativeAuthenticationBasicToNode
-// 
+//
 // Authenticate a user to the directory.
 //
 // @param nodename: the node to authenticate to.
@@ -771,21 +769,21 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
 // @return: true if authentication succeeds, false otherwise.
 //
 bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd)
-{    
+{
     bool result = false;
     tDirNodeReference node = 0L;
     tDataNodePtr authType = NULL;
     tDataBufferPtr authData = NULL;
     tContextData context = NULL;
-    
+
     try
     {
         // Make sure we have a valid directory service
         OpenService();
-        
+
         // Open the node we want to query
         node = OpenNamedNode(nodename);
-        
+
         CreateBuffer();
 
         // First, specify the type of authentication.
@@ -814,13 +812,13 @@ bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, co
         aCurLength += sizeof(long);
 
         ::memcpy(&(authData->fBufferData[aCurLength]), pswd,  aTempLength);
-        
+
         authData->fBufferLength = aDataBufSize;
-        
+
         // Do authentication
         long dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
         result = (dirStatus == eDSNoErr);
-        
+
         // Cleanup
         ::dsDataBufferDeAllocate(mDir, authData);
         authData = NULL;
@@ -848,7 +846,7 @@ bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, co
             node = 0L;
         }
         CloseService();
-        
+
         throw;
     }
 
@@ -856,7 +854,7 @@ bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, co
 }
 
 // NativeAuthenticationDigestToNode
-// 
+//
 // Authenticate a user to the directory.
 //
 // @param nodename: the node to authenticate to.
@@ -868,21 +866,21 @@ bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, co
 //
 bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, const char* user,
                                                          const char* challenge, const char* response, const char* method)
-{    
+{
     bool result = false;
     tDirNodeReference node = 0L;
     tDataNodePtr authType = NULL;
     tDataBufferPtr authData = NULL;
     tContextData context = NULL;
-    
+
     try
     {
         // Make sure we have a valid directory service
         OpenService();
-        
+
         // Open the node we want to query
         node = OpenNamedNode(nodename);
-        
+
         CreateBuffer();
 
         // First, specify the type of authentication.
@@ -917,26 +915,26 @@ bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, c
 
         ::memcpy(&(authData->fBufferData[aCurLength]), challenge,  aTempLength);
         aCurLength += aTempLength;
-        
+
         aTempLength = ::strlen(response);
         ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
         aCurLength += sizeof(long);
 
         ::memcpy(&(authData->fBufferData[aCurLength]), response,  aTempLength);
         aCurLength += aTempLength;
-        
+
         aTempLength = ::strlen(method);
         ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
         aCurLength += sizeof(long);
 
         ::memcpy(&(authData->fBufferData[aCurLength]), method,  aTempLength);
-        
+
         authData->fBufferLength = aDataBufSize;
-        
+
         // Do authentication
         long dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
         result = (dirStatus == eDSNoErr);
-        
+
         // Cleanup
         ::dsDataBufferDeAllocate(mDir, authData);
         authData = NULL;
@@ -964,7 +962,7 @@ bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, c
             node = 0L;
         }
         CloseService();
-        
+
         throw;
     }
 
@@ -972,7 +970,7 @@ bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, c
 }
 
 // OpenService
-// 
+//
 // Open the directory service.
 //
 // @throw: yes
@@ -991,7 +989,7 @@ void CDirectoryService::OpenService()
 }
 
 // CloseService
-// 
+//
 // Close the directory service if previously open.
 //
 void CDirectoryService::CloseService()
@@ -1004,7 +1002,7 @@ void CDirectoryService::CloseService()
 }
 
 // OpenNode
-// 
+//
 // Open a node in the directory.
 //
 // @throw: yes
@@ -1015,7 +1013,7 @@ void CDirectoryService::OpenNode()
 }
 
 // OpenNode
-// 
+//
 // Open a node in the directory.
 //
 // @param nodename: the name of the node to open.
@@ -1027,7 +1025,7 @@ tDirNodeReference CDirectoryService::OpenNamedNode(const char* nodename)
     long dirStatus = eDSNoErr;
     tDataListPtr nodePath = NULL;
     tDirNodeReference result = NULL;
-    
+
     try
     {
         nodePath = ::dsDataListAllocate(mDir);
@@ -1056,12 +1054,12 @@ tDirNodeReference CDirectoryService::OpenNamedNode(const char* nodename)
         }
         throw;
     }
-    
+
     return result;
 }
 
 // CloseNode
-// 
+//
 // Close the node if previously open.
 //
 void CDirectoryService::CloseNode()
@@ -1074,7 +1072,7 @@ void CDirectoryService::CloseNode()
 }
 
 // CreateBuffer
-// 
+//
 // Create a data buffer for use with directory service calls.
 //
 // @throw: yes
@@ -1093,7 +1091,7 @@ void CDirectoryService::CreateBuffer()
 }
 
 // RemoveBuffer
-// 
+//
 // Destroy the data buffer.
 //
 void CDirectoryService::RemoveBuffer()
@@ -1106,7 +1104,7 @@ void CDirectoryService::RemoveBuffer()
 }
 
 // ReallocBuffer
-// 
+//
 // Destroy the data buffer, then re-create with double previous size.
 //
 void CDirectoryService::ReallocBuffer()
@@ -1149,7 +1147,7 @@ void CDirectoryService::BuildStringDataListFromKeys(CFDictionaryRef strs, tDataL
 }
 
 // CStringFromBuffer
-// 
+//
 // Convert data in a buffer into a c-string.
 //
 // @return: the converted string.
@@ -1163,7 +1161,7 @@ char* CDirectoryService::CStringFromBuffer(tDataBufferPtr data)
 }
 
 // CStringBase64FromBuffer
-// 
+//
 // Convert data in a buffer into a base64 encoded c-string.
 //
 // @return: the converted string.
@@ -1174,7 +1172,7 @@ char* CDirectoryService::CStringBase64FromBuffer(tDataBufferPtr data)
 }
 
 // CStringFromData
-// 
+//
 // Convert data to a c-string.
 //
 // @return: the converted string.

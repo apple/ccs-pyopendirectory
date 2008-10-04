@@ -2,7 +2,7 @@
  * A class that wraps high-level Directory Service calls needed by the
  * CalDAV server.
  **
- * Copyright (c) 2006-2007 Apple Inc. All rights reserved.
+ * Copyright (c) 2006-2008 Apple Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * DRI: Cyrus Daboo, cdaboo@apple.com
  **/
 
 #pragma once
@@ -27,11 +25,11 @@ public:
     CDirectoryServiceException();
     CDirectoryServiceException(long error, const char* file, long line);
     ~CDirectoryServiceException();
-    
+
     static void ThrowDSError(long error, const char* file, long line);
 
     void SetPythonException();
-    
+
 private:
     long        mDSError;
     char        mDescription[1024];

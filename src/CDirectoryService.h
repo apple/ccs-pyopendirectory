@@ -2,7 +2,7 @@
  * A class that wraps high-level Directory Service calls needed by the
  * CalDAV server.
  **
- * Copyright (c) 2006-2007 Apple Inc. All rights reserved.
+ * Copyright (c) 2006-2008 Apple Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * DRI: Cyrus Daboo, cdaboo@apple.com
  **/
 
 #pragma once
@@ -32,14 +30,14 @@ class CDirectoryService
 public:
     CDirectoryService(const char* nodename);
     ~CDirectoryService();
-    
+
     CFMutableArrayRef ListAllRecordsWithAttributes(const char* recordType, CFDictionaryRef attributes, bool using_python=true);
     CFMutableArrayRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python=true);
     CFMutableArrayRef QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python=true);
 
     bool AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result, bool using_python=true);
     bool AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result, bool using_python=true);
-    
+
 private:
 
     class StPythonThreadState
@@ -52,13 +50,13 @@ private:
 			else
 				mSavedState = NULL;
 		}
-        
+
         ~StPythonThreadState()
         {
 			if (mSavedState != NULL)
 				PyEval_RestoreThread(mSavedState);
         }
-    
+
     private:
         PyThreadState* mSavedState;
     };
@@ -68,20 +66,20 @@ private:
     tDirNodeReference     mNode;
     tDataBufferPtr        mData;
     UInt32                mDataSize;
-    
+
     CFMutableArrayRef _ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFDictionaryRef attrs);
     CFMutableArrayRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* recordType, CFDictionaryRef attrs);
 
     bool NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd);
     bool NativeAuthenticationDigestToNode(const char* nodename, const char* user, const char* challenge, const char* response, const char* method);
-    
+
     void OpenService();
     void CloseService();
-    
+
     void OpenNode();
     tDirNodeReference OpenNamedNode(const char* nodename);
     void CloseNode();
-    
+
     void CreateBuffer();
     void RemoveBuffer();
     void ReallocBuffer();
