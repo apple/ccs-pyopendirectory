@@ -81,21 +81,21 @@ CDirectoryService::~CDirectoryService()
 //
 // Get specific attributes for one or more user records in the directory.
 //
-// @param recordType: the record type to list.
+// @param recordTypes: the record types to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //            and value entries for each attribute/value requested in the record indexed by uid,
 //            or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* recordType, CFDictionaryRef attributes, bool using_python)
+CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFDictionaryRef attributes, bool using_python)
 {
     try
     {
         StPythonThreadState threading(using_python);
 
         // Get attribute map
-        return _ListAllRecordsWithAttributes(recordType, NULL, attributes);
+        return _ListAllRecordsWithAttributes(recordTypes, NULL, attributes);
     }
     catch(CDirectoryServiceException& dserror)
     {
@@ -118,21 +118,21 @@ CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(const char* re
 // @param value: the value to query.
 // @param matchType: the match type to use.
 // @param casei: true if case-insensitive match is to be used, false otherwise.
-// @param recordType: the record type to list.
+// @param recordTypes: the record types to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python)
+CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, bool using_python)
 {
     try
     {
         StPythonThreadState threading(using_python);
 
         // Get attribute map
-        return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordType, attributes);
+        return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordTypes, attributes);
     }
     catch(CDirectoryServiceException& dserror)
     {
@@ -153,21 +153,21 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
 //
 // @param query: the compund query string to use.
 // @param casei: true if case-insensitive match is to be used, false otherwise.
-// @param recordType: the record type to list.
+// @param recordTypes: the record types to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python)
+CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, bool using_python)
 {
     try
     {
         StPythonThreadState threading(using_python);
 
         // Get attribute map
-        return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordType, attributes);
+        return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordTypes, attributes);
     }
     catch(CDirectoryServiceException& dserror)
     {
@@ -258,7 +258,7 @@ bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char*
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFDictionaryRef attributes)
+CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFArrayRef names, CFDictionaryRef attributes)
 {
     CFMutableArrayRef result = NULL;
     CFMutableArrayRef record_tuple = NULL;
@@ -297,7 +297,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
         // Build data list of types
         recTypes = ::dsDataListAllocate(mDir);
         ThrowIfNULL(recTypes);
-        ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recTypes,  type, NULL));
+        BuildStringDataList(recordTypes, recTypes);
 
         // Build data list of attributes
         attrTypes = ::dsDataListAllocate(mDir);
@@ -499,14 +499,14 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(const char* t
 // @param matchType: the match type to use (0 if compound is being used).
 // @param attr: the compound query to use rather than single attribute/value (NULL if compound is not being used).
 // @param casei: true if case-insensitive match is to be used, false otherwise.
-// @param type: the record type to check.
+// @param recordTypes: the record type to check.
 // @param attributes: a list of attributes to return.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* type, CFDictionaryRef attributes)
+CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes)
 {
     CFMutableArrayRef result = NULL;
     CFMutableArrayRef record_tuple = NULL;
@@ -563,7 +563,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
         // Build data list of types
         recTypes = ::dsDataListAllocate(mDir);
         ThrowIfNULL(recTypes);
-        ThrowIfDSErr(::dsBuildListFromStringsAlloc(mDir, recTypes,  type, NULL));
+        BuildStringDataList(recordTypes, recTypes);
 
         // Build data list of attributes
         attrTypes = ::dsDataListAllocate(mDir);

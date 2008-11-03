@@ -34,7 +34,7 @@ def listAllRecordsWithAttributes(obj, recordType, attributes):
     is the attribute name, and the second C{str} is an encoding type, either "str" or "base64".
     
     @param obj: C{object} the object obtained from an odInit call.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{dict} containing a C{dict} of attributes for each record found,  
         or C{None} otherwise.
@@ -51,7 +51,7 @@ def queryRecordsWithAttribute(obj, attr, value, matchType, casei, recordType, at
     @param value: C{str} containing the value to search for.
     @param matchType: C{int} DS match type to use when searching.
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{dict} containing a C{dict} of attributes for each record found,  
         or C{None} otherwise.
@@ -66,7 +66,7 @@ def queryRecordsWithAttributes(obj, compound, casei, recordType, attributes):
     @param obj: C{object} the object obtained from an odInit call.
     @param compound: C{str} containing the compound search query to use.
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{dict} containing a C{dict} of attributes for each record found,  
         or C{None} otherwise.
@@ -79,7 +79,7 @@ def listAllRecordsWithAttributes_list(obj, recordType, attributes):
     is the attribute name, and the second C{str} is an encoding type, either "str" or "base64".
     
     @param obj: C{object} the object obtained from an odInit call.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes 
         for each record found, or C{None} otherwise.
@@ -96,7 +96,7 @@ def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordTyp
     @param value: C{str} containing the value to search for.
     @param matchType: C{int} DS match type to use when searching.
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes 
         for each record found, or C{None} otherwise.
@@ -111,7 +111,7 @@ def queryRecordsWithAttributes_list(obj, compound, casei, recordType, attributes
     @param obj: C{object} the object obtained from an odInit call.
     @param compound: C{str} containing the compound search query to use.
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes 
         for each record found, or C{None} otherwise.

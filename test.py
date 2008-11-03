@@ -266,26 +266,68 @@ try:
 			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,]
 		)
 		
+	def listResourcesPlaces_list():
+		d = opendirectory.listAllRecordsWithAttributes_list(
+			ref,
+		    (dsattributes.kDSStdRecordTypeResources, dsattributes.kDSStdRecordTypePlaces,),
+			[dsattributes.kDSNAttrRecordType, dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,]
+		)
+		if d is None:
+			print "Failed to list resources/places"
+		else:
+			d.sort(cmp=lambda x, y: x[0] < y[0])
+			print "\nlistResourcesPlaces_list number of results = %d" % (len(d),)
+			for name, record in d:
+				print "Name: %s" % name
+				print "dict: %s" % str(record)
+	
+	def queryUsersGroups_list():
+		querySimple_list(
+			"queryUsersGroups_list",
+		    dsattributes.kDS1AttrDistinguishedName,
+		    "burns",
+		    dsattributes.eDSContains,
+		    True,
+			(dsattributes.kDSStdRecordTypeUsers, dsattributes.kDSStdRecordTypeGroups,),
+			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,]
+		)
+		
+	def queryUsersGroupsPlaces_list():
+		querySimple_list(
+			"queryUsersGroupsPlaces_list",
+		    dsattributes.kDS1AttrDistinguishedName,
+		    "tom",
+		    dsattributes.eDSContains,
+		    True,
+			(dsattributes.kDSStdRecordTypeUsers, dsattributes.kDSStdRecordTypeGroups, dsattributes.kDSStdRecordTypePlaces,),
+			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,]
+		)
+		
 	def authentciateBasic():
 		if opendirectory.authenticateUserBasic(ref, "gooeyed", "test", "test"):
 			print "Authenticated user"
 		else:
 			print "Failed to authenticate user"
 	
-	listUsers()
-	listGroups()
-	listComputers()
-	queryUsers()
-	queryUsersCompoundOr()
-	queryUsersCompoundOrExact()
-	queryUsersCompoundAnd()
-	listUsers_list()
-	listGroups_list()
-	listComputers_list()
-	queryUsers_list()
-	queryUsersCompoundOr_list()
-	queryUsersCompoundOrExact_list()
-	queryUsersCompoundAnd_list()
+	#listUsers()
+	#listGroups()
+	#listComputers()
+	#queryUsers()
+	#queryUsersCompoundOr()
+	#queryUsersCompoundOrExact()
+	#queryUsersCompoundAnd()
+	#listUsers_list()
+	#listGroups_list()
+	#listComputers_list()
+	#queryUsers_list()
+	#queryUsersCompoundOr_list()
+	#queryUsersCompoundOrExact_list()
+	#queryUsersCompoundAnd_list()
+
+	listResourcesPlaces_list()
+	queryUsersGroups_list()
+	queryUsersGroupsPlaces_list()
+
 	#authentciateBasic()
 
 	ref = None

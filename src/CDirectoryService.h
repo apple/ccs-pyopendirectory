@@ -31,9 +31,9 @@ public:
     CDirectoryService(const char* nodename);
     ~CDirectoryService();
 
-    CFMutableArrayRef ListAllRecordsWithAttributes(const char* recordType, CFDictionaryRef attributes, bool using_python=true);
-    CFMutableArrayRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python=true);
-    CFMutableArrayRef QueryRecordsWithAttributes(const char* query, bool casei, const char* recordType, CFDictionaryRef attributes, bool using_python=true);
+    CFMutableArrayRef ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFDictionaryRef attributes, bool using_python=true);
+    CFMutableArrayRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, bool using_python=true);
+    CFMutableArrayRef QueryRecordsWithAttributes(const char* query, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, bool using_python=true);
 
     bool AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result, bool using_python=true);
     bool AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result, bool using_python=true);
@@ -67,8 +67,8 @@ private:
     tDataBufferPtr        mData;
     UInt32                mDataSize;
 
-    CFMutableArrayRef _ListAllRecordsWithAttributes(const char* type, CFArrayRef names, CFDictionaryRef attrs);
-    CFMutableArrayRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, const char* recordType, CFDictionaryRef attrs);
+    CFMutableArrayRef _ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFArrayRef names, CFDictionaryRef attrs);
+    CFMutableArrayRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, CFArrayRef recordTypes, CFDictionaryRef attrs);
 
     bool NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd);
     bool NativeAuthenticationDigestToNode(const char* nodename, const char* user, const char* challenge, const char* response, const char* method);

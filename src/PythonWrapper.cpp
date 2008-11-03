@@ -127,6 +127,53 @@ static PyObject* CFArrayToPyList(CFArrayRef list, bool sorted = false)
 }
 
 // Utility function - not exposed to Python
+static CFArrayRef PyStringTupleOrListToCFArray(PyObject* item)
+{
+	if (PyTuple_Check(item) || PyList_Check(item))
+	{
+		PyTupleOrList pyitem(item);
+		CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorDefault, pyitem.getSize(), &kCFTypeArrayCallBacks);
+		for(int i = 0; i < pyitem.getSize(); i++)
+		{
+			PyObject* str = pyitem.get(i);
+			if ((str == NULL) || !PyString_Check(str))
+			{
+				CFRelease(result);
+				throw PyObjectException("Expecting a str type in 'PyStringTupleOrListToCFArray'.");
+			}
+			const char* cstr = PyString_AsString(str);
+			if (cstr == NULL)
+			{
+				CFRelease(result);
+				throw PyObjectException("Could not extract string in 'PyStringTupleOrListToCFArray'.");
+			}
+			CFStringUtil cfstr(cstr);
+			CFArrayAppendValue(result, cfstr.get());
+		}
+
+		return result;
+	}
+	else if (PyString_Check(item))
+	{
+		CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorDefault, 1, &kCFTypeArrayCallBacks);
+		const char* cstr = PyString_AsString(item);
+		if (cstr == NULL)
+		{
+			CFRelease(result);
+			throw PyObjectException("Could not extract string in 'PyStringTupleOrListToCFArray'.");
+		}
+		CFStringUtil cfstr(cstr);
+		CFArrayAppendValue(result, cfstr.get());
+
+		return result;
+	}
+	else
+	{
+		throw PyObjectException("Could not extract string, tuple or list in 'PyStringTupleOrListToCFArray'.");
+	}
+}
+
+// Utility function - not exposed to Python
 static CFArrayRef PyTupleOrListToCFArray(PyObject* item)
 {
 	PyTupleOrList pyitem(item);
@@ -334,6 +381,215 @@ static PyObject* CFArrayArrayDictionaryToPyDict(CFArrayRef list)
 PyObject* ODException_class = NULL;
 
 /*
+    Internal method.
+ */
+static PyObject *_listAllRecordsWithAttributes(PyObject *self, PyObject *args, bool list)
+{
+    PyObject* pyds;
+    PyObject* recordType;
+    PyObject* attributes;
+    if (!PyArg_ParseTuple(args, "OOO", &pyds, &recordType, &attributes) || !PyCObject_Check(pyds) || !PyTupleOrList::typeOK(attributes))
+    {
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes: could not parse arguments", 0));
+        return NULL;
+    }
+
+	// Convert string/tuple/list to CFArray
+    CFArrayRef cfrecordtypes = NULL;
+    try
+    {
+    	cfrecordtypes = PyStringTupleOrListToCFArray(recordType);
+    }
+	catch(PyObjectException& ex)
+	{
+		std::string msg("DirectoryServices listAllRecordsWithAttributes: could not parse recordTypes: ");
+		msg += ex.what();
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
+		return NULL;
+	}
+
+    // Convert list to CFArray of CFString
+    CFDictionaryRef cfattributes = NULL;
+	try
+	{
+		cfattributes = AttributesToCFDictionary(attributes);
+	}
+	catch(PyObjectException& ex)
+	{
+		std::string msg("DirectoryServices listAllRecordsWithAttributes: could not parse attributes list: ");
+		msg += ex.what();
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
+        CFRelease(cfrecordtypes);
+		return NULL;
+	}
+
+    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+    if (dsmgr != NULL)
+    {
+        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+        CFMutableArrayRef results = NULL;
+        results = ds->ListAllRecordsWithAttributes(cfrecordtypes, cfattributes);
+        if (results != NULL)
+        {
+            PyObject* result = list ? CFArrayArrayDictionaryToPyList(results) : CFArrayArrayDictionaryToPyDict(results);
+            CFRelease(results);
+            CFRelease(cfattributes);
+            CFRelease(cfrecordtypes);
+
+            return result;
+        }
+    }
+    else
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes: invalid directory service argument", 0));
+
+    CFRelease(cfattributes);
+    CFRelease(cfrecordtypes);
+    return NULL;
+}
+
+static PyObject *_queryRecordsWithAttribute(PyObject *self, PyObject *args, bool list)
+{
+    PyObject* pyds;
+    const char* attr;
+    const char* value;
+    int matchType;
+    PyObject* caseio;
+    bool casei;
+    PyObject* recordType;
+    PyObject* attributes;
+    if (!PyArg_ParseTuple(args, "OssiOOO", &pyds, &attr, &value, &matchType, &caseio, &recordType, &attributes) ||
+        !PyCObject_Check(pyds) || !PyBool_Check(caseio) || !PyTupleOrList::typeOK(attributes))
+    {
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttribute: could not parse arguments", 0));
+        return NULL;
+    }
+
+    casei = (caseio == Py_True);
+
+	// Convert string/tuple/list to CFArray
+    CFArrayRef cfrecordtypes = NULL;
+    try
+    {
+    	cfrecordtypes = PyStringTupleOrListToCFArray(recordType);
+    }
+	catch(PyObjectException& ex)
+	{
+		std::string msg("DirectoryServices listAllRecordsWithAttributes: could not parse recordTypes: ");
+		msg += ex.what();
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
+		return NULL;
+	}
+
+    // Convert list to CFArray of CFString
+    CFDictionaryRef cfattributes = NULL;
+	try
+	{
+		cfattributes = AttributesToCFDictionary(attributes);
+	}
+	catch(PyObjectException& ex)
+	{
+		std::string msg("DirectoryServices queryRecordsWithAttribute: could not parse attributes list: ");
+		msg += ex.what();
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
+        CFRelease(cfrecordtypes);
+		return NULL;
+	}
+
+    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+    if (dsmgr != NULL)
+    {
+        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+        CFMutableArrayRef results = NULL;
+        results = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, cfrecordtypes, cfattributes);
+        if (results != NULL)
+        {
+            PyObject* result = list ? CFArrayArrayDictionaryToPyList(results) : CFArrayArrayDictionaryToPyDict(results);
+            CFRelease(results);
+            CFRelease(cfattributes);
+            CFRelease(cfrecordtypes);
+
+            return result;
+        }
+    }
+    else
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttribute: invalid directory service argument", 0));
+
+    CFRelease(cfattributes);
+    CFRelease(cfrecordtypes);
+    return NULL;
+}
+
+static PyObject *_queryRecordsWithAttributes(PyObject *self, PyObject *args, bool list)
+{
+    PyObject* pyds;
+    const char* query;
+    PyObject* caseio;
+    bool casei;
+    PyObject* recordType;
+    PyObject* attributes;
+    if (!PyArg_ParseTuple(args, "OsOOO", &pyds, &query, &caseio, &recordType, &attributes) ||
+        !PyCObject_Check(pyds) || !PyBool_Check(caseio) || !PyTupleOrList::typeOK(attributes))
+    {
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes: could not parse arguments", 0));
+        return NULL;
+    }
+
+    casei = (caseio == Py_True);
+
+	// Convert string/tuple/list to CFArray
+    CFArrayRef cfrecordtypes = NULL;
+    try
+    {
+    	cfrecordtypes = PyStringTupleOrListToCFArray(recordType);
+    }
+	catch(PyObjectException& ex)
+	{
+		std::string msg("DirectoryServices listAllRecordsWithAttributes: could not parse recordTypes: ");
+		msg += ex.what();
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
+		return NULL;
+	}
+
+    // Convert list to CFArray of CFString
+    CFDictionaryRef cfattributes = NULL;
+	try
+	{
+		cfattributes = AttributesToCFDictionary(attributes);
+	}
+	catch(PyObjectException& ex)
+	{
+		std::string msg("DirectoryServices queryRecordsWithAttributes: could not parse attributes list: ");
+		msg += ex.what();
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
+        CFRelease(cfrecordtypes);
+		return NULL;
+	}
+
+    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+    if (dsmgr != NULL)
+    {
+        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+        CFMutableArrayRef results = NULL;
+        results = ds->QueryRecordsWithAttributes(query, casei, cfrecordtypes, cfattributes);
+        if (results != NULL)
+        {
+            PyObject* result = list ? CFArrayArrayDictionaryToPyList(results) : CFArrayArrayDictionaryToPyDict(results);
+            CFRelease(results);
+            CFRelease(cfattributes);
+            CFRelease(cfrecordtypes);
+
+            return result;
+        }
+    }
+    else
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes: invalid directory service argument", 0));
+
+    CFRelease(cfattributes);
+    CFRelease(cfrecordtypes);
+    return NULL;
+}
+
+/*
  This is an automatic destructor for the object obtained by odInit. It is not directly
  exposed to Python, instead Python calls it automatically when reclaiming the object.
  */
@@ -380,56 +636,14 @@ def listAllRecordsWithAttributes(obj, recordType, attributes):
     is the attribute name, and the second C{str} is an encoding type, either "str" or "base64".
 
     @param obj: C{object} the object obtained from an odInit call.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{dict} containing a C{dict} of attributes for each record found,
         or C{None} otherwise.
  */
 extern "C" PyObject *listAllRecordsWithAttributes(PyObject *self, PyObject *args)
 {
-    PyObject* pyds;
-    const char* recordType;
-    PyObject* attributes;
-    if (!PyArg_ParseTuple(args, "OsO", &pyds, &recordType, &attributes) || !PyCObject_Check(pyds) || !PyTupleOrList::typeOK(attributes))
-    {
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes: could not parse arguments", 0));
-        return NULL;
-    }
-
-    // Convert list to CFArray of CFString
-    CFDictionaryRef cfattributes = NULL;
-	try
-	{
-		cfattributes = AttributesToCFDictionary(attributes);
-	}
-	catch(PyObjectException& ex)
-	{
-		std::string msg("DirectoryServices listAllRecordsWithAttributes: could not parse attributes list: ");
-		msg += ex.what();
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
-		return NULL;
-	}
-
-    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
-    if (dsmgr != NULL)
-    {
-        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
-        CFMutableArrayRef list = NULL;
-        list = ds->ListAllRecordsWithAttributes(recordType, cfattributes);
-        if (list != NULL)
-        {
-            PyObject* result = CFArrayArrayDictionaryToPyDict(list);
-            CFRelease(list);
-            CFRelease(cfattributes);
-
-            return result;
-        }
-    }
-    else
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes: invalid directory service argument", 0));
-
-    CFRelease(cfattributes);
-    return NULL;
+	return _listAllRecordsWithAttributes(self, args, false);
 }
 
 /*
@@ -444,7 +658,7 @@ def queryRecordsWithAttribute(obj, attr, value, matchType, casei, recordType, at
     @param value: C{str} for the attribute value to query.
     @param matchType: C{int} DS match type to use when searching.
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{dict} containing a C{dict} of attributes for each record found,
         or C{None} otherwise.
@@ -452,57 +666,7 @@ def queryRecordsWithAttribute(obj, attr, value, matchType, casei, recordType, at
  */
 extern "C" PyObject *queryRecordsWithAttribute(PyObject *self, PyObject *args)
 {
-    PyObject* pyds;
-    const char* attr;
-    const char* value;
-    int matchType;
-    PyObject* caseio;
-    bool casei;
-    const char* recordType;
-    PyObject* attributes;
-    if (!PyArg_ParseTuple(args, "OssiOsO", &pyds, &attr, &value, &matchType, &caseio, &recordType, &attributes) ||
-        !PyCObject_Check(pyds) || !PyBool_Check(caseio) || !PyTupleOrList::typeOK(attributes))
-    {
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttribute: could not parse arguments", 0));
-        return NULL;
-    }
-
-    casei = (caseio == Py_True);
-
-    // Convert list to CFArray of CFString
-    CFDictionaryRef cfattributes = NULL;
-	try
-	{
-		cfattributes = AttributesToCFDictionary(attributes);
-	}
-	catch(PyObjectException& ex)
-	{
-		std::string msg("DirectoryServices queryRecordsWithAttribute: could not parse attributes list: ");
-		msg += ex.what();
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
-		return NULL;
-	}
-
-    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
-    if (dsmgr != NULL)
-    {
-        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
-        CFMutableArrayRef list = NULL;
-        list = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, recordType, cfattributes);
-        if (list != NULL)
-        {
-            PyObject* result = CFArrayArrayDictionaryToPyDict(list);
-            CFRelease(list);
-            CFRelease(cfattributes);
-
-            return result;
-        }
-    }
-    else
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttribute: invalid directory service argument", 0));
-
-    CFRelease(cfattributes);
-    return NULL;
+	return _queryRecordsWithAttribute(self, args, false);
 }
 
 /*
@@ -515,7 +679,7 @@ def queryRecordsWithAttributes(obj, query, casei, recordType, attributes):
     @param obj: C{object} the object obtained from an odInit call.
     @param query: C{str} the compound query string.
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{dict} containing a C{dict} of attributes for each record found,
         or C{None} otherwise.
@@ -523,55 +687,7 @@ def queryRecordsWithAttributes(obj, query, casei, recordType, attributes):
  */
 extern "C" PyObject *queryRecordsWithAttributes(PyObject *self, PyObject *args)
 {
-    PyObject* pyds;
-    const char* query;
-    PyObject* caseio;
-    bool casei;
-    const char* recordType;
-    PyObject* attributes;
-    if (!PyArg_ParseTuple(args, "OsOsO", &pyds, &query, &caseio, &recordType, &attributes) ||
-        !PyCObject_Check(pyds) || !PyBool_Check(caseio) || !PyTupleOrList::typeOK(attributes))
-    {
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes: could not parse arguments", 0));
-        return NULL;
-    }
-
-    casei = (caseio == Py_True);
-
-    // Convert list to CFArray of CFString
-    CFDictionaryRef cfattributes = NULL;
-	try
-	{
-		cfattributes = AttributesToCFDictionary(attributes);
-	}
-	catch(PyObjectException& ex)
-	{
-		std::string msg("DirectoryServices queryRecordsWithAttributes: could not parse attributes list: ");
-		msg += ex.what();
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
-		return NULL;
-	}
-
-    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
-    if (dsmgr != NULL)
-    {
-        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
-        CFMutableArrayRef list = NULL;
-        list = ds->QueryRecordsWithAttributes(query, casei, recordType, cfattributes);
-        if (list != NULL)
-        {
-            PyObject* result = CFArrayArrayDictionaryToPyDict(list);
-            CFRelease(list);
-            CFRelease(cfattributes);
-
-            return result;
-        }
-    }
-    else
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes: invalid directory service argument", 0));
-
-    CFRelease(cfattributes);
-    return NULL;
+	return _queryRecordsWithAttributes(self, args, false);
 }
 
 /*
@@ -582,7 +698,7 @@ def listAllRecordsWithAttributes_list(obj, recordType, attributes):
     is the attribute name, and the second C{str} is an encoding type, either "str" or "base64".
 
     @param obj: C{object} the object obtained from an odInit call.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes
          for each record found, or C{None} otherwise.
@@ -590,49 +706,7 @@ def listAllRecordsWithAttributes_list(obj, recordType, attributes):
  */
 extern "C" PyObject *listAllRecordsWithAttributes_list(PyObject *self, PyObject *args)
 {
-    PyObject* pyds;
-    const char* recordType;
-    PyObject* attributes;
-    if (!PyArg_ParseTuple(args, "OsO", &pyds, &recordType, &attributes) || !PyCObject_Check(pyds) || !PyTupleOrList::typeOK(attributes))
-    {
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes_list: could not parse arguments", 0));
-        return NULL;
-    }
-
-    // Convert list to CFArray of CFString
-    CFDictionaryRef cfattributes = NULL;
-	try
-	{
-		cfattributes = AttributesToCFDictionary(attributes);
-	}
-	catch(PyObjectException& ex)
-	{
-		std::string msg("DirectoryServices listAllRecordsWithAttributes_list: could not parse attributes list: ");
-		msg += ex.what();
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
-		return NULL;
-	}
-
-    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
-    if (dsmgr != NULL)
-    {
-        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
-        CFMutableArrayRef list = NULL;
-        list = ds->ListAllRecordsWithAttributes(recordType, cfattributes);
-        if (list != NULL)
-        {
-            PyObject* result = CFArrayArrayDictionaryToPyList(list);
-            CFRelease(list);
-            CFRelease(cfattributes);
-
-            return result;
-        }
-    }
-    else
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes_list: invalid directory service argument", 0));
-
-    CFRelease(cfattributes);
-    return NULL;
+	return _listAllRecordsWithAttributes(self, args, true);
 }
 
 /*
@@ -647,7 +721,7 @@ def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordTyp
     @param value: C{str} for the attribute value to query.
     @param matchType: C{int} DS match type to use when searching.
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes
          for each record found, or C{None} otherwise.
@@ -655,57 +729,7 @@ def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordTyp
  */
 extern "C" PyObject *queryRecordsWithAttribute_list(PyObject *self, PyObject *args)
 {
-    PyObject* pyds;
-    const char* attr;
-    const char* value;
-    int matchType;
-    PyObject* caseio;
-    bool casei;
-    const char* recordType;
-    PyObject* attributes;
-    if (!PyArg_ParseTuple(args, "OssiOsO", &pyds, &attr, &value, &matchType, &caseio, &recordType, &attributes) ||
-        !PyCObject_Check(pyds) || !PyBool_Check(caseio) || !PyTupleOrList::typeOK(attributes))
-    {
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttribute_list: could not parse arguments", 0));
-        return NULL;
-    }
-
-    casei = (caseio == Py_True);
-
-    // Convert list to CFArray of CFString
-    CFDictionaryRef cfattributes = NULL;
-	try
-	{
-		cfattributes = AttributesToCFDictionary(attributes);
-	}
-	catch(PyObjectException& ex)
-	{
-		std::string msg("DirectoryServices queryRecordsWithAttribute_list: could not parse attributes list: ");
-		msg += ex.what();
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
-		return NULL;
-	}
-
-    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
-    if (dsmgr != NULL)
-    {
-        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
-        CFMutableArrayRef list = NULL;
-        list = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, recordType, cfattributes);
-        if (list != NULL)
-        {
-            PyObject* result = CFArrayArrayDictionaryToPyList(list);
-            CFRelease(list);
-            CFRelease(cfattributes);
-
-            return result;
-        }
-    }
-    else
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttribute_list: invalid directory service argument", 0));
-
-    CFRelease(cfattributes);
-    return NULL;
+	return _queryRecordsWithAttribute(self, args, true);
 }
 
 /*
@@ -718,7 +742,7 @@ def queryRecordsWithAttributes_list(obj, query, casei, recordType, attributes):
     @param obj: C{object} the object obtained from an odInit call.
     @param query: C{str} the compound query string.
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
-    @param recordType: C{str} containing the OD record type to lookup.
+    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes
          for each record found, or C{None} otherwise.
@@ -726,55 +750,7 @@ def queryRecordsWithAttributes_list(obj, query, casei, recordType, attributes):
  */
 extern "C" PyObject *queryRecordsWithAttributes_list(PyObject *self, PyObject *args)
 {
-    PyObject* pyds;
-    const char* query;
-    PyObject* caseio;
-    bool casei;
-    const char* recordType;
-    PyObject* attributes;
-    if (!PyArg_ParseTuple(args, "OsOsO", &pyds, &query, &caseio, &recordType, &attributes) ||
-        !PyCObject_Check(pyds) || !PyBool_Check(caseio) || !PyTupleOrList::typeOK(attributes))
-    {
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes_list: could not parse arguments", 0));
-        return NULL;
-    }
-
-    casei = (caseio == Py_True);
-
-    // Convert list to CFArray of CFString
-    CFDictionaryRef cfattributes = NULL;
-	try
-	{
-		cfattributes = AttributesToCFDictionary(attributes);
-	}
-	catch(PyObjectException& ex)
-	{
-		std::string msg("DirectoryServices queryRecordsWithAttributes_list: could not parse attributes list: ");
-		msg += ex.what();
-		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
-		return NULL;
-	}
-
-    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
-    if (dsmgr != NULL)
-    {
-        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
-        CFMutableArrayRef list = NULL;
-        list = ds->QueryRecordsWithAttributes(query, casei, recordType, cfattributes);
-        if (list != NULL)
-        {
-            PyObject* result = CFArrayArrayDictionaryToPyList(list);
-            CFRelease(list);
-            CFRelease(cfattributes);
-
-            return result;
-        }
-    }
-    else
-        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes_list: invalid directory service argument", 0));
-
-    CFRelease(cfattributes);
-    return NULL;
+	return _queryRecordsWithAttributes(self, args, true);
 }
 
 /*
