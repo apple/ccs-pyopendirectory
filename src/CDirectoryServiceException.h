@@ -19,21 +19,23 @@
 
 #pragma once
 
+#include <DirectoryService/DirectoryService.h>
+
 class CDirectoryServiceException
 {
 public:
     CDirectoryServiceException();
-    CDirectoryServiceException(long error, const char* file, long line);
+    CDirectoryServiceException(tDirStatus error, const char* file, long line);
     ~CDirectoryServiceException();
 
-    static void ThrowDSError(long error, const char* file, long line);
+    static void ThrowDSError(tDirStatus error, const char* file, long line);
 
     void SetPythonException();
 
 private:
-    long        mDSError;
+	tDirStatus  mDSError;
     char        mDescription[1024];
 };
 
 # define ThrowIfDSErr(x) { if (x != eDSNoErr) CDirectoryServiceException::ThrowDSError(x, __FILE__, __LINE__); }
-# define ThrowIfNULL(x) { if (x == NULL) CDirectoryServiceException::ThrowDSError(-1, __FILE__, __LINE__); }
+# define ThrowIfNULL(x) { if (x == NULL) CDirectoryServiceException::ThrowDSError(eUndefinedError, __FILE__, __LINE__); }

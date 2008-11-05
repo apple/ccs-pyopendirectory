@@ -795,28 +795,28 @@ bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, co
         //      Send: <length><recordname>
         //            <length><cleartextpassword>
         //   Receive: success or failure.
-        long aDataBufSize = sizeof(long) + ::strlen(user) + sizeof(long) + ::strlen(pswd);
+        UInt32 aDataBufSize = sizeof(UInt32) + ::strlen(user) + sizeof(UInt32) + ::strlen(pswd);
         authData = ::dsDataBufferAllocate(mDir, aDataBufSize);
         if (authData == NULL)
             ThrowIfDSErr(eDSNullDataBuff);
-        long aCurLength = 0;
-        long aTempLength = ::strlen(user);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-        aCurLength += sizeof(long);
+        UInt32 aCurLength = 0;
+        UInt32 aTempLength = ::strlen(user);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
+        aCurLength += sizeof(UInt32);
 
         ::memcpy(&(authData->fBufferData[aCurLength]), user,  aTempLength);
         aCurLength += aTempLength;
 
         aTempLength = ::strlen(pswd);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-        aCurLength += sizeof(long);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
+        aCurLength += sizeof(UInt32);
 
         ::memcpy(&(authData->fBufferData[aCurLength]), pswd,  aTempLength);
 
         authData->fBufferLength = aDataBufSize;
 
         // Do authentication
-        long dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
+        tDirStatus dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
         result = (dirStatus == eDSNoErr);
 
         // Cleanup
@@ -894,45 +894,45 @@ bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, c
         //            <length><response>
         //              <length><method>
         //   Receive: success or failure.
-        long aDataBufSize = sizeof(long) + ::strlen(user) +
-                            sizeof(long) + ::strlen(challenge) +
-                            sizeof(long) + ::strlen(response) +
-                            sizeof(long) + ::strlen(method);
+        UInt32 aDataBufSize = sizeof(UInt32) + ::strlen(user) +
+                              sizeof(UInt32) + ::strlen(challenge) +
+                              sizeof(UInt32) + ::strlen(response) +
+                              sizeof(UInt32) + ::strlen(method);
         authData = ::dsDataBufferAllocate(mDir, aDataBufSize);
         if (authData == NULL)
             ThrowIfDSErr(eDSNullDataBuff);
-        long aCurLength = 0;
-        long aTempLength = ::strlen(user);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-        aCurLength += sizeof(long);
+        UInt32 aCurLength = 0;
+        UInt32 aTempLength = ::strlen(user);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
+        aCurLength += sizeof(UInt32);
 
         ::memcpy(&(authData->fBufferData[aCurLength]), user,  aTempLength);
         aCurLength += aTempLength;
 
         aTempLength = ::strlen(challenge);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-        aCurLength += sizeof(long);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
+        aCurLength += sizeof(UInt32);
 
         ::memcpy(&(authData->fBufferData[aCurLength]), challenge,  aTempLength);
         aCurLength += aTempLength;
 
         aTempLength = ::strlen(response);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-        aCurLength += sizeof(long);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
+        aCurLength += sizeof(UInt32);
 
         ::memcpy(&(authData->fBufferData[aCurLength]), response,  aTempLength);
         aCurLength += aTempLength;
 
         aTempLength = ::strlen(method);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(long));
-        aCurLength += sizeof(long);
+        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
+        aCurLength += sizeof(UInt32);
 
         ::memcpy(&(authData->fBufferData[aCurLength]), method,  aTempLength);
 
         authData->fBufferLength = aDataBufSize;
 
         // Do authentication
-        long dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
+        tDirStatus dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
         result = (dirStatus == eDSNoErr);
 
         // Cleanup
@@ -979,7 +979,7 @@ void CDirectoryService::OpenService()
 {
     if (mDir == 0L)
     {
-        long dirStatus = ::dsOpenDirService(&mDir);
+    	tDirStatus dirStatus = ::dsOpenDirService(&mDir);
         if (dirStatus != eDSNoErr)
         {
             mDir = 0L;
@@ -1022,7 +1022,7 @@ void CDirectoryService::OpenNode()
 //
 tDirNodeReference CDirectoryService::OpenNamedNode(const char* nodename)
 {
-    long dirStatus = eDSNoErr;
+	tDirStatus dirStatus = eDSNoErr;
     tDataListPtr nodePath = NULL;
     tDirNodeReference result = NULL;
 
