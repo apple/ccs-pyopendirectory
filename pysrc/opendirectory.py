@@ -27,7 +27,7 @@ def odInit(nodename):
         C{None} on failure.
     """
 
-def listAllRecordsWithAttributes(obj, recordType, attributes):
+def listAllRecordsWithAttributes(obj, recordType, attributes, count=0):
     """
     List records in Open Directory, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -36,11 +36,12 @@ def listAllRecordsWithAttributes(obj, recordType, attributes):
     @param obj: C{object} the object obtained from an odInit call.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+    @param count: C{int} maximum number of records to return (zero returns all).
     @return: C{dict} containing a C{dict} of attributes for each record found,  
         or C{None} otherwise.
     """
 
-def queryRecordsWithAttribute(obj, attr, value, matchType, casei, recordType, attributes):
+def queryRecordsWithAttribute(obj, attr, value, matchType, casei, recordType, attributes, count=0):
     """
     List records in Open Directory matching specified attribute/value, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -53,11 +54,12 @@ def queryRecordsWithAttribute(obj, attr, value, matchType, casei, recordType, at
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+    @param count: C{int} maximum number of records to return (zero returns all).
     @return: C{dict} containing a C{dict} of attributes for each record found,  
         or C{None} otherwise.
     """
 
-def queryRecordsWithAttributes(obj, compound, casei, recordType, attributes):
+def queryRecordsWithAttributes(obj, compound, casei, recordType, attributes, count=0):
     """
     List records in Open Directory matching specified criteria, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -68,11 +70,12 @@ def queryRecordsWithAttributes(obj, compound, casei, recordType, attributes):
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+    @param count: C{int} maximum number of records to return (zero returns all).
     @return: C{dict} containing a C{dict} of attributes for each record found,  
         or C{None} otherwise.
     """
 
-def listAllRecordsWithAttributes_list(obj, recordType, attributes):
+def listAllRecordsWithAttributes_list(obj, recordType, attributes, count=0):
     """
     List records in Open Directory, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -81,11 +84,12 @@ def listAllRecordsWithAttributes_list(obj, recordType, attributes):
     @param obj: C{object} the object obtained from an odInit call.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+    @param count: C{int} maximum number of records to return (zero returns all).
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes 
         for each record found, or C{None} otherwise.
     """
 
-def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordType, attributes):
+def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordType, attributes, count=0):
     """
     List records in Open Directory matching specified attribute/value, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -98,11 +102,12 @@ def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordTyp
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+    @param count: C{int} maximum number of records to return (zero returns all).
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes 
         for each record found, or C{None} otherwise.
     """
 
-def queryRecordsWithAttributes_list(obj, compound, casei, recordType, attributes, types=None):
+def queryRecordsWithAttributes_list(obj, compound, casei, recordType, attributes, count=0):
     """
     List records in Open Directory matching specified criteria, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -113,6 +118,7 @@ def queryRecordsWithAttributes_list(obj, compound, casei, recordType, attributes
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+    @param count: C{int} maximum number of records to return (zero returns all).
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes 
         for each record found, or C{None} otherwise.
     """

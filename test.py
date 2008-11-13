@@ -42,6 +42,20 @@ try:
 				print "Name: %s" % n
 				print "dict: %s" % str(d[n])
 	
+	def listUsersCount():
+		d = opendirectory.listAllRecordsWithAttributes(ref, dsattributes.kDSStdRecordTypeUsers,
+													   (
+													   	dsattributes.kDS1AttrGeneratedUID,
+													    dsattributes.kDS1AttrDistinguishedName,
+													    ("dsAttrTypeStandard:JPEGPhoto", "base64"),
+													   ),
+													   10)
+		if d is None:
+			print "Failed to list users"
+		else:
+			names = [v for v in d.iterkeys()]
+			print "\nlistUsers 10 records, number of results = %d" % (len(names),)
+	
 	def listGroups():
 		d = opendirectory.listAllRecordsWithAttributes(ref, dsattributes.kDSStdRecordTypeGroups,
 													   [dsattributes.kDS1AttrGeneratedUID, dsattributes.kDSNAttrGroupMembers,])
@@ -68,7 +82,7 @@ try:
 				print "Name: %s" % n
 				print "dict: %s" % str(d[n])
 	
-	def querySimple(title, attr, value, matchType, casei, recordType, attrs):
+	def querySimple(title, attr, value, matchType, casei, recordType, attrs, count=0):
 		d = opendirectory.queryRecordsWithAttribute(
 		    ref,
 		    attr,
@@ -76,10 +90,14 @@ try:
 		    matchType,
 		    casei,
 			recordType,
-			attrs
+			attrs,
+			count
 		)
 		if d is None:
 			print "Failed to query users"
+		elif count:
+			names = [v for v in d.iterkeys()]
+			print "\n%s %d record limit, got number of results = %d" % (title, count, len(names),)
 		else:
 			names = [v for v in d.iterkeys()]
 			names.sort()
@@ -115,6 +133,30 @@ try:
 		    True,
 			dsattributes.kDSStdRecordTypeUsers,
 			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,]
+		)
+		
+	def queryUsersCountNotLimited():
+		querySimple(
+			"queryUsers",
+		    dsattributes.kDS1AttrFirstName,
+		    "cyrus",
+		    dsattributes.eDSExact,
+		    True,
+			dsattributes.kDSStdRecordTypeUsers,
+			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,],
+			2
+		)
+		
+	def queryUsersCountLimited():
+		querySimple(
+			"queryUsers",
+		    dsattributes.kDS1AttrFirstName,
+		    "john",
+		    dsattributes.eDSExact,
+		    True,
+			dsattributes.kDSStdRecordTypeUsers,
+			[dsattributes.kDS1AttrGeneratedUID, dsattributes.kDS1AttrDistinguishedName,],
+			10
 		)
 		
 	def queryUsersCompoundOr():
@@ -309,24 +351,28 @@ try:
 		else:
 			print "Failed to authenticate user"
 	
-	#listUsers()
-	#listGroups()
-	#listComputers()
-	#queryUsers()
-	#queryUsersCompoundOr()
-	#queryUsersCompoundOrExact()
-	#queryUsersCompoundAnd()
-	#listUsers_list()
-	#listGroups_list()
-	#listComputers_list()
-	#queryUsers_list()
-	#queryUsersCompoundOr_list()
-	#queryUsersCompoundOrExact_list()
-	#queryUsersCompoundAnd_list()
+	listUsers()
+	listGroups()
+	listComputers()
+	queryUsers()
+	queryUsersCompoundOr()
+	queryUsersCompoundOrExact()
+	queryUsersCompoundAnd()
+	listUsers_list()
+	listGroups_list()
+	listComputers_list()
+	queryUsers_list()
+	queryUsersCompoundOr_list()
+	queryUsersCompoundOrExact_list()
+	queryUsersCompoundAnd_list()
 
 	listResourcesPlaces_list()
 	queryUsersGroups_list()
 	queryUsersGroupsPlaces_list()
+
+	listUsersCount()
+	queryUsersCountNotLimited()
+	queryUsersCountLimited()
 
 	#authentciateBasic()
 

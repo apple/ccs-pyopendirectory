@@ -388,7 +388,8 @@ static PyObject *_listAllRecordsWithAttributes(PyObject *self, PyObject *args, b
     PyObject* pyds;
     PyObject* recordType;
     PyObject* attributes;
-    if (!PyArg_ParseTuple(args, "OOO", &pyds, &recordType, &attributes) || !PyCObject_Check(pyds) || !PyTupleOrList::typeOK(attributes))
+	int maxRecordCount = 0;
+    if (!PyArg_ParseTuple(args, "OOO|i", &pyds, &recordType, &attributes, &maxRecordCount) || !PyCObject_Check(pyds) || !PyTupleOrList::typeOK(attributes))
     {
         PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listAllRecordsWithAttributes: could not parse arguments", 0));
         return NULL;
@@ -428,7 +429,7 @@ static PyObject *_listAllRecordsWithAttributes(PyObject *self, PyObject *args, b
     {
         std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
         CFMutableArrayRef results = NULL;
-        results = ds->ListAllRecordsWithAttributes(cfrecordtypes, cfattributes);
+        results = ds->ListAllRecordsWithAttributes(cfrecordtypes, cfattributes, maxRecordCount);
         if (results != NULL)
         {
             PyObject* result = list ? CFArrayArrayDictionaryToPyList(results) : CFArrayArrayDictionaryToPyDict(results);
@@ -457,7 +458,8 @@ static PyObject *_queryRecordsWithAttribute(PyObject *self, PyObject *args, bool
     bool casei;
     PyObject* recordType;
     PyObject* attributes;
-    if (!PyArg_ParseTuple(args, "OssiOOO", &pyds, &attr, &value, &matchType, &caseio, &recordType, &attributes) ||
+	int maxRecordCount = 0;
+    if (!PyArg_ParseTuple(args, "OssiOOO|i", &pyds, &attr, &value, &matchType, &caseio, &recordType, &attributes, &maxRecordCount) ||
         !PyCObject_Check(pyds) || !PyBool_Check(caseio) || !PyTupleOrList::typeOK(attributes))
     {
         PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttribute: could not parse arguments", 0));
@@ -500,7 +502,7 @@ static PyObject *_queryRecordsWithAttribute(PyObject *self, PyObject *args, bool
     {
         std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
         CFMutableArrayRef results = NULL;
-        results = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, cfrecordtypes, cfattributes);
+        results = ds->QueryRecordsWithAttribute(attr, value, matchType, casei, cfrecordtypes, cfattributes, maxRecordCount);
         if (results != NULL)
         {
             PyObject* result = list ? CFArrayArrayDictionaryToPyList(results) : CFArrayArrayDictionaryToPyDict(results);
@@ -527,7 +529,8 @@ static PyObject *_queryRecordsWithAttributes(PyObject *self, PyObject *args, boo
     bool casei;
     PyObject* recordType;
     PyObject* attributes;
-    if (!PyArg_ParseTuple(args, "OsOOO", &pyds, &query, &caseio, &recordType, &attributes) ||
+	int maxRecordCount = 0;
+    if (!PyArg_ParseTuple(args, "OsOOO|i", &pyds, &query, &caseio, &recordType, &attributes, &maxRecordCount) ||
         !PyCObject_Check(pyds) || !PyBool_Check(caseio) || !PyTupleOrList::typeOK(attributes))
     {
         PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices queryRecordsWithAttributes: could not parse arguments", 0));
@@ -570,7 +573,7 @@ static PyObject *_queryRecordsWithAttributes(PyObject *self, PyObject *args, boo
     {
         std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
         CFMutableArrayRef results = NULL;
-        results = ds->QueryRecordsWithAttributes(query, casei, cfrecordtypes, cfattributes);
+        results = ds->QueryRecordsWithAttributes(query, casei, cfrecordtypes, cfattributes, maxRecordCount);
         if (results != NULL)
         {
             PyObject* result = list ? CFArrayArrayDictionaryToPyList(results) : CFArrayArrayDictionaryToPyDict(results);
@@ -629,7 +632,7 @@ extern "C" PyObject* odInit(PyObject* self, PyObject* args)
 }
 
 /*
-def listAllRecordsWithAttributes(obj, recordType, attributes):
+def listAllRecordsWithAttributes(obj, recordType, attributes, count=0):
     """
     List records in Open Directory, and return key attributes for each one. The attributes
     can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -638,6 +641,7 @@ def listAllRecordsWithAttributes(obj, recordType, attributes):
     @param obj: C{object} the object obtained from an odInit call.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+	@param count: C{int} maximum number of records to return (zero returns all).
     @return: C{dict} containing a C{dict} of attributes for each record found,
         or C{None} otherwise.
  */
@@ -647,7 +651,7 @@ extern "C" PyObject *listAllRecordsWithAttributes(PyObject *self, PyObject *args
 }
 
 /*
-def queryRecordsWithAttribute(obj, attr, value, matchType, casei, recordType, attributes):
+def queryRecordsWithAttribute(obj, attr, value, matchType, casei, recordType, attributes, count=0):
     """
     List records in Open Directory matching specified attribute and value, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -660,6 +664,7 @@ def queryRecordsWithAttribute(obj, attr, value, matchType, casei, recordType, at
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+	@param count: C{int} maximum number of records to return (zero returns all).
     @return: C{dict} containing a C{dict} of attributes for each record found,
         or C{None} otherwise.
     """
@@ -670,7 +675,7 @@ extern "C" PyObject *queryRecordsWithAttribute(PyObject *self, PyObject *args)
 }
 
 /*
-def queryRecordsWithAttributes(obj, query, casei, recordType, attributes):
+def queryRecordsWithAttributes(obj, query, casei, recordType, attributes, count=0):
     """
     List records in Open Directory matching specified compound query, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -681,6 +686,7 @@ def queryRecordsWithAttributes(obj, query, casei, recordType, attributes):
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+	@param count: C{int} maximum number of records to return (zero returns all).
     @return: C{dict} containing a C{dict} of attributes for each record found,
         or C{None} otherwise.
     """
@@ -691,7 +697,7 @@ extern "C" PyObject *queryRecordsWithAttributes(PyObject *self, PyObject *args)
 }
 
 /*
-def listAllRecordsWithAttributes_list(obj, recordType, attributes):
+def listAllRecordsWithAttributes_list(obj, recordType, attributes, count=0):
     """
     List records in Open Directory, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -700,6 +706,7 @@ def listAllRecordsWithAttributes_list(obj, recordType, attributes):
     @param obj: C{object} the object obtained from an odInit call.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+	@param count: C{int} maximum number of records to return (zero returns all).
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes
          for each record found, or C{None} otherwise.
     """
@@ -710,7 +717,7 @@ extern "C" PyObject *listAllRecordsWithAttributes_list(PyObject *self, PyObject 
 }
 
 /*
-def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordType, attributes):
+def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordType, attributes, count=0):
     """
     List records in Open Directory matching specified attribute and value, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -723,6 +730,7 @@ def queryRecordsWithAttribute_list(obj, attr, value, matchType, casei, recordTyp
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+	@param count: C{int} maximum number of records to return (zero returns all).
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes
          for each record found, or C{None} otherwise.
     """
@@ -733,7 +741,7 @@ extern "C" PyObject *queryRecordsWithAttribute_list(PyObject *self, PyObject *ar
 }
 
 /*
-def queryRecordsWithAttributes_list(obj, query, casei, recordType, attributes):
+def queryRecordsWithAttributes_list(obj, query, casei, recordType, attributes, count=0):
     """
     List records in Open Directory matching specified compound query, and return key attributes for each one.
     The attributes can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
@@ -744,6 +752,7 @@ def queryRecordsWithAttributes_list(obj, query, casei, recordType, attributes):
     @param casei: C{True} to do case-insenstive match, C{False} otherwise.
     @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
     @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+	@param count: C{int} maximum number of records to return (zero returns all).
     @return: C{list} containing a C{list} of C{str} (record name) and C{dict} attributes
          for each record found, or C{None} otherwise.
     """

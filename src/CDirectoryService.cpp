@@ -32,12 +32,6 @@
 
 extern PyObject* ODException_class;
 
-// This is copied from WhitePages
-#define        kDSStdRecordTypeResources                "dsRecTypeStandard:Resources"
-
-// Calendar attribute.
-#define        kDS1AttrCalendarPrincipalURI            "dsAttrTypeStandard:CalendarPrincipalURI"
-
 const int cBufferSize = 32 * 1024;        // 32K buffer for Directory Services operations
 
 #pragma mark -----Public API
@@ -83,19 +77,21 @@ CDirectoryService::~CDirectoryService()
 //
 // @param recordTypes: the record types to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
+// @param maxRecordCount: maximum number of records to return (zero returns all).
+// @param using_python: set to true if called as a Python module, false to call directly from C/C++.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //            and value entries for each attribute/value requested in the record indexed by uid,
 //            or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFDictionaryRef attributes, bool using_python)
+CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount, bool using_python)
 {
     try
     {
         StPythonThreadState threading(using_python);
 
         // Get attribute map
-        return _ListAllRecordsWithAttributes(recordTypes, NULL, attributes);
+        return _ListAllRecordsWithAttributes(recordTypes, NULL, attributes, maxRecordCount);
     }
     catch(CDirectoryServiceException& dserror)
     {
@@ -120,19 +116,21 @@ CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(CFArrayRef rec
 // @param casei: true if case-insensitive match is to be used, false otherwise.
 // @param recordTypes: the record types to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
+// @param maxRecordCount: maximum number of records to return (zero returns all).
+// @param using_python: set to true if called as a Python module, false to call directly from C/C++.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, bool using_python)
+CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount, bool using_python)
 {
     try
     {
         StPythonThreadState threading(using_python);
 
         // Get attribute map
-        return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordTypes, attributes);
+        return _QueryRecordsWithAttributes(attr, value, matchType, NULL, casei, recordTypes, attributes, maxRecordCount);
     }
     catch(CDirectoryServiceException& dserror)
     {
@@ -155,19 +153,21 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
 // @param casei: true if case-insensitive match is to be used, false otherwise.
 // @param recordTypes: the record types to list.
 // @param attributes: CFArray of CFString listing the attributes to return for each record.
+// @param maxRecordCount: maximum number of records to return (zero returns all).
+// @param using_python: set to true if called as a Python module, false to call directly from C/C++.
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, bool using_python)
+CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* query, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount, bool using_python)
 {
     try
     {
         StPythonThreadState threading(using_python);
 
         // Get attribute map
-        return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordTypes, attributes);
+        return _QueryRecordsWithAttributes(NULL, NULL, 0, query, casei, recordTypes, attributes, maxRecordCount);
     }
     catch(CDirectoryServiceException& dserror)
     {
@@ -253,12 +253,13 @@ bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char*
 // @param type: the record type to check.
 // @param names: a list of record names to target if NULL all records are matched.
 // @param attributes: a list of attributes to return.
+// @param maxRecordCount: maximum number of records to return (zero returns all).
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFArrayRef names, CFDictionaryRef attributes)
+CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFArrayRef names, CFDictionaryRef attributes, UInt32 maxRecordCount)
 {
     CFMutableArrayRef result = NULL;
     CFMutableArrayRef record_tuple = NULL;
@@ -309,7 +310,7 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(CFArrayRef re
         do
         {
             // List all the appropriate records
-            UInt32 recCount = 0;
+            UInt32 recCount = maxRecordCount;
             tDirStatus err;
             do
             {
@@ -501,12 +502,13 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(CFArrayRef re
 // @param casei: true if case-insensitive match is to be used, false otherwise.
 // @param recordTypes: the record type to check.
 // @param attributes: a list of attributes to return.
+// @param maxRecordCount: maximum number of records to return (zero returns all).
 // @return: CFMutableArrayRef composed of CFMutableArrayRef with a CFStringRef/CFMutableDictionaryRef tuple for
 //          each record, where the CFStringRef is the record name and CFMutableDictionaryRef of CFStringRef key
 //          and value entries for each attribute/value requested in the record indexed by uid,
 //          or NULL if it fails.
 //
-CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes)
+CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount)
 {
     CFMutableArrayRef result = NULL;
     CFMutableArrayRef record_tuple = NULL;
@@ -575,7 +577,7 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
         do
         {
             // List all the appropriate records
-            UInt32 recCount = 0;
+            UInt32 recCount = maxRecordCount;
             tDirStatus err;
             do
             {
