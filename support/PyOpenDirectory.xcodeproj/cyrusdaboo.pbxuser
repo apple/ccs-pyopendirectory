@@ -1,7 +1,6 @@
 // !$*UTF8*$!
 {
 	08FB7793FE84155DC02AAC07 /* Project object */ = {
-		activeArchitecture = i386;
 		activeBuildConfigurationName = Debug;
 		activeExecutable = AF155A290A501F5C007E1E6E /* PyOpenDirectory */;
 		activeTarget = 8DD76F620486A84900D96B5E /* PyOpenDirectory */;
@@ -9,7 +8,6 @@
 			8DD76F620486A84900D96B5E /* PyOpenDirectory */,
 		);
 		breakpoints = (
-			AF0015650B8A245A0045DAEE /* test.cpp:209 */,
 		);
 		codeSenseManager = AF155A2E0A501F7B007E1E6E /* Code sense */;
 		executables = (
@@ -62,21 +60,31 @@
 					PBXFileDataSource_Target_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 248282819;
-			PBXWorkspaceStateSaveDate = 248282819;
+			PBXPerProjectTemplateStateSaveDate = 251221906;
+			PBXWorkspaceStateSaveDate = 251221906;
 		};
 		perUserProjectItems = {
-			AFDF2BF10ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BF10ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BF20ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BF20ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BF30ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BF30ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BF40ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BF40ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BF50ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BF50ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BF60ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BF60ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BF70ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BF70ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BF80ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BF80ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BF90ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BF90ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BFA0ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BFA0ECC846100B8B73B /* PBXTextBookmark */;
-			AFDF2BFB0ECC846100B8B73B /* PBXTextBookmark */ = AFDF2BFB0ECC846100B8B73B /* PBXTextBookmark */;
+			AF02E9ED0EF9578E005EC935 = AF02E9ED0EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9EE0EF9578E005EC935 = AF02E9EE0EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9EF0EF9578E005EC935 = AF02E9EF0EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F00EF9578E005EC935 = AF02E9F00EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F10EF9578E005EC935 = AF02E9F10EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F20EF9578E005EC935 = AF02E9F20EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F30EF9578E005EC935 = AF02E9F30EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F40EF9578E005EC935 = AF02E9F40EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F50EF9578E005EC935 = AF02E9F50EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F60EF9578E005EC935 = AF02E9F60EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F70EF9578E005EC935 = AF02E9F70EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F80EF9578E005EC935 = AF02E9F80EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9F90EF9578E005EC935 = AF02E9F90EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9FA0EF9578E005EC935 = AF02E9FA0EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9FB0EF9578E005EC935 = AF02E9FB0EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9FC0EF9578E005EC935 = AF02E9FC0EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9FD0EF9578E005EC935 = AF02E9FD0EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9FE0EF9578E005EC935 = AF02E9FE0EF9578E005EC935 /* PBXTextBookmark */;
+			AF02E9FF0EF9578E005EC935 = AF02E9FF0EF9578E005EC935 /* PBXTextBookmark */;
+			AF02EA000EF9578E005EC935 = AF02EA000EF9578E005EC935 /* PBXTextBookmark */;
+			AF02EA010EF9578E005EC935 = AF02EA010EF9578E005EC935 /* PBXTextBookmark */;
 		};
 		sourceControlManager = AF155A2D0A501F7B007E1E6E /* Source Control */;
 		userBuildSettings = {
@@ -84,9 +92,9 @@
 	};
 	08FB7796FE84155DC02AAC07 /* test.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1118, 4760}}";
-			sepNavSelRange = "{1614, 30}";
-			sepNavVisRange = "{905, 2059}";
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 4788}}";
+			sepNavSelRange = "{4457, 0}";
+			sepNavVisRange = "{4065, 2579}";
 			sepNavVisRect = "{{0, 1574}, {1521, 647}}";
 			sepNavWindowFrame = "{{344, 35}, {1220, 1036}}";
 		};
@@ -97,28 +105,11 @@
 			AF155A290A501F5C007E1E6E /* PyOpenDirectory */,
 		);
 	};
-	AF0015650B8A245A0045DAEE /* test.cpp:209 */ = {
-		isa = PBXFileBreakpoint;
-		actions = (
-		);
-		breakpointStyle = 0;
-		continueAfterActions = 0;
-		countType = 0;
-		delayBeforeContinue = 0;
-		fileReference = 08FB7796FE84155DC02AAC07 /* test.cpp */;
-		functionName = "AuthenticateUser(CDirectoryService* dir, const char* user, const char* pswd)";
-		hitCount = 0;
-		ignoreCount = 0;
-		lineNumber = 209;
-		location = test.ob;
-		modificationTime = 243311414.909002;
-		state = 2;
-	};
 	AF02AC560CBE690500F478B8 /* CDirectoryServiceException.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1593, 987}}";
-			sepNavSelRange = "{1235, 12}";
-			sepNavVisRange = "{0, 1744}";
+			sepNavIntBoundsRect = "{{0, 0}, {1379, 840}}";
+			sepNavSelRange = "{1658, 0}";
+			sepNavVisRange = "{981, 763}";
 			sepNavWindowFrame = "{{684, 53}, {1145, 959}}";
 		};
 	};
@@ -129,6 +120,216 @@
 			sepNavVisRange = "{0, 1370}";
 			sepNavWindowFrame = "{{73, 219}, {1145, 959}}";
 		};
+	};
+	AF02E9ED0EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AFC1CA770E809C5200FAB3DB /* base64.h */;
+		name = "base64.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 746;
+		vrLoc = 0;
+	};
+	AF02E9EE0EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AFC1CA780E809C5200FAB3DB /* base64.cpp */;
+		name = "base64.cpp: 45";
+		rLen = 0;
+		rLoc = 1633;
+		rType = 0;
+		vrLen = 2561;
+		vrLoc = 0;
+	};
+	AF02E9EF0EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */;
+		name = "PythonWrapper.cpp: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1657;
+		vrLoc = 0;
+	};
+	AF02E9F00EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AFC9AC0A0EF8A3FC0050787E /* CDirectoryServiceAuth.h */;
+		name = "CDirectoryServiceAuth.h: 45";
+		rLen = 0;
+		rLoc = 1662;
+		rType = 0;
+		vrLen = 1665;
+		vrLoc = 0;
+	};
+	AF02E9F10EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AFC9AC0B0EF8A3FC0050787E /* CDirectoryServiceAuth.cpp */;
+		name = "CDirectoryServiceAuth.cpp: 146";
+		rLen = 0;
+		rLoc = 4391;
+		rType = 0;
+		vrLen = 2290;
+		vrLoc = 3525;
+	};
+	AF02E9F20EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF155A300A501F84007E1E6E /* CDirectoryService.h */;
+		name = "CDirectoryService.h: 32";
+		rLen = 0;
+		rLoc = 978;
+		rType = 0;
+		vrLen = 2623;
+		vrLoc = 0;
+	};
+	AF02E9F30EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */;
+		name = "CDirectoryService.cpp: 710";
+		rLen = 0;
+		rLoc = 26937;
+		rType = 0;
+		vrLen = 2731;
+		vrLoc = 5528;
+	};
+	AF02E9F40EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */;
+		name = "CDirectoryServiceManager.cpp: 23";
+		rLen = 0;
+		rLoc = 821;
+		rType = 0;
+		vrLen = 1469;
+		vrLoc = 0;
+	};
+	AF02E9F50EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF41D9AC0CBDBAE200AB863D /* CDirectoryServiceManager.h */;
+		name = "CDirectoryServiceManager.h: 39";
+		rLen = 12;
+		rLoc = 1107;
+		rType = 0;
+		vrLen = 1124;
+		vrLoc = 0;
+	};
+	AF02E9F60EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AFC1CA770E809C5200FAB3DB /* base64.h */;
+		name = "base64.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 746;
+		vrLoc = 0;
+	};
+	AF02E9F70EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AFC1CA780E809C5200FAB3DB /* base64.cpp */;
+		name = "base64.cpp: 45";
+		rLen = 0;
+		rLoc = 1633;
+		rType = 0;
+		vrLen = 2561;
+		vrLoc = 0;
+	};
+	AF02E9F80EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */;
+		name = "PythonWrapper.cpp: 842";
+		rLen = 0;
+		rLoc = 29065;
+		rType = 0;
+		vrLen = 3751;
+		vrLoc = 22585;
+	};
+	AF02E9F90EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AFC9AC0A0EF8A3FC0050787E /* CDirectoryServiceAuth.h */;
+		name = "CDirectoryServiceAuth.h: 45";
+		rLen = 0;
+		rLoc = 1662;
+		rType = 0;
+		vrLen = 1665;
+		vrLoc = 0;
+	};
+	AF02E9FA0EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */;
+		name = "PythonWrapper.cpp: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1657;
+		vrLoc = 0;
+	};
+	AF02E9FB0EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AFC9AC0A0EF8A3FC0050787E /* CDirectoryServiceAuth.h */;
+		name = "CDirectoryServiceAuth.h: 45";
+		rLen = 0;
+		rLoc = 1662;
+		rType = 0;
+		vrLen = 1665;
+		vrLoc = 0;
+	};
+	AF02E9FC0EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AFC9AC0B0EF8A3FC0050787E /* CDirectoryServiceAuth.cpp */;
+		name = "CDirectoryServiceAuth.cpp: 146";
+		rLen = 0;
+		rLoc = 4391;
+		rType = 0;
+		vrLen = 2290;
+		vrLoc = 3525;
+	};
+	AF02E9FD0EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF155A300A501F84007E1E6E /* CDirectoryService.h */;
+		name = "CDirectoryService.h: 32";
+		rLen = 0;
+		rLoc = 978;
+		rType = 0;
+		vrLen = 2623;
+		vrLoc = 0;
+	};
+	AF02E9FE0EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */;
+		name = "CDirectoryService.cpp: 710";
+		rLen = 0;
+		rLoc = 26937;
+		rType = 0;
+		vrLen = 2731;
+		vrLoc = 5528;
+	};
+	AF02E9FF0EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF41D9AC0CBDBAE200AB863D /* CDirectoryServiceManager.h */;
+		name = "CDirectoryServiceManager.h: 39";
+		rLen = 12;
+		rLoc = 1107;
+		rType = 0;
+		vrLen = 1124;
+		vrLoc = 0;
+	};
+	AF02EA000EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */;
+		name = "CDirectoryServiceManager.cpp: 23";
+		rLen = 0;
+		rLoc = 821;
+		rType = 0;
+		vrLen = 1469;
+		vrLoc = 0;
+	};
+	AF02EA010EF9578E005EC935 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = AF41D9AC0CBDBAE200AB863D /* CDirectoryServiceManager.h */;
+		name = "CDirectoryServiceManager.h: 39";
+		rLen = 12;
+		rLoc = 1107;
+		rType = 0;
+		vrLen = 1124;
+		vrLoc = 0;
 	};
 	AF155A290A501F5C007E1E6E /* PyOpenDirectory */ = {
 		isa = PBXExecutable;
@@ -141,6 +342,9 @@
 		configStateDict = {
 		};
 		customDataFormattersEnabled = 1;
+		dataTipCustomDataFormattersEnabled = 1;
+		dataTipShowTypeColumn = 1;
+		dataTipSortType = 0;
 		debuggerPlugin = GDBDebugging;
 		disassemblyDisplayState = 0;
 		dylibVariantSuffix = "";
@@ -153,6 +357,7 @@
 		name = PyOpenDirectory;
 		savedGlobals = {
 		};
+		showTypeColumn = 0;
 		sourceDirectories = (
 		);
 		variableFormatDictionary = {
@@ -177,7 +382,11 @@
 		isa = PBXSourceControlManager;
 		fallbackIsa = XCSourceControlManager;
 		isSCMEnabled = 0;
+		repositoryNamesForRoots = {
+		};
 		scmConfiguration = {
+			repositoryNamesForRoots = {
+			};
 		};
 		scmType = "";
 	};
@@ -187,27 +396,27 @@
 	};
 	AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1593, 16282}}";
-			sepNavSelRange = "{967, 11}";
-			sepNavVisRange = "{0, 1702}";
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 12992}}";
+			sepNavSelRange = "{26937, 0}";
+			sepNavVisRange = "{5528, 2731}";
 			sepNavVisRect = "{{0, 0}, {1309, 1017}}";
 			sepNavWindowFrame = "{{85, 4}, {1280, 874}}";
 		};
 	};
 	AF155A300A501F84007E1E6E /* CDirectoryService.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1593, 1316}}";
-			sepNavSelRange = "{2531, 0}";
-			sepNavVisRange = "{824, 2709}";
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 1232}}";
+			sepNavSelRange = "{978, 0}";
+			sepNavVisRange = "{0, 2623}";
 			sepNavVisRect = "{{0, 123}, {752, 676}}";
 			sepNavWindowFrame = "{{50, 9}, {1390, 869}}";
 		};
 	};
 	AF155A310A501F84007E1E6E /* PythonWrapper.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1593, 13342}}";
-			sepNavSelRange = "{20077, 60}";
-			sepNavVisRange = "{0, 1590}";
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 12096}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 1657}";
 			sepNavVisRect = "{{0, 0}, {1521, 647}}";
 			sepNavWindowFrame = "{{89, 4}, {1043, 828}}";
 		};
@@ -232,143 +441,47 @@
 	};
 	AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1593, 987}}";
-			sepNavSelRange = "{0, 0}";
-			sepNavVisRange = "{0, 1164}";
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 1041}}";
+			sepNavSelRange = "{1031, 0}";
+			sepNavVisRange = "{0, 1469}";
 			sepNavWindowFrame = "{{558, 246}, {1280, 828}}";
 		};
 	};
 	AF41D9AC0CBDBAE200AB863D /* CDirectoryServiceManager.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1113, 687}}";
-			sepNavSelRange = "{775, 0}";
-			sepNavVisRange = "{0, 1060}";
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 1041}}";
+			sepNavSelRange = "{1107, 12}";
+			sepNavVisRange = "{0, 1124}";
 			sepNavWindowFrame = "{{677, 13}, {1280, 828}}";
 		};
 	};
 	AFC1CA770E809C5200FAB3DB /* base64.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1113, 687}}";
-			sepNavSelRange = "{674, 13}";
-			sepNavVisRange = "{0, 787}";
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 1041}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 746}";
 			sepNavWindowFrame = "{{15, -1}, {1067, 874}}";
 		};
 	};
 	AFC1CA780E809C5200FAB3DB /* base64.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1379, 1596}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 1610}}";
 			sepNavSelRange = "{1633, 0}";
-			sepNavVisRange = "{1217, 820}";
+			sepNavVisRange = "{0, 2561}";
 		};
 	};
-	AFDF2BF10ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */;
-		name = "CDirectoryService.cpp: 35";
-		rLen = 11;
-		rLoc = 967;
-		rType = 0;
-		vrLen = 1702;
-		vrLoc = 0;
+	AFC9AC0A0EF8A3FC0050787E /* CDirectoryServiceAuth.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 1041}}";
+			sepNavSelRange = "{1662, 0}";
+			sepNavVisRange = "{0, 1665}";
+		};
 	};
-	AFDF2BF20ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */;
-		name = "CDirectoryServiceManager.cpp: 1";
-		rLen = 0;
-		rLoc = 0;
-		rType = 0;
-		vrLen = 1164;
-		vrLoc = 0;
-	};
-	AFDF2BF30ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF02AC560CBE690500F478B8 /* CDirectoryServiceException.cpp */;
-		name = "CDirectoryServiceException.cpp: 40";
-		rLen = 12;
-		rLoc = 1235;
-		rType = 0;
-		vrLen = 1744;
-		vrLoc = 0;
-	};
-	AFDF2BF40ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */;
-		name = "PythonWrapper.cpp: 386";
-		rLen = 72;
-		rLoc = 10790;
-		rType = 0;
-		vrLen = 2458;
-		vrLoc = 11118;
-	};
-	AFDF2BF50ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */;
-		name = "CDirectoryService.cpp: 582";
-		rLen = 32;
-		rLoc = 21372;
-		rType = 0;
-		vrLen = 3503;
-		vrLoc = 20090;
-	};
-	AFDF2BF60ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */;
-		name = "CDirectoryService.cpp: 656";
-		rLen = 0;
-		rLoc = 25530;
-		rType = 0;
-		vrLen = 3488;
-		vrLoc = 23025;
-	};
-	AFDF2BF70ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */;
-		name = "PythonWrapper.cpp: 386";
-		rLen = 72;
-		rLoc = 10790;
-		rType = 0;
-		vrLen = 2458;
-		vrLoc = 11118;
-	};
-	AFDF2BF80ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */;
-		name = "CDirectoryService.cpp: 35";
-		rLen = 11;
-		rLoc = 967;
-		rType = 0;
-		vrLen = 1702;
-		vrLoc = 0;
-	};
-	AFDF2BF90ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */;
-		name = "CDirectoryServiceManager.cpp: 1";
-		rLen = 0;
-		rLoc = 0;
-		rType = 0;
-		vrLen = 1164;
-		vrLoc = 0;
-	};
-	AFDF2BFA0ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF02AC560CBE690500F478B8 /* CDirectoryServiceException.cpp */;
-		name = "CDirectoryServiceException.cpp: 40";
-		rLen = 12;
-		rLoc = 1235;
-		rType = 0;
-		vrLen = 1744;
-		vrLoc = 0;
-	};
-	AFDF2BFB0ECC846100B8B73B /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */;
-		name = "PythonWrapper.cpp: 648";
-		rLen = 60;
-		rLoc = 20077;
-		rType = 0;
-		vrLen = 1590;
-		vrLoc = 0;
+	AFC9AC0B0EF8A3FC0050787E /* CDirectoryServiceAuth.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1593, 4158}}";
+			sepNavSelRange = "{4391, 0}";
+			sepNavVisRange = "{3525, 2290}";
+		};
 	};
 }

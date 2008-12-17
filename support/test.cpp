@@ -22,6 +22,7 @@
 #include <DirectoryService/DirectoryService.h>
 
 #include "CDirectoryService.h"
+#include "CDirectoryServiceAuth.h"
 #include "CFStringUtil.h"
 
 tDirReference gDirRef = NULL;
@@ -31,8 +32,8 @@ void PrintDictionaryDictionary(const void* key, const void* value, void* ref);
 void PrintDictionary(const void* key, const void* value, void* ref);
 void PrintArrayArray(CFMutableArrayRef list);
 void PrintArray(CFArrayRef list);
-void AuthenticateUser(CDirectoryService* dir, const char* guid, const char* user, const char* pswd);
-void AuthenticateUserDigest(CDirectoryService* dir, const char* guid, const char* user, const char* challenge, const char* response, const char* method);
+void AuthenticateUser(CDirectoryServiceAuth* dir, const char* guid, const char* user, const char* pswd);
+void AuthenticateUserDigest(CDirectoryServiceAuth* dir, const char* guid, const char* user, const char* challenge, const char* response, const char* method);
 
 #define		kDSStdRecordTypeResources					"dsRecTypeStandard:Resources"
 #define		kDSNAttrServicesLocator						"dsAttrTypeStandard:ServicesLocator"
@@ -41,9 +42,10 @@ void AuthenticateUserDigest(CDirectoryService* dir, const char* guid, const char
 int main (int argc, const char * argv[]) {
 
 	CDirectoryService* dir = new CDirectoryService("/Search");
+	CDirectoryServiceAuth* authdir = new CDirectoryServiceAuth();
 
 #if 1
-#if 1
+#if 0
 	CFStringRef attrs[3];
 	attrs[0] = CFSTR(kDS1AttrDistinguishedName);
 	attrs[1] = CFSTR(kDS1AttrGeneratedUID);
@@ -55,7 +57,11 @@ int main (int argc, const char * argv[]) {
 	types[2] = CFSTR("base64");
 	CFDictionaryRef attrsdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)attrs, (const void **)types, 3, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 
-	CFMutableArrayRef data = dir->ListAllRecordsWithAttributes(kDSStdRecordTypeUsers, attrsdict, false);
+	CFStringRef rtypes[1];
+	rtypes[0] = CFSTR(kDSStdRecordTypeUsers);
+	CFArrayRef recordTypes = CFArrayCreate(kCFAllocatorDefault, (const void**)rtypes, 1, &kCFTypeArrayCallBacks);
+
+	CFMutableArrayRef data = dir->ListAllRecordsWithAttributes(recordTypes, attrsdict, 0, false);
 	if (data != NULL)
 	{
 		printf("\n*** Users: %d ***\n", CFArrayGetCount(data));
@@ -121,8 +127,8 @@ int main (int argc, const char * argv[]) {
 #endif
 #endif
 
-	//AuthenticateUser(dir, "gooeyed", "test", "test-no");
-	//AuthenticateUser(dir, "gooeyed", "test", "test-yes");
+	AuthenticateUser(authdir, "/LDAPv3/127.0.0.1", "oliverdaboo", "oliver");
+	AuthenticateUser(authdir, "/LDAPv3/127.0.0.1", "eleanordaboo", "eleanor");
 #elif 0
 	CFStringRef keys[2];
 	keys[0] = CFSTR(kDS1AttrFirstName);
@@ -196,15 +202,15 @@ int main (int argc, const char * argv[]) {
 	//const char* r = "username=\"test\", nonce=\"1\", cnonce=\"1\", nc=\"1\", realm=\"Test\", algorithm=\"md5\", opaque=\"1\", qop=\"auth\", uri=\"/\", response=\"4241f31ffe6f9c99b891f88e9c41caa9\"";
 	const char* c = "WWW-Authenticate: digest nonce=\"1621696297327727918745238639\", opaque=\"121994e78694cbdff74f12cb32ee6f00-MTYyMTY5NjI5NzMyNzcyNzkxODc0NTIzODYzOSwxMjcuMC4wLjEsMTE2ODU2ODg5NQ==\", realm=\"Test Realm\", algorithm=\"md5\", qop=\"auth\"";
 	const char* r = "Authorization: Digest username=\"test\", realm=\"Test Realm\", nonce=\"1621696297327727918745238639\", uri=\"/principals/users/test/\", response=\"e260f13cffcc15572ddeec9c31de437b\", opaque=\"121994e78694cbdff74f12cb32ee6f00-MTYyMTY5NjI5NzMyNzcyNzkxODc0NTIzODYzOSwxMjcuMC4wLjEsMTE2ODU2ODg5NQ==\", algorithm=\"md5\", cnonce=\"70cbd8f04227d8d46c0193b290beaf0d\", nc=00000001, qop=\"auth\"";
-	AuthenticateUserDigest(dir, u, c, r, "GET");
+	AuthenticateUserDigest(authdir, u, c, r, "GET");
 #endif
 	return 0;
 }
 
-void AuthenticateUser(CDirectoryService* dir, const char* guid, const char* user, const char* pswd)
+void AuthenticateUser(CDirectoryServiceAuth* dir, const char* nodename, const char* user, const char* pswd)
 {
 	bool result = false;
-	if (dir->AuthenticateUserBasic(guid, user, pswd, result))
+	if (dir->AuthenticateUserBasic(nodename, user, pswd, result, false))
 	{
 		if (result)
 			printf("Authenticated user: %s\n", user);
@@ -215,10 +221,10 @@ void AuthenticateUser(CDirectoryService* dir, const char* guid, const char* user
 		printf("Failed authentication user: %s\n", user);
 }
 
-void AuthenticateUserDigest(CDirectoryService* dir, const char* guid, const char* user, const char* challenge, const char* response, const char* method)
+void AuthenticateUserDigest(CDirectoryServiceAuth* dir, const char* nodename, const char* user, const char* challenge, const char* response, const char* method)
 {
 	bool result = false;
-	if (dir->AuthenticateUserDigest(guid, user, challenge, response, method, result))
+	if (dir->AuthenticateUserDigest(nodename, user, challenge, response, method, result, false))
 	{
 		if (result)
 			printf("Authenticated user: %s\n", user);

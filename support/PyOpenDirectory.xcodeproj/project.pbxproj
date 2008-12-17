@@ -19,6 +19,7 @@
 		AF155AFE0A502C09007E1E6E /* CFStringUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155AFC0A502C09007E1E6E /* CFStringUtil.cpp */; };
 		AF41D9AD0CBDBAE200AB863D /* CDirectoryServiceManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF41D9AB0CBDBAE200AB863D /* CDirectoryServiceManager.cpp */; };
 		AFC1CA790E809C5200FAB3DB /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFC1CA780E809C5200FAB3DB /* base64.cpp */; };
+		AFC9AC0C0EF8A3FC0050787E /* CDirectoryServiceAuth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFC9AC0B0EF8A3FC0050787E /* CDirectoryServiceAuth.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -52,6 +53,8 @@
 		AF41D9AC0CBDBAE200AB863D /* CDirectoryServiceManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDirectoryServiceManager.h; path = ../src/CDirectoryServiceManager.h; sourceTree = SOURCE_ROOT; };
 		AFC1CA770E809C5200FAB3DB /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../src/base64.h; sourceTree = SOURCE_ROOT; };
 		AFC1CA780E809C5200FAB3DB /* base64.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = base64.cpp; path = ../src/base64.cpp; sourceTree = SOURCE_ROOT; };
+		AFC9AC0A0EF8A3FC0050787E /* CDirectoryServiceAuth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDirectoryServiceAuth.h; path = ../src/CDirectoryServiceAuth.h; sourceTree = SOURCE_ROOT; };
+		AFC9AC0B0EF8A3FC0050787E /* CDirectoryServiceAuth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CDirectoryServiceAuth.cpp; path = ../src/CDirectoryServiceAuth.cpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +90,8 @@
 				AF41D9AC0CBDBAE200AB863D /* CDirectoryServiceManager.h */,
 				AF155A2F0A501F84007E1E6E /* CDirectoryService.cpp */,
 				AF155A300A501F84007E1E6E /* CDirectoryService.h */,
+				AFC9AC0B0EF8A3FC0050787E /* CDirectoryServiceAuth.cpp */,
+				AFC9AC0A0EF8A3FC0050787E /* CDirectoryServiceAuth.h */,
 				AF155A310A501F84007E1E6E /* PythonWrapper.cpp */,
 				08FB7796FE84155DC02AAC07 /* test.cpp */,
 				AF155AFC0A502C09007E1E6E /* CFStringUtil.cpp */,
@@ -165,6 +170,7 @@
 				AF41D9AD0CBDBAE200AB863D /* CDirectoryServiceManager.cpp in Sources */,
 				AF02AC580CBE690500F478B8 /* CDirectoryServiceException.cpp in Sources */,
 				AFC1CA790E809C5200FAB3DB /* base64.cpp in Sources */,
+				AFC9AC0C0EF8A3FC0050787E /* CDirectoryServiceAuth.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
