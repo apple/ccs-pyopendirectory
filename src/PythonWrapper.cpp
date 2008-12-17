@@ -19,6 +19,7 @@
 
 #include "CDirectoryServiceManager.h"
 #include "CDirectoryService.h"
+#include "CDirectoryServiceAuth.h"
 #include "CFStringUtil.h"
 
 #include <memory>
@@ -789,7 +790,7 @@ extern "C" PyObject *authenticateUserBasic(PyObject *self, PyObject *args)
     CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
     if (dsmgr != NULL)
     {
-        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+        CDirectoryServiceAuth* ds = dsmgr->GetAuthService();
         bool result = false;
         bool authresult = false;
         result = ds->AuthenticateUserBasic(nodename, user, pswd, authresult);
@@ -838,7 +839,7 @@ extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
     CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
     if (dsmgr != NULL)
     {
-        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+        CDirectoryServiceAuth* ds = dsmgr->GetAuthService();
         bool result = false;
         bool authresult = false;
         result = ds->AuthenticateUserDigest(nodename, user, challenge, response, method, authresult);

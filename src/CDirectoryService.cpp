@@ -95,13 +95,15 @@ CFMutableArrayRef CDirectoryService::ListAllRecordsWithAttributes(CFArrayRef rec
     }
     catch(CDirectoryServiceException& dserror)
     {
-        dserror.SetPythonException();
+		if (using_python)
+			dserror.SetPythonException();
         return NULL;
     }
     catch(...)
     {
         CDirectoryServiceException dserror;
-        dserror.SetPythonException();
+		if (using_python)
+	        dserror.SetPythonException();
         return NULL;
     }
 }
@@ -134,13 +136,15 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttribute(const char* attr,
     }
     catch(CDirectoryServiceException& dserror)
     {
-        dserror.SetPythonException();
+		if (using_python)
+	        dserror.SetPythonException();
         return NULL;
     }
     catch(...)
     {
         CDirectoryServiceException dserror;
-        dserror.SetPythonException();
+		if (using_python)
+	        dserror.SetPythonException();
         return NULL;
     }
 }
@@ -171,76 +175,16 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* quer
     }
     catch(CDirectoryServiceException& dserror)
     {
-        dserror.SetPythonException();
+		if (using_python)
+	        dserror.SetPythonException();
         return NULL;
     }
     catch(...)
     {
         CDirectoryServiceException dserror;
-        dserror.SetPythonException();
+		if (using_python)
+	        dserror.SetPythonException();
         return NULL;
-    }
-}
-
-// AuthenticateUserBasic
-//
-// Authenticate a user to the directory using plain text credentials.
-//
-// @param nodename: the directory nodename for the user record.
-// @param user: the uid of the user.
-// @param pswd: the plain text password to authenticate with.
-// @return: true if authentication succeeds, false otherwise.
-//
-bool CDirectoryService::AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result, bool using_python)
-{
-    try
-    {
-        StPythonThreadState threading(using_python);
-
-        result = NativeAuthenticationBasicToNode(nodename, user, pswd);
-        return true;
-    }
-    catch(CDirectoryServiceException& dserror)
-    {
-        dserror.SetPythonException();
-        return false;
-    }
-    catch(...)
-    {
-        CDirectoryServiceException dserror;
-        dserror.SetPythonException();
-        return false;
-    }
-}
-
-// AuthenticateUserDigest
-//
-// Authenticate a user to the directory using HTTP DIGEST credentials.
-//
-// @param nodename: the directory nodename for the user record.
-// @param challenge: HTTP challenge sent by server.
-// @param response: HTTP response sent by client.
-// @return: true if authentication succeeds, false otherwise.
-//
-bool CDirectoryService::AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result, bool using_python)
-{
-    try
-    {
-        StPythonThreadState threading(using_python);
-
-        result = NativeAuthenticationDigestToNode(nodename, user, challenge, response, method);
-        return true;
-    }
-    catch(CDirectoryServiceException& dserror)
-    {
-        dserror.SetPythonException();
-        return false;
-    }
-    catch(...)
-    {
-        CDirectoryServiceException dserror;
-        dserror.SetPythonException();
-        return false;
     }
 }
 
@@ -761,216 +705,6 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
     return result;
 }
 
-// NativeAuthenticationBasicToNode
-//
-// Authenticate a user to the directory.
-//
-// @param nodename: the node to authenticate to.
-// @param user: the uid of the user.
-// @param pswd: the plain text password to authenticate with.
-// @return: true if authentication succeeds, false otherwise.
-//
-bool CDirectoryService::NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd)
-{
-    bool result = false;
-    tDirNodeReference node = 0L;
-    tDataNodePtr authType = NULL;
-    tDataBufferPtr authData = NULL;
-    tContextData context = NULL;
-
-    try
-    {
-        // Make sure we have a valid directory service
-        OpenService();
-
-        // Open the node we want to query
-        node = OpenNamedNode(nodename);
-
-        CreateBuffer();
-
-        // First, specify the type of authentication.
-        authType = ::dsDataNodeAllocateString(mDir, kDSStdAuthClearText);
-
-        // Build input data
-        //  Native authentication is a one step authentication scheme.
-        //  Step 1
-        //      Send: <length><recordname>
-        //            <length><cleartextpassword>
-        //   Receive: success or failure.
-        UInt32 aDataBufSize = sizeof(UInt32) + ::strlen(user) + sizeof(UInt32) + ::strlen(pswd);
-        authData = ::dsDataBufferAllocate(mDir, aDataBufSize);
-        if (authData == NULL)
-            ThrowIfDSErr(eDSNullDataBuff);
-        UInt32 aCurLength = 0;
-        UInt32 aTempLength = ::strlen(user);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
-        aCurLength += sizeof(UInt32);
-
-        ::memcpy(&(authData->fBufferData[aCurLength]), user,  aTempLength);
-        aCurLength += aTempLength;
-
-        aTempLength = ::strlen(pswd);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
-        aCurLength += sizeof(UInt32);
-
-        ::memcpy(&(authData->fBufferData[aCurLength]), pswd,  aTempLength);
-
-        authData->fBufferLength = aDataBufSize;
-
-        // Do authentication
-        tDirStatus dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
-        result = (dirStatus == eDSNoErr);
-
-        // Cleanup
-        ::dsDataBufferDeAllocate(mDir, authData);
-        authData = NULL;
-        ::dsDataNodeDeAllocate(mDir, authType);
-        authType = NULL;
-        RemoveBuffer();
-        if (node != 0L)
-        {
-            ::dsCloseDirNode(node);
-            node = 0L;
-        }
-        CloseService();
-    }
-    catch(...)
-    {
-        // Cleanup
-        if (authData != NULL)
-            ::dsDataBufferDeAllocate(mDir, authData);
-        if (authType != NULL)
-            ::dsDataNodeDeAllocate(mDir, authType);
-        RemoveBuffer();
-        if (node != 0L)
-        {
-            ::dsCloseDirNode(node);
-            node = 0L;
-        }
-        CloseService();
-
-        throw;
-    }
-
-    return result;
-}
-
-// NativeAuthenticationDigestToNode
-//
-// Authenticate a user to the directory.
-//
-// @param nodename: the node to authenticate to.
-// @param user: the uid of the user.
-// @param challenge: the server challenge.
-// @param response: the client response.
-// @param method: the HTTP method.
-// @return: true if authentication succeeds, false otherwise.
-//
-bool CDirectoryService::NativeAuthenticationDigestToNode(const char* nodename, const char* user,
-                                                         const char* challenge, const char* response, const char* method)
-{
-    bool result = false;
-    tDirNodeReference node = 0L;
-    tDataNodePtr authType = NULL;
-    tDataBufferPtr authData = NULL;
-    tContextData context = NULL;
-
-    try
-    {
-        // Make sure we have a valid directory service
-        OpenService();
-
-        // Open the node we want to query
-        node = OpenNamedNode(nodename);
-
-        CreateBuffer();
-
-        // First, specify the type of authentication.
-        authType = ::dsDataNodeAllocateString(mDir, kDSStdAuthDIGEST_MD5);
-
-        // Build input data
-        //  Native authentication is a one step authentication scheme.
-        //  Step 1
-        //      Send: <length><user>
-        //              <length><challenge>
-        //            <length><response>
-        //              <length><method>
-        //   Receive: success or failure.
-        UInt32 aDataBufSize = sizeof(UInt32) + ::strlen(user) +
-                              sizeof(UInt32) + ::strlen(challenge) +
-                              sizeof(UInt32) + ::strlen(response) +
-                              sizeof(UInt32) + ::strlen(method);
-        authData = ::dsDataBufferAllocate(mDir, aDataBufSize);
-        if (authData == NULL)
-            ThrowIfDSErr(eDSNullDataBuff);
-        UInt32 aCurLength = 0;
-        UInt32 aTempLength = ::strlen(user);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
-        aCurLength += sizeof(UInt32);
-
-        ::memcpy(&(authData->fBufferData[aCurLength]), user,  aTempLength);
-        aCurLength += aTempLength;
-
-        aTempLength = ::strlen(challenge);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
-        aCurLength += sizeof(UInt32);
-
-        ::memcpy(&(authData->fBufferData[aCurLength]), challenge,  aTempLength);
-        aCurLength += aTempLength;
-
-        aTempLength = ::strlen(response);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
-        aCurLength += sizeof(UInt32);
-
-        ::memcpy(&(authData->fBufferData[aCurLength]), response,  aTempLength);
-        aCurLength += aTempLength;
-
-        aTempLength = ::strlen(method);
-        ::memcpy(&(authData->fBufferData[aCurLength]), &aTempLength,  sizeof(UInt32));
-        aCurLength += sizeof(UInt32);
-
-        ::memcpy(&(authData->fBufferData[aCurLength]), method,  aTempLength);
-
-        authData->fBufferLength = aDataBufSize;
-
-        // Do authentication
-        tDirStatus dirStatus = ::dsDoDirNodeAuth(node, authType, true,  authData,  mData, &context);
-        result = (dirStatus == eDSNoErr);
-
-        // Cleanup
-        ::dsDataBufferDeAllocate(mDir, authData);
-        authData = NULL;
-        ::dsDataNodeDeAllocate(mDir, authType);
-        authType = NULL;
-        RemoveBuffer();
-        if (node != 0L)
-        {
-            ::dsCloseDirNode(node);
-            node = 0L;
-        }
-        CloseService();
-    }
-    catch(...)
-    {
-        // Cleanup
-        if (authData != NULL)
-            ::dsDataBufferDeAllocate(mDir, authData);
-        if (authType != NULL)
-            ::dsDataNodeDeAllocate(mDir, authType);
-        RemoveBuffer();
-        if (node != 0L)
-        {
-            ::dsCloseDirNode(node);
-            node = 0L;
-        }
-        CloseService();
-
-        throw;
-    }
-
-    return result;
-}
-
 // OpenService
 //
 // Open the directory service.
@@ -1014,9 +748,9 @@ void CDirectoryService::OpenNode()
     mNode = OpenNamedNode(mNodeName);
 }
 
-// OpenNode
+// OpenNamedNode
 //
-// Open a node in the directory.
+// Open a named node in the directory.
 //
 // @param nodename: the name of the node to open.
 // @return: node reference if success, NULL otherwise.

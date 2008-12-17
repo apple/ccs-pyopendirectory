@@ -29,16 +29,13 @@ class CDirectoryService
 {
 public:
     CDirectoryService(const char* nodename);
-    ~CDirectoryService();
+    virtual ~CDirectoryService();
 
     CFMutableArrayRef ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount=0, bool using_python=true);
     CFMutableArrayRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount=0, bool using_python=true);
     CFMutableArrayRef QueryRecordsWithAttributes(const char* query, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount=0, bool using_python=true);
 
-    bool AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result, bool using_python=true);
-    bool AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result, bool using_python=true);
-
-private:
+protected:
 
     class StPythonThreadState
     {
@@ -70,14 +67,11 @@ private:
     CFMutableArrayRef _ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFArrayRef names, CFDictionaryRef attrs, UInt32 maxRecordCount);
     CFMutableArrayRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, CFArrayRef recordTypes, CFDictionaryRef attrs, UInt32 maxRecordCount);
 
-    bool NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd);
-    bool NativeAuthenticationDigestToNode(const char* nodename, const char* user, const char* challenge, const char* response, const char* method);
-
-    void OpenService();
-    void CloseService();
+    virtual void OpenService();
+    virtual void CloseService();
 
     void OpenNode();
-    tDirNodeReference OpenNamedNode(const char* nodename);
+    virtual tDirNodeReference OpenNamedNode(const char* nodename);
     void CloseNode();
 
     void CreateBuffer();

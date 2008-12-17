@@ -20,6 +20,7 @@
 #pragma once
 
 class CDirectoryService;
+class CDirectoryServiceAuth;
 
 class CDirectoryServiceManager
 {
@@ -27,11 +28,10 @@ public:
     CDirectoryServiceManager(const char* nodename);
     ~CDirectoryServiceManager();
 
-    void OpenService();
-    void CloseService();
-
     CDirectoryService* GetService();
+    CDirectoryServiceAuth* GetAuthService();
 
 private:
-    char*            mNodeName;
+    char*					mNodeName;
+	CDirectoryServiceAuth*	mAuthService;
 };

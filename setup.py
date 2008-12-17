@@ -31,6 +31,7 @@ if sys.platform in ["darwin", "macosx"]:
             'src/PythonWrapper.cpp',
             'src/CDirectoryServiceManager.cpp',
             'src/CDirectoryService.cpp',
+            'src/CDirectoryServiceAuth.cpp',
             'src/CDirectoryServiceException.cpp',
             'src/CFStringUtil.cpp',
             'src/base64.cpp',

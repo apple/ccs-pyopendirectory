@@ -20,6 +20,7 @@
 #include "CDirectoryServiceManager.h"
 
 #include "CDirectoryService.h"
+#include "CDirectoryServiceAuth.h"
 #include "CDirectoryServiceException.h"
 
 #pragma mark -----Public API
@@ -27,14 +28,27 @@
 CDirectoryServiceManager::CDirectoryServiceManager(const char* nodename)
 {
     mNodeName = ::strdup(nodename);
+	mAuthService = NULL;
 }
 
 CDirectoryServiceManager::~CDirectoryServiceManager()
 {
+	if (mAuthService != NULL)
+	{
+		delete mAuthService;
+		mAuthService = NULL;
+	}
     ::free(mNodeName);
 }
 
 CDirectoryService* CDirectoryServiceManager::GetService()
 {
     return new CDirectoryService(mNodeName);
+}
+
+CDirectoryServiceAuth* CDirectoryServiceManager::GetAuthService()
+{
+	if (mAuthService == NULL)
+		mAuthService = new CDirectoryServiceAuth();
+    return mAuthService;
 }

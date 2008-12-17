@@ -138,6 +138,9 @@ def doAuthDigest(username, password, qop, algorithm):
         False,
         dsattributes.kDSStdRecordTypeUsers,
         [dsattributes.kDSNAttrMetaNodeLocation])
+    if not result:
+        print "Failed to get record for user: %s" % (username,)
+        return
     nodename = result[0][1][dsattributes.kDSNAttrMetaNodeLocation]
     
     expected = calcResponse(
@@ -188,6 +191,9 @@ def doAuthBasic(username, password):
         False,
         dsattributes.kDSStdRecordTypeUsers,
         [dsattributes.kDSNAttrMetaNodeLocation])
+    if not result:
+        print "Failed to get record for user: %s" % (username,)
+        return
     nodename = result[0][1][dsattributes.kDSNAttrMetaNodeLocation]
     
     for _ignore_x in xrange(attempts):
@@ -210,6 +216,6 @@ attempts = int(raw_input("Number of attempts: "))
 
 od = opendirectory.odInit(search)
 
-doAuthBasic(user, pswd)
+#doAuthBasic(user, pswd)
 doAuthDigest(user, pswd, None, "md5")
 
