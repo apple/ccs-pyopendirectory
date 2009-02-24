@@ -22,6 +22,7 @@
 #include "CDirectoryService.h"
 
 #include <map>
+#include <string>
 
 class CDirectoryServiceAuth : public CDirectoryService
 {
@@ -34,7 +35,7 @@ public:
 
 protected:
 
-	typedef std::map<const char*, tDirNodeReference> TNodeMap;
+	typedef std::map<std::string, tDirNodeReference> TNodeMap;
 	TNodeMap mNodeMap;
 
     bool NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd);
