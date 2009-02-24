@@ -1159,6 +1159,12 @@ kDSNAttrAddressLine2 = "dsAttrTypeStandard:AddressLine2"
 kDSNAttrAddressLine3 = "dsAttrTypeStandard:AddressLine3"
 
 """
+ kDSNAttrAltSecurityIdentities
+ Alternative Security Identities such as Kerberos principals.
+"""
+kDSNAttrAltSecurityIdentities = "dsAttrTypeStandard:AltSecurityIdentities"
+
+"""
  kDSNAttrAreaCode
  Area code of a user's phone number.
 """
