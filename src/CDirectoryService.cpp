@@ -2,7 +2,7 @@
  * A class that wraps high-level Directory Service calls needed by the
  * CalDAV server.
  **
- * Copyright (c) 2006-2008 Apple Inc. All rights reserved.
+ * Copyright (c) 2006-2009 Apple Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,36 @@ CDirectoryService::~CDirectoryService()
 
     delete mNodeName;
     mNodeName = NULL;
+}
+
+// ListNodes
+//
+// List all the nodes in the directory.
+//
+// @return: CFMutableArrayRef composed of CFStringRef for each node.
+//
+CFMutableArrayRef CDirectoryService::ListNodes(bool using_python)
+{
+    try
+    {
+        StPythonThreadState threading(using_python);
+		
+        // Get list
+        return _ListNodes();
+    }
+    catch(CDirectoryServiceException& dserror)
+    {
+		if (using_python)
+			dserror.SetPythonException();
+        return NULL;
+    }
+    catch(...)
+    {
+        CDirectoryServiceException dserror;
+		if (using_python)
+	        dserror.SetPythonException();
+        return NULL;
+    }
 }
 
 // ListAllRecordsWithAttributes
@@ -189,6 +219,83 @@ CFMutableArrayRef CDirectoryService::QueryRecordsWithAttributes(const char* quer
 }
 
 #pragma mark -----Private API
+
+// _ListNodes
+//
+// List all the nodes in the directory.
+//
+// @return: CFMutableArrayRef composed of CFStringRef for each node.
+//
+CFMutableArrayRef CDirectoryService::_ListNodes()
+{
+    CFMutableArrayRef result = NULL;
+    tContextData context = NULL;
+	
+    try
+    {
+        // Make sure we have a valid directory service
+        OpenService();
+		
+        // We need a buffer for what comes next
+        CreateBuffer();
+		
+        result = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+
+        do
+        {
+            // List all the appropriate records
+			UInt32 nodeCount = 0;
+            tDirStatus err;
+            do
+            {
+                err = ::dsGetDirNodeList(mDir, mData, &nodeCount, &context);
+                if (err == eDSBufferTooSmall)
+                    ReallocBuffer();
+            } while(err == eDSBufferTooSmall);
+            ThrowIfDSErr(err);
+            for(UInt32 i = 1; i <= nodeCount; i++)
+            {
+                // Get the record entry
+				tDataListPtr nodeData = NULL;
+                ThrowIfDSErr(::dsGetDirNodeName(mDir, mData, i, &nodeData));
+
+				char* nodePath = ::dsGetPathFromList(mDir, nodeData, "/");
+				if (nodePath != NULL)
+				{
+					CFStringUtil strvalue(nodePath);
+					::CFArrayAppendValue(result, strvalue.get());
+					::free(nodePath);
+					nodePath = NULL;
+				}
+
+				::dsDataListDeallocate(mDir, nodeData);
+				::free(nodeData);
+				
+            }
+        } while (context != NULL); // Loop until all data has been obtained.
+			
+        RemoveBuffer();
+        CloseService();
+    }
+    catch(CDirectoryServiceException& dsStatus)
+    {
+        // Cleanup
+        if (context != NULL)
+            ::dsReleaseContinueData(mDir, context);
+
+        RemoveBuffer();
+        CloseService();
+		
+        if (result != NULL)
+        {
+            ::CFRelease(result);
+            result = NULL;
+        }
+        throw;
+    }
+	
+    return result;
+}
 
 // _ListAllRecordsWithAttributes
 //

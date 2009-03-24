@@ -1,5 +1,5 @@
 ##
-# Copyright (c) 2006-2008 Apple Inc. All rights reserved.
+# Copyright (c) 2006-2009 Apple Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,6 +25,15 @@ try:
 	else:
 		print "OK odInit"
 
+	def listNodes():
+		l = opendirectory.listNodes(ref)
+		if l is None:
+			print "Failed to list nodes"
+		else:
+			print "\nlistNodes number of results = %d" % (len(l),)
+			for n in l:
+				print "Node: %s" % n
+	
 	def listUsers():
 		d = opendirectory.listAllRecordsWithAttributes(ref, dsattributes.kDSStdRecordTypeUsers,
 													   (
@@ -351,6 +360,7 @@ try:
 		else:
 			print "Failed to authenticate user"
 	
+	listNodes()
 	listUsers()
 	listGroups()
 	listComputers()

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2006-2008 Apple Inc. All rights reserved.
+ * Copyright (c) 2006-2009 Apple Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,30 @@ int main (int argc, const char * argv[]) {
 
 	CDirectoryService* dir = new CDirectoryService("/Search");
 	CDirectoryServiceAuth* authdir = new CDirectoryServiceAuth();
+
+	CFMutableArrayRef data = dir->ListNodes(false);
+	if (data != NULL)
+	{
+		printf("\n*** Nodes: %d ***\n", CFArrayGetCount(data));
+		for(CFIndex i = 0; i < CFArrayGetCount(data); i++)
+		{
+			CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(data, i);
+			const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
+			
+			if (bytes == NULL)
+			{
+				char localBuffer[256];
+				Boolean success;
+				success = CFStringGetCString(str, localBuffer, 256, kCFStringEncodingUTF8);
+				printf("%d: %s\n", i, localBuffer);
+			}
+			else
+			{
+				printf("%d: %s\n", i, (const char*)bytes);
+			}
+		}
+		CFRelease(data);
+	}
 
 #if 1
 #if 0

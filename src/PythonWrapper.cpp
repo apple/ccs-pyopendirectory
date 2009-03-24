@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2006-2008 Apple Inc. All rights reserved.
+ * Copyright (c) 2006-2009 Apple Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -633,18 +633,57 @@ extern "C" PyObject* odInit(PyObject* self, PyObject* args)
 }
 
 /*
-def listAllRecordsWithAttributes(obj, recordType, attributes, count=0):
-    """
-    List records in Open Directory, and return key attributes for each one. The attributes
-    can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
-    is the attribute name, and the second C{str} is an encoding type, either "str" or "base64".
+ def listNodes(obj):
+	 """
+	 List all the nodes currently configured in Open Directory.
 
-    @param obj: C{object} the object obtained from an odInit call.
-    @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
-    @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
-	@param count: C{int} maximum number of records to return (zero returns all).
-    @return: C{dict} containing a C{dict} of attributes for each record found,
-        or C{None} otherwise.
+	 @param obj: C{object} the object obtained from an odInit call.
+	 @return: C{list} containing a C{str} for each configured node.
+	 """
+ */
+extern "C" PyObject *listNodes(PyObject *self, PyObject *args)
+{
+    PyObject* pyds;
+    if (!PyArg_ParseTuple(args, "O", &pyds) || !PyCObject_Check(pyds))
+    {
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listNodes: could not parse arguments", 0));
+        return NULL;
+    }
+
+    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+    if (dsmgr != NULL)
+    {
+        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+        CFMutableArrayRef results = NULL;
+        results = ds->ListNodes();
+        if (results != NULL)
+        {
+            PyObject* result = CFArrayToPyList(results);
+            CFRelease(results);
+
+            return result;
+        }
+    }
+    else
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices listNodes: invalid directory service argument", 0));
+
+    return NULL;
+}
+
+/*
+ def listAllRecordsWithAttributes(obj, recordType, attributes, count=0):
+	 """
+	 List records in Open Directory, and return key attributes for each one. The attributes
+	 can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
+	 is the attribute name, and the second C{str} is an encoding type, either "str" or "base64".
+
+	 @param obj: C{object} the object obtained from an odInit call.
+	 @param recordType: C{str}, C{tuple} or C{list} containing the OD record types to lookup.
+	 @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+	 @param count: C{int} maximum number of records to return (zero returns all).
+	 @return: C{dict} containing a C{dict} of attributes for each record found,
+	 or C{None} otherwise.
+	 """
  */
 extern "C" PyObject *listAllRecordsWithAttributes(PyObject *self, PyObject *args)
 {
@@ -860,6 +899,8 @@ extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
 static PyMethodDef ODMethods[] = {
     {"odInit",  odInit, METH_VARARGS,
         "Initialize the Open Directory system."},
+    {"listNodes",  listNodes, METH_VARARGS,
+        "List all the nodes currently configured in Open Directory."},
     {"listAllRecordsWithAttributes",  listAllRecordsWithAttributes, METH_VARARGS,
         "List all records of the specified type in Open Directory, returning requested attributes."},
     {"queryRecordsWithAttribute",  queryRecordsWithAttribute, METH_VARARGS,

@@ -2,7 +2,7 @@
  * A class that wraps high-level Directory Service calls needed by the
  * CalDAV server.
  **
- * Copyright (c) 2006-2008 Apple Inc. All rights reserved.
+ * Copyright (c) 2006-2009 Apple Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ class CDirectoryService
 public:
     CDirectoryService(const char* nodename);
     virtual ~CDirectoryService();
+
+    CFMutableArrayRef ListNodes(bool using_python=true);
 
     CFMutableArrayRef ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount=0, bool using_python=true);
     CFMutableArrayRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount=0, bool using_python=true);
@@ -63,6 +65,8 @@ protected:
     tDirNodeReference     mNode;
     tDataBufferPtr        mData;
     UInt32                mDataSize;
+
+    CFMutableArrayRef _ListNodes();
 
     CFMutableArrayRef _ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFArrayRef names, CFDictionaryRef attrs, UInt32 maxRecordCount);
     CFMutableArrayRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, CFArrayRef recordTypes, CFDictionaryRef attrs, UInt32 maxRecordCount);

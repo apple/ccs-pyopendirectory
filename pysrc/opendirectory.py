@@ -1,5 +1,5 @@
 ##
-# Copyright (c) 2006-2008 Apple Inc. All rights reserved.
+# Copyright (c) 2006-2009 Apple Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,6 +27,14 @@ def odInit(nodename):
         C{None} on failure.
     """
 
+def listNodes(obj):
+    """
+    List all the nodes current configured in Open Directory.
+
+    @param obj: C{object} the object obtained from an odInit call.
+    @return: C{list} containing a C{str} for each configured node.
+    """
+    
 def listAllRecordsWithAttributes(obj, recordType, attributes, count=0):
     """
     List records in Open Directory, and return key attributes for each one.
