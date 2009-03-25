@@ -34,6 +34,15 @@ try:
 			for n in l:
 				print "Node: %s" % n
 	
+	def getNodeAttributes():
+		attrs = opendirectory.getNodeAttributes(ref, "/Search", (dsattributes.kDS1AttrSearchPath,))
+		if attrs is None:
+			print "Failed to get node info"
+		else:
+			print "\ngetNodeAttributes number of results = %d" % (len(attrs),)
+			for k,v in attrs.iteritems():
+				print "Node Attribute: %s: %s" % (k, v,)
+	
 	def listUsers():
 		d = opendirectory.listAllRecordsWithAttributes(ref, dsattributes.kDSStdRecordTypeUsers,
 													   (
@@ -361,6 +370,8 @@ try:
 			print "Failed to authenticate user"
 	
 	listNodes()
+	getNodeAttributes()
+
 	listUsers()
 	listGroups()
 	listComputers()

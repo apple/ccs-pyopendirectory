@@ -101,6 +101,38 @@ CFMutableArrayRef CDirectoryService::ListNodes(bool using_python)
     }
 }
 
+// GetNodeAttributes
+//
+// Return key attributes for the specified directory node.
+//
+// @param nodename: the node name to query.
+// @param attributes: CFArray of CFString listing the attributes to return for each record.
+// @return: CFMutableDictionaryRef composed of CFStringRef for each attribute found.
+//
+CFMutableDictionaryRef CDirectoryService::GetNodeAttributes(const char* nodename, CFDictionaryRef attributes, bool using_python)
+{
+    try
+    {
+        StPythonThreadState threading(using_python);
+		
+        // Get list
+        return _GetNodeAttributes(nodename, attributes);
+    }
+    catch(CDirectoryServiceException& dserror)
+    {
+		if (using_python)
+			dserror.SetPythonException();
+        return NULL;
+    }
+    catch(...)
+    {
+        CDirectoryServiceException dserror;
+		if (using_python)
+	        dserror.SetPythonException();
+        return NULL;
+    }
+}
+
 // ListAllRecordsWithAttributes
 //
 // Get specific attributes for one or more user records in the directory.
@@ -286,6 +318,167 @@ CFMutableArrayRef CDirectoryService::_ListNodes()
         RemoveBuffer();
         CloseService();
 		
+        if (result != NULL)
+        {
+            ::CFRelease(result);
+            result = NULL;
+        }
+        throw;
+    }
+	
+    return result;
+}
+
+// _GetNodeAttributes
+//
+// Return key attributes for the specified directory node.
+//
+// @param nodename: the node name to query.
+// @param attributes: CFArray of CFString listing the attributes to return for each record.
+// @return: CFMutableDictionaryRef composed of CFStringRef for each attribute found.
+//
+CFMutableDictionaryRef CDirectoryService::_GetNodeAttributes(const char* nodename, CFDictionaryRef attributes)
+{
+    CFMutableDictionaryRef result = NULL;
+    CFMutableArrayRef values = NULL;
+	tDirNodeReference node = 0L;
+    tDataListPtr attrTypes = NULL;
+    tContextData context = NULL;
+    tAttributeListRef attrListRef = 0L;
+	
+    try
+    {
+        // Make sure we have a valid directory service
+        OpenService();
+
+		node = OpenNamedNode(nodename);
+		
+        // We need a buffer for what comes next
+        CreateBuffer();
+		
+        // Build data list of attributes
+        attrTypes = ::dsDataListAllocate(mDir);
+        ThrowIfNULL(attrTypes);
+        BuildStringDataListFromKeys(attributes, attrTypes);
+		
+        result = ::CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+		
+        do
+        {
+            // List all the appropriate records
+			UInt32 attrCount = 0;
+            tDirStatus err;
+            do
+            {
+                err = ::dsGetDirNodeInfo(node, attrTypes, mData, false, &attrCount, &attrListRef, &context);
+                if (err == eDSBufferTooSmall)
+                    ReallocBuffer();
+            } while(err == eDSBufferTooSmall);
+            ThrowIfDSErr(err);
+            for(UInt32 i = 1; i <= attrCount; i++)
+            {
+				tAttributeValueListRef attributeValueListRef = NULL;
+				tAttributeEntryPtr attributeInfoPtr = NULL;
+				
+				ThrowIfDSErr(::dsGetAttributeEntry(node, mData, attrListRef, i, &attributeValueListRef, &attributeInfoPtr));
+				
+				if (attributeInfoPtr->fAttributeValueCount > 0)
+				{
+					// Determine what the attribute is and where in the result list it should be put
+					std::auto_ptr<char> attrname(CStringFromBuffer(&attributeInfoPtr->fAttributeSignature));
+					CFStringUtil cfattrname(attrname.get());
+					
+					// Determine whether string/base64 encoding is needed
+					bool base64 = false;
+					CFStringRef encoding = (CFStringRef)::CFDictionaryGetValue(attributes, cfattrname.get());
+					if (encoding && (::CFStringCompare(encoding, CFSTR("base64"), 0) == kCFCompareEqualTo))
+						base64 = true;
+					
+					if (attributeInfoPtr->fAttributeValueCount > 1)
+					{
+						values = ::CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+						
+						for(unsigned long k = 1; k <= attributeInfoPtr->fAttributeValueCount; k++)
+						{
+							// Get the attribute value and store in results
+							tAttributeValueEntryPtr attributeValue = NULL;
+							ThrowIfDSErr(::dsGetAttributeValue(node, mData, k, attributeValueListRef, &attributeValue));
+							std::auto_ptr<char> data;
+							if (base64)
+								data.reset(CStringBase64FromBuffer(&attributeValue->fAttributeValueData));
+							else
+								data.reset(CStringFromBuffer(&attributeValue->fAttributeValueData));
+							CFStringUtil strvalue(data.get());
+							::CFArrayAppendValue(values, strvalue.get());
+							::dsDeallocAttributeValueEntry(mDir, attributeValue);
+							attributeValue = NULL;
+						}
+						::CFDictionarySetValue(result, cfattrname.get(), values);
+						::CFRelease(values);
+						values = NULL;
+					}
+					else
+					{
+						// Get the attribute value and store in results
+						tAttributeValueEntryPtr attributeValue = NULL;
+						ThrowIfDSErr(::dsGetAttributeValue(node, mData, 1, attributeValueListRef, &attributeValue));
+						std::auto_ptr<char> data;
+						if (base64)
+							data.reset(CStringBase64FromBuffer(&attributeValue->fAttributeValueData));
+						else
+							data.reset(CStringFromBuffer(&attributeValue->fAttributeValueData));
+						CFStringUtil strvalue(data.get());
+						if (strvalue.get() != NULL)
+						{
+							::CFDictionarySetValue(result, cfattrname.get(), strvalue.get());
+						}
+						::dsDeallocAttributeValueEntry(mDir, attributeValue);
+						attributeValue = NULL;
+					}
+				}
+				
+				::dsCloseAttributeValueList(attributeValueListRef);
+				attributeValueListRef = NULL;
+				::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
+				attributeInfoPtr = NULL;
+            }
+        } while (context != NULL); // Loop until all data has been obtained.
+		
+        ::dsDataListDeallocate(mDir, attrTypes);
+        free(attrTypes);
+        RemoveBuffer();
+		if (node != 0L)
+		{
+			::dsCloseDirNode(node);
+			node = 0L;
+		}
+        CloseService();
+    }
+    catch(CDirectoryServiceException& dsStatus)
+    {
+        // Cleanup
+        if (context != NULL)
+            ::dsReleaseContinueData(mDir, context);
+		
+        if (attrTypes != NULL)
+        {
+            ::dsDataListDeallocate(mDir, attrTypes);
+            free(attrTypes);
+            attrTypes = NULL;
+        }
+        RemoveBuffer();
+		if (node != 0L)
+		{
+			::dsCloseDirNode(node);
+			node = 0L;
+		}
+        CloseService();
+		
+        if (values != NULL)
+        {
+            ::CFRelease(values);
+            values = NULL;
+        }
         if (result != NULL)
         {
             ::CFRelease(result);

@@ -31,7 +31,8 @@ public:
     CDirectoryService(const char* nodename);
     virtual ~CDirectoryService();
 
-    CFMutableArrayRef ListNodes(bool using_python=true);
+    CFMutableArrayRef		ListNodes(bool using_python=true);
+    CFMutableDictionaryRef	GetNodeAttributes(const char* nodename, CFDictionaryRef attributes, bool using_python=true);
 
     CFMutableArrayRef ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount=0, bool using_python=true);
     CFMutableArrayRef QueryRecordsWithAttribute(const char* attr, const char* value, int matchType, bool casei, CFArrayRef recordTypes, CFDictionaryRef attributes, UInt32 maxRecordCount=0, bool using_python=true);
@@ -67,6 +68,7 @@ protected:
     UInt32                mDataSize;
 
     CFMutableArrayRef _ListNodes();
+    CFMutableDictionaryRef	_GetNodeAttributes(const char* nodename, CFDictionaryRef attributes);
 
     CFMutableArrayRef _ListAllRecordsWithAttributes(CFArrayRef recordTypes, CFArrayRef names, CFDictionaryRef attrs, UInt32 maxRecordCount);
     CFMutableArrayRef _QueryRecordsWithAttributes(const char* attr, const char* value, int matchType, const char* compound, bool casei, CFArrayRef recordTypes, CFDictionaryRef attrs, UInt32 maxRecordCount);

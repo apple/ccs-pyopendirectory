@@ -671,6 +671,67 @@ extern "C" PyObject *listNodes(PyObject *self, PyObject *args)
 }
 
 /*
+ def getNodeAttributes(obj, nodename, attributes):
+ """
+ Return key attributes for the specified directory node. The attributes
+ can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
+ is the attribute name, and the second C{str} is an encoding type, either "str" or "base64".
+ 
+ @param obj: C{object} the object obtained from an odInit call.
+ @param nodename: C{str} containing the OD nodename to query.
+ @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+ @return: C{dict} of attributes found.
+ """
+ */
+extern "C" PyObject *getNodeAttributes(PyObject *self, PyObject *args)
+{
+    PyObject* pyds;
+    const char* nodename;
+    PyObject* attributes;
+    if (!PyArg_ParseTuple(args, "OsO", &pyds, &nodename, &attributes) || !PyCObject_Check(pyds) || !PyTupleOrList::typeOK(attributes))
+    {
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices getNodeAttributes: could not parse arguments", 0));
+        return NULL;
+    }
+	
+    // Convert list to CFArray of CFString
+    CFDictionaryRef cfattributes = NULL;
+	try
+	{
+		cfattributes = AttributesToCFDictionary(attributes);
+	}
+	catch(PyObjectException& ex)
+	{
+		std::string msg("DirectoryServices getNodeAttributes: could not parse attributes list: ");
+		msg += ex.what();
+		PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", msg.c_str(), 0));
+        CFRelease(cfattributes);
+		return NULL;
+	}
+	
+    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+    if (dsmgr != NULL)
+    {
+        std::auto_ptr<CDirectoryService> ds(dsmgr->GetService());
+        CFMutableDictionaryRef results = NULL;
+        results = ds->GetNodeAttributes(nodename, cfattributes);
+        if (results != NULL)
+        {
+            PyObject* result = CFDictionaryToPyDict(results);
+            CFRelease(results);
+            CFRelease(cfattributes);
+			
+            return result;
+        }
+    }
+    else
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices getNodeAttributes: invalid directory service argument", 0));
+	
+    CFRelease(cfattributes);
+    return NULL;
+}
+
+/*
  def listAllRecordsWithAttributes(obj, recordType, attributes, count=0):
 	 """
 	 List records in Open Directory, and return key attributes for each one. The attributes
@@ -899,8 +960,10 @@ extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
 static PyMethodDef ODMethods[] = {
     {"odInit",  odInit, METH_VARARGS,
         "Initialize the Open Directory system."},
-    {"listNodes",  listNodes, METH_VARARGS,
-        "List all the nodes currently configured in Open Directory."},
+	{"listNodes",  listNodes, METH_VARARGS,
+		"List all the nodes currently configured in Open Directory."},
+	{"getNodeAttributes",  getNodeAttributes, METH_VARARGS,
+		"Return key attributes for the specified directory node."},
     {"listAllRecordsWithAttributes",  listAllRecordsWithAttributes, METH_VARARGS,
         "List all records of the specified type in Open Directory, returning requested attributes."},
     {"queryRecordsWithAttribute",  queryRecordsWithAttribute, METH_VARARGS,

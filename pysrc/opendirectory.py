@@ -35,6 +35,18 @@ def listNodes(obj):
     @return: C{list} containing a C{str} for each configured node.
     """
     
+def getNodeAttributes(obj, nodename, attributes):
+    """
+    Return key attributes for the specified directory node. The attributes
+    can be a C{str} for the attribute name, or a C{tuple} or C{list} where the first C{str}
+    is the attribute name, and the second C{str} is an encoding type, either "str" or "base64".
+
+    @param obj: C{object} the object obtained from an odInit call.
+    @param nodename: C{str} containing the OD nodename to query.
+    @param attributes: C{list} or C{tuple} containing the attributes to return for each record.
+    @return: C{dict} of attributes found.
+    """
+
 def listAllRecordsWithAttributes(obj, recordType, attributes, count=0):
     """
     List records in Open Directory, and return key attributes for each one.
