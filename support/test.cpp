@@ -39,11 +39,8 @@ void AuthenticateUserDigest(CDirectoryServiceAuth* dir, const char* guid, const 
 #define		kDSNAttrServicesLocator						"dsAttrTypeStandard:ServicesLocator"
 #define		kDSNAttrJPEGPhoto						    "dsAttrTypeStandard:JPEGPhoto"
 
-int main (int argc, const char * argv[]) {
-
-	CDirectoryService* dir = new CDirectoryService("/Search");
-	CDirectoryServiceAuth* authdir = new CDirectoryServiceAuth();
-
+void ListNodes(CDirectoryService* dir)
+{
 	CFMutableArrayRef data = dir->ListNodes(false);
 	if (data != NULL)
 	{
@@ -67,24 +64,46 @@ int main (int argc, const char * argv[]) {
 		}
 		CFRelease(data);
 	}
+}
 
-#if 1
-#if 0
+void GetNodeAttributes(CDirectoryService* dir)
+{
+	CFStringRef attrs[2];
+	attrs[0] = CFSTR(kDS1AttrSearchPath);
+	attrs[1] = CFSTR(kDS1AttrReadOnlyNode);
+	
+	CFStringRef types[2];
+	types[0] = CFSTR("str");
+	types[1] = CFSTR("str");
+	CFDictionaryRef attrsdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)attrs, (const void **)types, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+	
+	CFMutableDictionaryRef nodeData = dir->GetNodeAttributes("/Search", attrsdict, false);
+	if (nodeData != NULL)
+	{
+		printf("\n*** Node Attributes: %d ***\n", CFDictionaryGetCount(nodeData));
+		CFDictionaryApplyFunction(nodeData, PrintDictionary, NULL);
+		CFRelease(nodeData);
+	}
+	CFRelease(attrsdict);
+}
+
+void GetUserRecordDetails(CDirectoryService* dir)
+{
 	CFStringRef attrs[3];
 	attrs[0] = CFSTR(kDS1AttrDistinguishedName);
 	attrs[1] = CFSTR(kDS1AttrGeneratedUID);
 	attrs[2] = CFSTR(kDSNAttrJPEGPhoto);
-
+	
 	CFStringRef types[3];
 	types[0] = CFSTR("str");
 	types[1] = CFSTR("str");
 	types[2] = CFSTR("base64");
 	CFDictionaryRef attrsdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)attrs, (const void **)types, 3, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-
+	
 	CFStringRef rtypes[1];
 	rtypes[0] = CFSTR(kDSStdRecordTypeUsers);
 	CFArrayRef recordTypes = CFArrayCreate(kCFAllocatorDefault, (const void**)rtypes, 1, &kCFTypeArrayCallBacks);
-
+	
 	CFMutableArrayRef data = dir->ListAllRecordsWithAttributes(recordTypes, attrsdict, 0, false);
 	if (data != NULL)
 	{
@@ -94,7 +113,7 @@ int main (int argc, const char * argv[]) {
 			CFArrayRef tuple = (CFArrayRef)CFArrayGetValueAtIndex(data, i);
 			CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(tuple, 0);
 			const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
-
+			
 			if (bytes == NULL)
 			{
 				char localBuffer[256];
@@ -114,12 +133,17 @@ int main (int argc, const char * argv[]) {
 		printf("\nNo Users returned\n");
 	}
 	CFRelease(attrsdict);
+}
+
+void GetGroupRecordDetails(CDirectoryService* dir)
+{
 #if 0
+	CFStringRef strings[2];
 	strings[0] = CFSTR(kDSNAttrGroupMembers);
 	strings[1] = CFSTR(kDS1AttrGeneratedUID);
-	array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
-
-	data = NULL;//dir->ListAllRecordsWithAttributes(kDSStdRecordTypeGroups, array);
+	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
+	
+	CFMutableArrayRef data = dir->ListAllRecordsWithAttributes(kDSStdRecordTypeGroups, array);
 	if (data != NULL)
 	{
 		printf("\n*** Groups: %d ***\n", CFArrayGetCount(data));
@@ -128,7 +152,7 @@ int main (int argc, const char * argv[]) {
 			CFArrayRef tuple = (CFArrayRef)CFArrayGetValueAtIndex(data, i);
 			CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(tuple, 0);
 			const char* bytes = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
-
+			
 			if (bytes == NULL)
 			{
 				char localBuffer[256];
@@ -149,11 +173,11 @@ int main (int argc, const char * argv[]) {
 	}
 	CFRelease(array);
 #endif
-#endif
+}
 
-	AuthenticateUser(authdir, "/LDAPv3/127.0.0.1", "oliverdaboo", "oliver");
-	AuthenticateUser(authdir, "/LDAPv3/127.0.0.1", "eleanordaboo", "eleanor");
-#elif 0
+void GetSpecificUserRecordDetails(CDirectoryService* dir)
+{
+#if 0
 	CFStringRef keys[2];
 	keys[0] = CFSTR(kDS1AttrFirstName);
 	keys[1] = CFSTR(kDS1AttrLastName);
@@ -161,12 +185,12 @@ int main (int argc, const char * argv[]) {
 	values[0] = CFSTR("cyrus");
 	values[1] = CFSTR("daboo");
 	CFDictionaryRef kvdict = CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void**)values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-
+	
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
 	strings[1] = CFSTR(kDS1AttrGeneratedUID);
 	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
-
+	
 	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttributes(kvdict, eDSContains, false, false, kDSStdRecordTypeUsers, array);
 	if (dict != NULL)
 	{
@@ -179,13 +203,17 @@ int main (int argc, const char * argv[]) {
 		printf("\nNo Users returned\n");
 	}
 	CFRelease(array);
+#endif
+}
 
-#elif 0
+void GetResourcesRecordDetails(CDirectoryService* dir)
+{
+#if 0
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
 	strings[1] = CFSTR(kDS1AttrXMLPlist);
 	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
-
+	
 	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttribute(kDSNAttrServicesLocator, "D9A8E41B", eDSStartsWith, false, kDSStdRecordTypeResources, array);
 	if (dict != NULL)
 	{
@@ -198,15 +226,19 @@ int main (int argc, const char * argv[]) {
 		printf("\nNo Users returned\n");
 	}
 	CFRelease(array);
+#endif
+}
 
-#elif 1
+void GetCompoundResourcesRecordDetails(CDirectoryService* dir)
+{
+#if 0
 	const char* compoundtest = "(&(|(dsAttrTypeStandard:RealName=U2*)(dsAttrTypeStandard:RealName=X S*))(dsAttrTypeStandard:ServicesLocator=D9A8E41B-C591-4D6B-A1CA-B57FFB8EF2F5:F967C034-54B8-4E65-9B38-7A6CD2600268:calendar))";
-
+	
 	CFStringRef strings[2];
 	strings[0] = CFSTR(kDS1AttrDistinguishedName);
 	strings[1] = CFSTR(kDS1AttrXMLPlist);
 	CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, (const void **)strings, 2, &kCFTypeArrayCallBacks);
-
+	
 	CFMutableDictionaryRef dict = dir->QueryRecordsWithAttributes(compoundtest, true, kDSStdRecordTypeResources, array);
 	if (dict != NULL)
 	{
@@ -219,15 +251,28 @@ int main (int argc, const char * argv[]) {
 		printf("\nNo Users returned\n");
 	}
 	CFRelease(array);
+#endif
+}
 
-#else
-	const char* u = "test";
+int main (int argc, const char * argv[]) {
+
+	//CDirectoryService* dir = new CDirectoryService("/Search");
+	CDirectoryServiceAuth* authdir = new CDirectoryServiceAuth();
+
+	//AuthenticateUser(authdir, "/LDAPv3/127.0.0.1", "oliverdaboo", "oliver");
+	AuthenticateUser(authdir, "/LDAPv3/127.0.0.1", "eleanordaboo", "eleanor");
+
+	const char* n = "/LDAPv3/127.0.0.1";
+	//const char* u = "test";
 	//const char* c = "nonce=\"1\", qop=\"auth\", realm=\"Test\", algorithm=\"md5\", opaque=\"1\"";
 	//const char* r = "username=\"test\", nonce=\"1\", cnonce=\"1\", nc=\"1\", realm=\"Test\", algorithm=\"md5\", opaque=\"1\", qop=\"auth\", uri=\"/\", response=\"4241f31ffe6f9c99b891f88e9c41caa9\"";
-	const char* c = "WWW-Authenticate: digest nonce=\"1621696297327727918745238639\", opaque=\"121994e78694cbdff74f12cb32ee6f00-MTYyMTY5NjI5NzMyNzcyNzkxODc0NTIzODYzOSwxMjcuMC4wLjEsMTE2ODU2ODg5NQ==\", realm=\"Test Realm\", algorithm=\"md5\", qop=\"auth\"";
-	const char* r = "Authorization: Digest username=\"test\", realm=\"Test Realm\", nonce=\"1621696297327727918745238639\", uri=\"/principals/users/test/\", response=\"e260f13cffcc15572ddeec9c31de437b\", opaque=\"121994e78694cbdff74f12cb32ee6f00-MTYyMTY5NjI5NzMyNzcyNzkxODc0NTIzODYzOSwxMjcuMC4wLjEsMTE2ODU2ODg5NQ==\", algorithm=\"md5\", cnonce=\"70cbd8f04227d8d46c0193b290beaf0d\", nc=00000001, qop=\"auth\"";
-	AuthenticateUserDigest(authdir, u, c, r, "GET");
-#endif
+	//const char* c = "WWW-Authenticate: digest nonce=\"1621696297327727918745238639\", opaque=\"121994e78694cbdff74f12cb32ee6f00-MTYyMTY5NjI5NzMyNzcyNzkxODc0NTIzODYzOSwxMjcuMC4wLjEsMTE2ODU2ODg5NQ==\", realm=\"Test Realm\", algorithm=\"md5\", qop=\"auth\"";
+	//const char* r = "Authorization: Digest username=\"test\", realm=\"Test Realm\", nonce=\"1621696297327727918745238639\", uri=\"/principals/users/test/\", response=\"e260f13cffcc15572ddeec9c31de437b\", opaque=\"121994e78694cbdff74f12cb32ee6f00-MTYyMTY5NjI5NzMyNzcyNzkxODc0NTIzODYzOSwxMjcuMC4wLjEsMTE2ODU2ODg5NQ==\", algorithm=\"md5\", cnonce=\"70cbd8f04227d8d46c0193b290beaf0d\", nc=00000001, qop=\"auth\"";
+	const char* u = "";
+	const char* c = "DIGEST-MD5";
+	const char* r = "";
+	AuthenticateUserDigest(authdir, n, u, c, r, "GET");
+
 	return 0;
 }
 
