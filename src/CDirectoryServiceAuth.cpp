@@ -158,6 +158,12 @@ bool CDirectoryServiceAuth::NativeAuthenticationBasicToNode(const char* nodename
         ::dsDataNodeDeAllocate(mDir, authType);
         authType = NULL;
         RemoveBuffer();
+
+		// If fatal error, force full reset
+		if (not result and (dirStatus != eDSAuthFailed))
+		{
+			CloseService();
+		}
     }
     catch(...)
     {
@@ -241,6 +247,12 @@ bool CDirectoryServiceAuth::NativeAuthenticationDigestToNode(const char* nodenam
         ::dsDataNodeDeAllocate(mDir, authType);
         authType = NULL;
         RemoveBuffer();
+
+		// If fatal error, force full reset
+		if (not result and (dirStatus != eDSAuthFailed))
+		{
+			CloseService();
+		}
     }
     catch(...)
     {
