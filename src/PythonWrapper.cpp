@@ -909,7 +909,7 @@ extern "C" PyObject *authenticateUserBasic(PyObject *self, PyObject *args)
 }
 
 /*
-def authenticateUserDigest(obj, guid, user, challenge, response, method):
+def authenticateUserDigest(obj, nodename, user, challenge, response, method):
     """
     Authenticate using HTTP Digest credentials to Open Directory.
 
@@ -957,6 +957,92 @@ extern "C" PyObject *authenticateUserDigest(PyObject *self, PyObject *args)
     return NULL;
 }
 
+/*
+def authenticateUserDigestToActiveDirectory(obj, nodename, user, challenge, response):
+    """
+    Authenticate using HTTP Digest credentials to an Active Directory node (exported by Open Directory).
+
+    @param obj: C{object} the object obtained from an odInit call.
+    @param nodename: C{str} the directory nodename for the record to check.
+    @param user: C{str} the user identifier/directory record name to check.
+    @param response: C{str} the HTTP response sent from the client.
+    @return: C{True} if the user was found, C{False} otherwise.
+    """
+ */
+extern "C" PyObject *authenticateUserDigestToActiveDirectory(PyObject *self, PyObject *args)
+{
+    PyObject* pyds;
+    const char* nodename;
+    const char* user;
+    const char* response;
+    if (!PyArg_ParseTuple(args, "Osss", &pyds, &nodename, &user, &response) || !PyCObject_Check(pyds))
+    {
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserDigestToActiveDirectory: could not parse arguments", 0));
+        return NULL;
+    }
+
+    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+    if (dsmgr != NULL)
+    {
+        CDirectoryServiceAuth* ds = dsmgr->GetAuthService();
+        bool result = false;
+        bool authresult = false;
+        result = ds->AuthenticateUserDigestToActiveDirectory(nodename, user, response, authresult);
+        if (result)
+        {
+            if (authresult)
+                Py_RETURN_TRUE;
+            else
+                Py_RETURN_FALSE;
+        }
+    }
+    else
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserDigestToActiveDirectory: invalid directory service argument", 0));
+
+    return NULL;
+}
+
+/*
+def getDigestMD5ChallengeFromActiveDirectory(obj, nodename, user ):
+    """
+    Get the Digest MD5 challenge (a.k.a. a nonce) from an Active Directory node (exported by Open Directory).
+
+    @param obj: C{object} the object obtained from an odInit call.
+    @param nodename: C{str} the directory nodename for the record to check.
+    @param user: C{str} the user identifier/directory record name to check.
+    @return: C{string} containing the AD server-generated challange.
+    """
+ */
+extern "C" PyObject *getDigestMD5ChallengeFromActiveDirectory(PyObject *self, PyObject *args)
+{
+    PyObject* pyds;
+    const char* nodename;
+    if (!PyArg_ParseTuple(args, "Os", &pyds, &nodename) || !PyCObject_Check(pyds))
+    {
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserDigestToActiveDirectory: could not parse arguments", 0));
+        return NULL;
+    }
+
+    CDirectoryServiceManager* dsmgr = static_cast<CDirectoryServiceManager*>(PyCObject_AsVoidPtr(pyds));
+    if (dsmgr != NULL)
+    {
+        CDirectoryServiceAuth* ds = dsmgr->GetAuthService();
+        CFStringRef challenge = NULL;
+        challenge = ds->GetDigestMD5ChallengeFromActiveDirectory(nodename);
+        if (challenge != NULL)
+        {
+			PyObject* result = CFStringToPyStr(challenge);
+            CFRelease(challenge);
+
+            return result;
+        }
+    }
+    else
+        PyErr_SetObject(ODException_class, Py_BuildValue("((s:i))", "DirectoryServices authenticateUserDigestToActiveDirectory: invalid directory service argument", 0));
+
+    return NULL;
+}
+
 static PyMethodDef ODMethods[] = {
     {"odInit",  odInit, METH_VARARGS,
         "Initialize the Open Directory system."},
@@ -980,6 +1066,10 @@ static PyMethodDef ODMethods[] = {
         "Authenticate a user with a password to Open Directory using plain text authentication."},
     {"authenticateUserDigest",  authenticateUserDigest, METH_VARARGS,
         "Authenticate a user with a password to Open Directory using HTTP DIGEST authentication."},
+    {"authenticateUserDigestToActiveDirectory",  authenticateUserDigestToActiveDirectory, METH_VARARGS,
+        "Authenticate a user with a password to an Active Directory node (exported by Open Directory) using HTTP DIGEST authentication."},
+    {"getDigestMD5ChallengeFromActiveDirectory",  getDigestMD5ChallengeFromActiveDirectory, METH_VARARGS,
+        "Get a Digest MD5 challange (a.k.a. a nonce) from an Active Directory node (exported by Open Directory)."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

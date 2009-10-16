@@ -32,6 +32,9 @@ public:
 
     bool AuthenticateUserBasic(const char* nodename, const char* user, const char* pswd, bool& result, bool using_python=true);
     bool AuthenticateUserDigest(const char* nodename, const char* user, const char* challenge, const char* response, const char* method, bool& result, bool using_python=true);
+    bool AuthenticateUserDigestToActiveDirectory(const char* nodename, const char* user, const char* response, bool& result, bool using_python=true);
+	
+	CFStringRef GetDigestMD5ChallengeFromActiveDirectory(const char* nodename, bool using_python=true);
 
 protected:
 
@@ -40,6 +43,7 @@ protected:
 
     bool NativeAuthenticationBasicToNode(const char* nodename, const char* user, const char* pswd);
     bool NativeAuthenticationDigestToNode(const char* nodename, const char* user, const char* challenge, const char* response, const char* method);
+	bool NativeAuthenticationSASLDigestToNode(const char* nodename, const char* user, const char* sasldata, CFStringRef* saslResult = NULL);
 
     virtual void CloseService();
     virtual tDirNodeReference OpenNamedNode(const char* nodename);

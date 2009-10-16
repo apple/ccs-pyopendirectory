@@ -143,40 +143,60 @@ def doAuthDigest(username, password, qop, algorithm):
         return
     nodename = result[0][1][dsattributes.kDSNAttrMetaNodeLocation]
     
-    expected = calcResponse(
-                calcHA1(algorithm, username, realm, password, nonce, cnonce),
-                algorithm, nonce, nc, cnonce, qop, method, uri, None
+    print( '    User node= "%s"' % nodename)
+    if nodename.startswith("/Active Directory/"):
+
+        challenge = opendirectory.getDigestMD5ChallengeFromActiveDirectory(od, nodename)
+        response = "bogus"
+        print "    Challenge: %s" % (challenge,)
+        print "    Response:  %s" % (response, )
+        
+        for _ignore_x in xrange(attempts):
+            success = opendirectory.authenticateUserDigestToActiveDirectory(
+                od, 
+                nodename,
+                username,
+                response,
             )
-    #print expected
-    
-    if qop:
-        challenge = 'Digest realm="%s", nonce="%s", algorithm=%s, qop="%s"' % (realm, nonce, algorithm, qop,)
+        
+            if not success:
+                failures += 1
     else:
-        challenge = 'Digest realm="%s", nonce="%s", algorithm=%s' % (realm, nonce, algorithm,)
-    if qop:
-        response = ('Digest username="%s", realm="%s", '
-                'nonce="%s", digest-uri="%s", '
-                'response=%s, algorithm=%s, cnonce="%s", qop=%s, nc=%s' % (username, realm, nonce, uri, expected, algorithm, cnonce, qop, nc, ))
-    else:
-        response = ('Digest username="%s", realm="%s", '
-                'nonce="%s", digest-uri="%s", '
-                'response=%s, algorithm=%s' % (username, realm, nonce, uri, expected, algorithm, ))
     
-    print "    Challenge: %s" % (challenge,)
-    print "    Response:  %s" % (response, )
-    
-    for _ignore_x in xrange(attempts):
-        success = opendirectory.authenticateUserDigest(
-            od, 
-            nodename,
-            username,
-            challenge,
-            response,
-            method
-        )
-    
-        if not success:
-            failures += 1
+        expected = calcResponse(
+                    calcHA1(algorithm, username, realm, password, nonce, cnonce),
+                    algorithm, nonce, nc, cnonce, qop, method, uri, None
+                )
+        #print expected
+        
+        if qop:
+            challenge = 'Digest realm="%s", nonce="%s", algorithm=%s, qop="%s"' % (realm, nonce, algorithm, qop,)
+        else:
+            challenge = 'Digest realm="%s", nonce="%s", algorithm=%s' % (realm, nonce, algorithm,)
+        if qop:
+            response = ('Digest username="%s", realm="%s", '
+                    'nonce="%s", digest-uri="%s", '
+                    'response=%s, algorithm=%s, cnonce="%s", qop=%s, nc=%s' % (username, realm, nonce, uri, expected, algorithm, cnonce, qop, nc, ))
+        else:
+            response = ('Digest username="%s", realm="%s", '
+                    'nonce="%s", digest-uri="%s", '
+                    'response=%s, algorithm=%s' % (username, realm, nonce, uri, expected, algorithm, ))
+        
+        print "    Challenge: %s" % (challenge,)
+        print "    Response:  %s" % (response, )
+        
+        for _ignore_x in xrange(attempts):
+            success = opendirectory.authenticateUserDigest(
+                od, 
+                nodename,
+                username,
+                challenge,
+                response,
+                method
+            )
+        
+            if not success:
+                failures += 1
     
     print "\n%d failures out of %d attempts for Digest.\n\n" % (failures, attempts)
 
@@ -216,6 +236,6 @@ attempts = int(raw_input("Number of attempts: "))
 
 od = opendirectory.odInit(search)
 
-#doAuthBasic(user, pswd)
+doAuthBasic(user, pswd)
 doAuthDigest(user, pswd, None, "md5")
 

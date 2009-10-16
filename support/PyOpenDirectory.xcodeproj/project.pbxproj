@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		661DFBCA1088E5C900846632 /* libsasl2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 661DFBC91088E5C900846632 /* libsasl2.2.dylib */; };
 		8DD76F650486A84900D96B5E /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* test.cpp */; settings = {ATTRIBUTES = (); }; };
 		AF00155A0B8A21340045DAEE /* Python.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF0015590B8A21340045DAEE /* Python.framework */; };
 		AF00155E0B8A21FD0045DAEE /* PythonWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF155A310A501F84007E1E6E /* PythonWrapper.cpp */; };
@@ -38,6 +39,7 @@
 
 /* Begin PBXFileReference section */
 		08FB7796FE84155DC02AAC07 /* test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test.cpp; sourceTree = "<group>"; };
+		661DFBC91088E5C900846632 /* libsasl2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsasl2.2.dylib; path = /usr/lib/libsasl2.2.dylib; sourceTree = "<absolute>"; };
 		8DD76F6C0486A84900D96B5E /* PyOpenDirectory */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PyOpenDirectory; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF0015590B8A21340045DAEE /* Python.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Python.framework; path = /System/Library/Frameworks/Python.framework; sourceTree = "<absolute>"; };
 		AF02AC560CBE690500F478B8 /* CDirectoryServiceException.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CDirectoryServiceException.cpp; path = ../src/CDirectoryServiceException.cpp; sourceTree = SOURCE_ROOT; };
@@ -65,6 +67,7 @@
 				AF155A370A501F9D007E1E6E /* CoreFoundation.framework in Frameworks */,
 				AF155A380A501F9D007E1E6E /* DirectoryService.framework in Frameworks */,
 				AF00155A0B8A21340045DAEE /* Python.framework in Frameworks */,
+				661DFBCA1088E5C900846632 /* libsasl2.2.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,6 +119,7 @@
 				AF0015590B8A21340045DAEE /* Python.framework */,
 				AF155A350A501F9D007E1E6E /* CoreFoundation.framework */,
 				AF155A360A501F9D007E1E6E /* DirectoryService.framework */,
+				661DFBC91088E5C900846632 /* libsasl2.2.dylib */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
