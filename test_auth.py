@@ -20,6 +20,7 @@ import opendirectory
 import dsattributes
 import md5
 import sha
+import shlex
 
 algorithms = {
     'md5': md5.new,
@@ -96,7 +97,7 @@ def calcResponse(
     m.update(pszMethod)
     m.update(":")
     m.update(pszDigestUri)
-    if pszQop == "auth-int":
+    if pszQop == "auth-int" or pszQop == "auth-conf":
         m.update(":")
         m.update(pszHEntity)
     HA2 = m.digest().encode('hex')
@@ -120,16 +121,20 @@ def calcResponse(
 
 attempts = 100
 
-realm = "/Search"
-nonce = "128446648710842461101646794502"
-nc = "00000001"
-cnonce = "0a4f113b12345"
-uri = "/principals/"
-method = "GET"
 
 def doAuthDigest(username, password, qop, algorithm):
     failures = 0
     
+    realm = "host.example.com"
+    nonce = "128446648710842461101646794502"
+    nc = "00000001"
+    cnonce = "/rrD6TqPA3lHRmg+fw/vyU6oWoQgzK7h9yWrsCmv/lE="
+    uri = "http://host.example.com"
+    method = "GET"
+    entity = "00000000000000000000000000000000"
+    cipher = "rc4"
+    maxbuf = "65536"
+
     result = opendirectory.queryRecordsWithAttribute_list(
         od,
         dsattributes.kDSNAttrRecordName,
@@ -144,39 +149,88 @@ def doAuthDigest(username, password, qop, algorithm):
     nodename = result[0][1][dsattributes.kDSNAttrMetaNodeLocation]
     
     print( '    User node= "%s"' % nodename)
-    if nodename.startswith("/Active Directory/"):
-
-        challenge = opendirectory.getDigestMD5ChallengeFromActiveDirectory(od, nodename)
-        response = "bogus"
-        print "    Challenge: %s" % (challenge,)
-        print "    Response:  %s" % (response, )
+    adUser = nodename.startswith("/Active Directory/")
         
-        for _ignore_x in xrange(attempts):
-            success = opendirectory.authenticateUserDigestToActiveDirectory(
-                od, 
-                nodename,
-                username,
-                response,
-            )
-        
-            if not success:
-                failures += 1
-    else:
+    for _ignore_x in xrange(attempts):
+        if adUser:
     
+            challenge = opendirectory.getDigestMD5ChallengeFromActiveDirectory(od, nodename)
+            if not challenge:
+                print "Failed to get Active Directory challenge for user: %s" % (username,)
+                return
+            # parse challenge
+            
+            l = shlex.shlex(challenge)
+            l.wordchars = l.wordchars + "_-"
+            l.whitespace = l.whitespace + "=,"
+            auth = {}
+            while 1:
+                k = l.get_token()
+                if not k: 
+                    break
+                v = l.get_token()
+                if not v: 
+                    break
+                v = v.strip('"') # this strip is kind of a hack, should remove matched leading and trailing double quotes
+                       
+                auth[k.strip()] = v.strip()
+                    
+            # get expected response parameters from challenge
+            nonce = auth["nonce"]
+            #nonce = "+Upgraded+v17fa28b0e0cb4c483144a0d568259ca0102de13e7b48ff9261cfa9748b93f83cc09d8ee50638c6d9794e1b4f8485a7dee"
+        
+            if auth.get("digest-uri", False):
+                uri = auth["digest-uri"]
+                
+            qopstr = auth.get("qop", False)
+            if qopstr:
+                qops = qopstr.split(",")
+                if "auth-conf" in qops:
+                    qop = "auth-conf"
+                elif "auth-int" in qops:
+                    qop = "auth-int"
+                elif "quth" in qops:
+                    qop = "auth"
+                else:
+                    qop = qops[0]
+                    
+            if auth.get("realm", False):
+                realm = auth["realm"]
+            if auth.get("algorithm", False):
+                algorithm = auth["algorithm"]
+            
+            cipherstr = auth.get("cipher", False)
+            if cipherstr:
+                ciphers = cipherstr.split(",")
+                if "rc4" in ciphers:
+                    cipher = "rc4"
+                else:
+                    cipher = ciphers[0]
+            
+            if auth.get("maxbuf", False):
+                maxbuf = auth["maxbuf"]
+                
+            method = "AUTHENTICATE"
+                
+        else:
+            
+            if qop:
+                challenge = 'realm="%s", nonce="%s", algorithm=%s, qop="%s"' % (realm, nonce, algorithm, qop,)
+            else:
+                challenge = 'realm="%s", nonce="%s", algorithm=%s' % (realm, nonce, algorithm,)
+        
+        
         expected = calcResponse(
                     calcHA1(algorithm, username, realm, password, nonce, cnonce),
-                    algorithm, nonce, nc, cnonce, qop, method, uri, None
+                    algorithm, nonce, nc, cnonce, qop, method, uri, entity
                 )
-        #print expected
         
         if qop:
-            challenge = 'Digest realm="%s", nonce="%s", algorithm=%s, qop="%s"' % (realm, nonce, algorithm, qop,)
-        else:
-            challenge = 'Digest realm="%s", nonce="%s", algorithm=%s' % (realm, nonce, algorithm,)
-        if qop:
-            response = ('Digest username="%s", realm="%s", '
-                    'nonce="%s", digest-uri="%s", '
-                    'response=%s, algorithm=%s, cnonce="%s", qop=%s, nc=%s' % (username, realm, nonce, uri, expected, algorithm, cnonce, qop, nc, ))
+            response = ('username="%s",realm="%s",algorithm=%s,'
+                    'nonce="%s",cnonce="%s",nc=%s,qop=%s,'
+                    'cipher=%s,maxbuf=%s,digest-uri="%s",response=%s' % (username, realm, algorithm,
+                                                                              nonce, cnonce, nc, qop, 
+                                                                              cipher, maxbuf, uri, expected ))
         else:
             response = ('Digest username="%s", realm="%s", '
                     'nonce="%s", digest-uri="%s", '
@@ -184,8 +238,16 @@ def doAuthDigest(username, password, qop, algorithm):
         
         print "    Challenge: %s" % (challenge,)
         print "    Response:  %s" % (response, )
-        
-        for _ignore_x in xrange(attempts):
+
+    
+        if adUser:
+            success = opendirectory.authenticateUserDigestToActiveDirectory(
+                od, 
+                nodename,
+                username,
+                response,
+            )
+        else:
             success = opendirectory.authenticateUserDigest(
                 od, 
                 nodename,
@@ -194,9 +256,9 @@ def doAuthDigest(username, password, qop, algorithm):
                 response,
                 method
             )
-        
-            if not success:
-                failures += 1
+             
+        if not success:
+            failures += 1
     
     print "\n%d failures out of %d attempts for Digest.\n\n" % (failures, attempts)
 
@@ -228,14 +290,32 @@ def doAuthBasic(username, password):
             failures += 1
     
     print "\n%d failures out of %d attempts for Basic.\n\n" % (failures, attempts)
-
+"""
 search = raw_input("DS search path: ")
 user = raw_input("User: ")
 pswd = getpass("Password: ")
 attempts = int(raw_input("Number of attempts: "))
+"""
+
+# to test, bind your client to Active Directory that contains the user specified below
+
+search = "/Search"
+user = "servicetest"
+pswd = "pass"
+attempts = 10
 
 od = opendirectory.odInit(search)
 
 doAuthBasic(user, pswd)
 doAuthDigest(user, pswd, None, "md5")
+
+# to test, bind your client to an Open Directory master that contains the user specified below
+
+user = "testuser"
+pswd = "test"
+doAuthBasic(user, pswd)
+doAuthDigest(user, pswd, None, "md5")
+doAuthDigest(user, pswd, "auth-int", "md5")
+doAuthDigest(user, pswd, "auth-int", "md5-sess")
+doAuthDigest(user, pswd, "auth-conf", "md5-sess")
 
