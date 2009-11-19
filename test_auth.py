@@ -122,7 +122,7 @@ def calcResponse(
 attempts = 100
 
 
-def doAuthDigest(username, password, qop, algorithm):
+def doAuthDigest(username, password, qop, algorithm, cipher):
     failures = 0
     
     realm = "host.example.com"
@@ -132,7 +132,6 @@ def doAuthDigest(username, password, qop, algorithm):
     uri = "http://host.example.com"
     method = "GET"
     entity = "00000000000000000000000000000000"
-    cipher = "rc4"
     maxbuf = "65536"
 
     result = opendirectory.queryRecordsWithAttribute_list(
@@ -183,30 +182,21 @@ def doAuthDigest(username, password, qop, algorithm):
                 uri = auth["digest-uri"]
                 
             qopstr = auth.get("qop", False)
-            if qopstr:
-                qops = qopstr.split(",")
-                if "auth-conf" in qops:
-                    qop = "auth-conf"
-                elif "auth-int" in qops:
-                    qop = "auth-int"
-                elif "quth" in qops:
-                    qop = "auth"
-                else:
-                    qop = qops[0]
+            if qop not in qopstr.split(","):
+                print "WARINING: input qop=%s not in AD challenge qop=\"%s\"" % (qop, qopstr,)
                     
             if auth.get("realm", False):
                 realm = auth["realm"]
-            if auth.get("algorithm", False):
-                algorithm = auth["algorithm"]
             
-            cipherstr = auth.get("cipher", False)
-            if cipherstr:
-                ciphers = cipherstr.split(",")
-                if "rc4" in ciphers:
-                    cipher = "rc4"
-                else:
-                    cipher = ciphers[0]
+            algostr = auth.get("algorithm", "")
+            if algorithm.lower() != algostr.lower():
+                print "WARINING: input algorithm=%s not in AD challenge algorithm=%s" % (algorithm, algostr,)
             
+            cipherstr = auth.get("cipher", "")
+            if cipher.lower() not in cipherstr.lower().split(","):
+                print "WARINING: input cipher=%s not in AD challenge cipher=\"%s\"" % (cipher, cipherstr,)
+                
+             
             if auth.get("maxbuf", False):
                 maxbuf = auth["maxbuf"]
                 
@@ -221,8 +211,8 @@ def doAuthDigest(username, password, qop, algorithm):
         
         
         expected = calcResponse(
-                    calcHA1(algorithm, username, realm, password, nonce, cnonce),
-                    algorithm, nonce, nc, cnonce, qop, method, uri, entity
+                    calcHA1(algorithm.lower(), username, realm, password, nonce, cnonce),
+                    algorithm.lower(), nonce, nc, cnonce, qop, method, uri, entity
                 )
         
         if qop:
@@ -232,9 +222,7 @@ def doAuthDigest(username, password, qop, algorithm):
                                                                               nonce, cnonce, nc, qop, 
                                                                               cipher, maxbuf, uri, expected ))
         else:
-            response = ('Digest username="%s", realm="%s", '
-                    'nonce="%s", digest-uri="%s", '
-                    'response=%s, algorithm=%s' % (username, realm, nonce, uri, expected, algorithm, ))
+            response = ('Digest username="%s", uri="%s", response=%s' % (username, uri, expected, ))
         
         print "    Challenge: %s" % (challenge,)
         print "    Response:  %s" % (response, )
@@ -307,15 +295,23 @@ attempts = 10
 od = opendirectory.odInit(search)
 
 doAuthBasic(user, pswd)
-doAuthDigest(user, pswd, None, "md5")
+doAuthDigest(user, pswd, "auth-conf", "md5-sess", "rc4")
+doAuthDigest(user, pswd, "auth-conf", "MD5-sess", "RC4")
 
 # to test, bind your client to an Open Directory master that contains the user specified below
 
 user = "testuser"
 pswd = "test"
 doAuthBasic(user, pswd)
-doAuthDigest(user, pswd, None, "md5")
-doAuthDigest(user, pswd, "auth-int", "md5")
-doAuthDigest(user, pswd, "auth-int", "md5-sess")
-doAuthDigest(user, pswd, "auth-conf", "md5-sess")
+doAuthDigest(user, pswd, None, "md5", None)
+#doAuthDigest(user, pswd, None, "md5-sess", "rc4")  # fails
+
+doAuthDigest(user, pswd, "auth", "md5", "rc4")
+doAuthDigest(user, pswd, "auth", "md5-sess", "rc4")
+
+doAuthDigest(user, pswd, "auth-int", "md5", "rc4")
+doAuthDigest(user, pswd, "auth-int", "md5-sess", "rc4")
+
+#doAuthDigest(user, pswd, "auth-conf", "md5", "rc4") # fails
+doAuthDigest(user, pswd, "auth-conf", "md5-sess", "rc4")
 
