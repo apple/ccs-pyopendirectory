@@ -345,6 +345,8 @@ CFMutableDictionaryRef CDirectoryService::_GetNodeAttributes(const char* nodenam
     tDataListPtr attrTypes = NULL;
     tContextData context = NULL;
     tAttributeListRef attrListRef = 0L;
+	tAttributeValueListRef attributeValueListRef = 0L;
+	tAttributeEntryPtr attributeInfoPtr = NULL;
 	
     try
     {
@@ -377,8 +379,6 @@ CFMutableDictionaryRef CDirectoryService::_GetNodeAttributes(const char* nodenam
             ThrowIfDSErr(err);
             for(UInt32 i = 1; i <= attrCount; i++)
             {
-				tAttributeValueListRef attributeValueListRef = NULL;
-				tAttributeEntryPtr attributeInfoPtr = NULL;
 				
 				ThrowIfDSErr(::dsGetAttributeEntry(node, mData, attrListRef, i, &attributeValueListRef, &attributeInfoPtr));
 				
@@ -457,6 +457,10 @@ CFMutableDictionaryRef CDirectoryService::_GetNodeAttributes(const char* nodenam
     catch(CDirectoryServiceException& dsStatus)
     {
         // Cleanup
+        if (attributeValueListRef != 0L)
+			::dsCloseAttributeValueList(attributeValueListRef);
+        if (attributeInfoPtr != NULL)
+			::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
         if (context != NULL)
             ::dsReleaseContinueData(mDir, context);
 		
@@ -515,6 +519,8 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(CFArrayRef re
     tContextData context = NULL;
     tAttributeListRef attrListRef = 0L;
     tRecordEntry* pRecEntry = NULL;
+	tAttributeValueListRef attributeValueListRef = 0L;
+	tAttributeEntryPtr attributeInfoPtr = NULL;
 
     // Must have attributes
     if (::CFDictionaryGetCount(attributes) == 0)
@@ -579,9 +585,6 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(CFArrayRef re
                 // Look at each requested attribute and get one value
                 for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
                 {
-                    tAttributeValueListRef attributeValueListRef = NULL;
-                    tAttributeEntryPtr attributeInfoPtr = NULL;
-
                     ThrowIfDSErr(::dsGetAttributeEntry(mNode, mData, attrListRef, j, &attributeValueListRef, &attributeInfoPtr));
 
                     if (attributeInfoPtr->fAttributeValueCount > 0)
@@ -681,6 +684,10 @@ CFMutableArrayRef CDirectoryService::_ListAllRecordsWithAttributes(CFArrayRef re
     catch(CDirectoryServiceException& dsStatus)
     {
         // Cleanup
+        if (attributeValueListRef != 0L)
+			::dsCloseAttributeValueList(attributeValueListRef);
+        if (attributeInfoPtr != NULL)
+			::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
         if (context != NULL)
             ::dsReleaseContinueData(mDir, context);
         if (attrListRef != 0L)
@@ -765,6 +772,9 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
     tContextData context = NULL;
     tAttributeListRef attrListRef = 0L;
     tRecordEntry* pRecEntry = NULL;
+	tAttributeValueListRef attributeValueListRef = 0L;
+	tAttributeEntryPtr attributeInfoPtr = NULL;
+
 
     // Must have attributes
     if (::CFDictionaryGetCount(attributes) == 0)
@@ -846,9 +856,6 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
                 // Look at each requested attribute and get one value
                 for(unsigned long j = 1; j <= pRecEntry->fRecordAttributeCount; j++)
                 {
-                    tAttributeValueListRef attributeValueListRef = NULL;
-                    tAttributeEntryPtr attributeInfoPtr = NULL;
-
                     ThrowIfDSErr(::dsGetAttributeEntry(mNode, mData, attrListRef, j, &attributeValueListRef, &attributeInfoPtr));
 
                     if (attributeInfoPtr->fAttributeValueCount > 0)
@@ -947,6 +954,10 @@ CFMutableArrayRef CDirectoryService::_QueryRecordsWithAttributes(const char* att
     catch(CDirectoryServiceException& dsStatus)
     {
         // Cleanup
+        if (attributeValueListRef != 0L)
+			::dsCloseAttributeValueList(attributeValueListRef);
+        if (attributeInfoPtr != NULL)
+			::dsDeallocAttributeEntry(mDir, attributeInfoPtr);
         if (context != NULL)
             ::dsReleaseContinueData(mDir, context);
         if (attrListRef != 0L)
