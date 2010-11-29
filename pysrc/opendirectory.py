@@ -166,26 +166,6 @@ def authenticateUserDigest(obj, nodename, user, challenge, response, method):
     @param method: C{str} the HTTP method being used.
     @return: C{True} if the user was found, C{False} otherwise.
     """
-def authenticateUserDigestToActiveDirectory(obj, nodename, user, response):
-    """
-    Authenticate using HTTP Digest credentials to an Active Directory node, 
-    exported by Open Diretory
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @param nodename: C{str} the directory nodename for the record to check.
-    @param user: C{str} the user identifier/directory record name to check.
-    @param response: C{str} the HTTP response sent from the client.
-    @return: C{True} if the user was found, C{False} otherwise.
-    """
-
-def getDigestMD5ChallengeFromActiveDirectory(obj, nodename):
-    """
-    Get an DigestMD5 challenge from Active Directory
-    
-    @param obj: C{object} the object obtained from an odInit call.
-    @param nodename: C{str} the directory nodename for the record to check.
-    @return: C{string} containing the challenge
-    """
 
 class ODError(Exception):
     """
